@@ -34,13 +34,6 @@ public class ProfileActivity extends AppCompatActivity {
                 Toast.makeText(getApplicationContext(), "Button pressed!", Toast.LENGTH_SHORT).show();
             }
         });
-        /*ImageButton editButton = (ImageButton) findViewById(R.id.button_edit);
-        editButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(getApplicationContext(), "Button pressed!", Toast.LENGTH_SHORT).show();
-            }
-        });*/
     }
 
    /* private class CircleImageView extends android.support.v7.widget.AppCompatImageView {

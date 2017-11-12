@@ -35,17 +35,17 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
 
         //LoginUtility.setLoggedOut(MainActivity.this);
-        /*if (!LoginUtility.checkLoggedIn(this)) {
+        if (!LoginUtility.checkLoggedIn(this)) {
             //user should log in
             login();
             return;
-        }*/
+        }
 
         //createMapView();
-        /*
+
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);*/
+        mapFragment.getMapAsync(this);
 
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -55,8 +55,8 @@ public class MainActivity extends AppCompatActivity
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //Intent intent = new Intent(MainActivity.this, MapsActivity.class);
-                //startActivityForResult(intent, MAPS_ACTIVITY_CODE);
+                LoginUtility.setLoggedOut(MainActivity.this);
+                Toast.makeText(getApplicationContext(), "You are logged out!", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -77,22 +77,6 @@ public class MainActivity extends AppCompatActivity
         finish();
     }
 
-   /* private void createMapView(){
-        try {
-            if(googleMap == null){
-                //SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                 //       .findFragmentById(R.id.mapView);
-                //mapFragment.getMapAsync(this);
-
-                if(googleMap == null) {
-                    Toast.makeText(getApplicationContext(),
-                            "Error creating map!",Toast.LENGTH_LONG).show();
-                }
-            }
-        } catch (NullPointerException exception){
-            Log.e("mapApp", exception.toString());
-        }
-    }*/
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
@@ -110,7 +94,6 @@ public class MainActivity extends AppCompatActivity
             drawer.closeDrawer(GravityCompat.START);
         } else {
             super.onBackPressed();
-            LoginUtility.setLoggedOut(MainActivity.this);
             Log.d("back", "pressed");
         }
     }
@@ -169,7 +152,6 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onStop () {
         super.onStop();
-        LoginUtility.setLoggedOut(MainActivity.this);
     }
 
     private class ProfileInfo {
