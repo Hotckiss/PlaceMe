@@ -14,23 +14,23 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class FavouritePlacesActivity extends AppCompatActivity {
+public class RoutesActivity extends AppCompatActivity {
 
-    final String[][] places = {
-            {"Zurich", "Market Place"}, {"Burger King", "Ketch Up"}, {"London", "Dve Palochki"}
+    final String[][] routes = {
+            {"Zurich->St.Petersburg"}, {"Mc Donald's -> Burger King"}, {"London->Zurich"}
     };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_favourite_places);
+        setContentView(R.layout.activity_routes);
 
         int index = LoginUtility.getLoggedIn(this);
 
-        ListView favouriteList = (ListView) findViewById(R.id.fav_places);
+        ListView favouriteList = (ListView) findViewById(R.id.fav_routes);
 
         final ArrayAdapter<String> adapter;
-        adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_checked, places[index]);
+        adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_checked, routes[index]);
         favouriteList.setAdapter(adapter);
 
 
@@ -52,7 +52,7 @@ public class FavouritePlacesActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Toast.makeText(getApplicationContext(), "Place added!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "Route added!", Toast.LENGTH_SHORT).show();
             }
         });
     }

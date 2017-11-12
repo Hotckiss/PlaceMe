@@ -14,6 +14,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.GoogleMap;
@@ -133,13 +134,21 @@ public class MainActivity extends AppCompatActivity
             Intent places = new Intent(this, FavouritePlacesActivity.class);
             startActivity(places);
 
-        } else if (id == R.id.nav_slideshow) {
+        } else if (id == R.id.nav_routes) {
+            Intent routes = new Intent(this, RoutesActivity.class);
+            startActivity(routes);
 
-        } else if (id == R.id.nav_manage) {
+        } else if (id == R.id.nav_settings) {
+            Intent settings = new Intent(this, SettingsActivity.class);
+            startActivity(settings);
 
         } else if (id == R.id.nav_share) {
+            Toast.makeText(getApplicationContext(), "Nothing to share :(",
+                    Toast.LENGTH_SHORT).show();
 
-        } else if (id == R.id.nav_send) {
+        } else if (id == R.id.nav_exit) {
+            LoginUtility.setLoggedOut(MainActivity.this);
+            login();
 
         }
 

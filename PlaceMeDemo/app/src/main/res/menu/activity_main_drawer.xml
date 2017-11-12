@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
     <group android:checkableBehavior="single">
         <item
@@ -11,11 +12,11 @@
             android:icon="@drawable/ic_menu_gallery"
             android:title="My Favourite Places" />
         <item
-            android:id="@+id/nav_slideshow"
-            android:icon="@drawable/common_google_signin_btn_icon_dark_normal"
+            android:id="@+id/nav_routes"
+            android:icon="@android:drawable/ic_menu_myplaces"
             android:title="My Routes" />
         <item
-            android:id="@+id/nav_manage"
+            android:id="@+id/nav_settings"
             android:icon="@drawable/ic_menu_manage"
             android:title="Settings" />
     </group>
@@ -27,9 +28,9 @@
                 android:icon="@drawable/ic_menu_share"
                 android:title="Share" />
             <item
-                android:id="@+id/nav_send"
-                android:icon="@drawable/ic_menu_send"
-                android:title="Send" />
+                android:id="@+id/nav_exit"
+                android:icon="@android:drawable/ic_lock_power_off"
+                android:title="Exit" />
         </menu>
     </item>
 
