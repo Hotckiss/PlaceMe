@@ -26,7 +26,6 @@ public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback {
 
     private GoogleMap googleMap;
-    private ProfileInfo[] pi = new ProfileInfo[] { new ProfileInfo("Alina", "Erokhina"), new ProfileInfo("Andrew", "Kirilenko"), new ProfileInfo("Vika", "Erokhina") };
     private static final int MAPS_ACTIVITY_CODE = 7;
 
     @Override
@@ -35,7 +34,7 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
 
         //LoginUtility.setLoggedOut(MainActivity.this);
-        if (!LoginUtility.checkLoggedIn(this)) {
+        if (LoginUtility.getLoggedIn(this) == -1) {
             //user should log in
             login();
             return;
@@ -152,14 +151,5 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onStop () {
         super.onStop();
-    }
-
-    private class ProfileInfo {
-        private String name;
-        private String surname;
-        public ProfileInfo(String n, String m) {
-            name = n;
-            surname = m;
-        }
     }
 }

@@ -53,9 +53,9 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
      * TODO: remove after connecting to a real authentication system.
      */
     private static final String[] DUMMY_CREDENTIALS = new String[]{
+            "alina@erokhina:12345",
             "login@test.com:12345",
-            "a@b:12345",
-            "aa@b:123456"
+            "vika@erokhina:12345"
     };
     /**
      * Keep track of the login task to ensure we can cancel it if requested.
@@ -322,14 +322,21 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             } catch (InterruptedException e) {
                 return false;
             }
-
+            int i = 0;
             for (String credential : DUMMY_CREDENTIALS) {
 
                 String[] pieces = credential.split(":");
                 if (pieces[0].equals(mEmail)) {
                     // Account exists, return true if the password matches.
-                    return pieces[1].equals(mPassword);
+                    if(pieces[1].equals(mPassword)) {
+                       // Log.d("succcccccccccccc", ((Integer)i).toString());
+                        LoginUtility.setLoggedIn(LoginActivity.this, i);
+                        return true;
+                    } else {
+                        return false;
+                    }
                 }
+                i++;
             }
             //return false;
             // TODO: register the new account here.
@@ -342,10 +349,10 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             showProgress(false);
 
             if (success) {
-               // Log.d("suc", "cess");
+
+                //LoginUtility.setLoggedIn(LoginActivity.this, 1);
                 Intent main = new Intent(LoginActivity.this, MainActivity.class);
                 startActivity(main);
-                LoginUtility.setLoggedIn(LoginActivity.this);
                 finish();
             } else {
                 mPasswordView.setError(getString(R.string.error_incorrect_password));

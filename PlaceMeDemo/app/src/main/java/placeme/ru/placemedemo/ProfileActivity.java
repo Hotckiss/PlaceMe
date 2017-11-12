@@ -5,6 +5,7 @@ import android.graphics.Canvas;
 import android.graphics.Path;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -16,14 +17,26 @@ import com.dd.CircularProgressButton;
 
 public class ProfileActivity extends AppCompatActivity {
 
+    private ProfileInfo[] pi = new ProfileInfo[] { new ProfileInfo("Alina", "Erokhina", "@aliscafo"), new ProfileInfo("Andrew", "Kirilenko", "@hotckiss"),
+            new ProfileInfo("Vika", "Erokhina", "@kinfsfoill") };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
 
+        Log.d("user::::", ((Integer)LoginUtility.getLoggedIn(this)).toString());
         //ImageView iv = (ImageView) findViewById(R.id)
-        TextView tv = (TextView) findViewById(R.id.profile);
-        tv.setText("Here is your profile");
+        int index = LoginUtility.getLoggedIn(this);
+
+        TextView tvName = (TextView) findViewById(R.id.name);
+        tvName.setText(pi[index].getName());
+
+        TextView tvSurname = (TextView) findViewById(R.id.surname);
+        tvSurname.setText(pi[index].getSurname());
+
+        TextView tvNickname = (TextView) findViewById(R.id.nickname);
+        tvNickname.setText(pi[index].getNickname());
 
         CircularProgressButton editButton  = (CircularProgressButton) findViewById(R.id.button_edit);
         //Button mEmailSignInButton = (Button) findViewById(R.id.email_sign_in_button);
@@ -36,24 +49,27 @@ public class ProfileActivity extends AppCompatActivity {
         });
     }
 
-   /* private class CircleImageView extends android.support.v7.widget.AppCompatImageView {
-        public CircleImageView(Context context) {
-            super(context);
+    private class ProfileInfo {
+        private String name;
+        private String surname;
+        private String nickname;
+        public ProfileInfo(String name, String surname, String nickname) {
+            this.name = name;
+            this.surname = surname;
+            this.nickname = nickname;
         }
 
-        @Override
-        protected void onDraw(Canvas canvas) {
-            //создаем круг
-            final float halfWidth = canvas.getWidth()/2;
-            final float halfHeight = canvas.getHeight()/2;
-            final float radius = Math.max(halfWidth, halfHeight);
-            final Path path = new Path();
-            path.addCircle(halfWidth, halfHeight, radius, Path.Direction.CCW);
-
-            //обрезаем
-            canvas.clipPath(path);
-
-            super.onDraw(canvas);
+        public String getName() {
+            return name;
         }
-    }*/
+
+        public String getSurname() {
+            return surname;
+        }
+
+        public String getNickname() {
+            return nickname;
+        }
+
+    }
 }

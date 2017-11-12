@@ -32,22 +32,38 @@
             android:layout_height="120dp"
             android:src="@drawable/profile_face"/>
 
-        <TextView
-            android:id="@+id/profile"
-            android:layout_width="185dp"
-            android:layout_height="40dp"
-            android:text="TextrhndhndthnrView"
-            android:gravity="center"/>
+
+        <LinearLayout android:orientation="horizontal" android:layout_height="wrap_content" android:layout_width="wrap_content">
+
+            <TextView
+                android:id="@+id/name"
+                android:layout_width="wrap_content"
+                android:layout_height="30dp"
+                android:gravity="center"
+                android:padding="3dp"
+                android:textStyle="italic" />
+
+            <TextView
+                android:id="@+id/surname"
+                android:layout_width="wrap_content"
+                android:layout_height="30dp"
+                android:gravity="center"
+                android:padding="3dp"
+                android:textStyle="italic" />
+    </LinearLayout>
 
         <TextView
-            android:id="@+id/textView3"
-            android:layout_width="99dp"
-            android:layout_height="20dp"
-            android:text="TextView"
-            android:gravity="center"/>
+            android:id="@+id/nickname"
+            android:layout_width="wrap_content"
+            android:layout_height="30dp"
+            android:gravity="center"
+            android:padding="3dp"
+            android:textStyle="bold" />
+
         <com.dd.CircularProgressButton
             android:id="@+id/button_edit"
             android:layout_width="120dp"
+            android:padding="12dp"
             android:layout_height="wrap_content"
             android:textColor="@color/colorAccent"
             android:textStyle="bold"
