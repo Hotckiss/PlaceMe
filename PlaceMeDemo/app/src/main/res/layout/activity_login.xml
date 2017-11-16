@@ -63,16 +63,14 @@
 
             </android.support.design.widget.TextInputLayout>
 
-            <com.dd.CircularProgressButton
+            <Button
                 android:id="@+id/email_sign_in_button"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:background="@color/cpb_green"
+                android:text="@string/action_sign_in"
                 android:textColor="@color/colorAccent"
-                android:textStyle="bold"
-                app:cpb_cornerRadius="48dp"
-                app:cpb_iconComplete="@drawable/ic_action_accept"
-                app:cpb_iconError="@drawable/ic_action_cancel"
-                app:cpb_textIdle="@string/action_sign_in" />
+                android:textStyle="bold" />
 
 
         </LinearLayout>
