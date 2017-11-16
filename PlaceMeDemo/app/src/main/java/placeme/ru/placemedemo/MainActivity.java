@@ -1,9 +1,17 @@
 package placeme.ru.placemedemo;
 
+import android.Manifest;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.RequiresApi;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -21,13 +29,18 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.*;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import static android.Manifest.permission.READ_CONTACTS;
+
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback {
+        implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, GoogleMap.OnMapClickListener,
+        GoogleMap.OnMapLongClickListener, GoogleMap.OnMyLocationButtonClickListener, GoogleMap.OnMarkerClickListener {
 
     private GoogleMap googleMap;
     private static final int MAPS_ACTIVITY_CODE = 7;
+    private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,15 +90,77 @@ public class MainActivity extends AppCompatActivity
         finish();
     }
 
+    @Override
+    public void onMapClick(LatLng point) {
+        Log.d("onMapClick", "pressed" + point);
+        Toast.makeText(getApplicationContext(), "tapped, point=" + point, Toast.LENGTH_SHORT).show();
+    }
 
     @Override
-    public void onMapReady(GoogleMap googleMap) {
-        googleMap = googleMap;
+    public void onMapLongClick(LatLng point) {
+        Log.d("onMapLongClick", "pressed" + point);
+        googleMap.clear();
+        googleMap.addMarker(new MarkerOptions().position(point).title("My Place"));
+        //googleMap.moveCamera(CameraUpdateFactory.newLatLng(point));
+        //Toast.makeText(getApplicationContext(), "tapped, point=" + point, Toast.LENGTH_SHORT).show();
+    }
 
-        // Add a marker in Sydney, Australia, and move the camera.
-        LatLng sydney = new LatLng(-34, 151);
-        googleMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-        googleMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    @Override
+    public void onMapReady(GoogleMap map) {
+        googleMap = map;
+        googleMap.setOnMyLocationButtonClickListener(this);
+        googleMap.setOnMapClickListener(this);
+        googleMap.setOnMapLongClickListener(this);
+        googleMap.setOnMarkerClickListener(this);
+        Log.d("MAP", "enabled");
+        //enableLocation();
+        //if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
+    }
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        try {
+            googleMap.setMyLocationEnabled(true);
+        } catch (SecurityException se) {
+            se.printStackTrace();
+        }
+    }
+
+    @Override
+    public boolean onMarkerClick(final Marker marker) {
+        Log.d("MRK", "CLICK");
+        //Toast.makeText(this, "Ask to create new place?", Toast.LENGTH_LONG).show();
+        AlertDialog alert = createAlertDialog();
+        alert.show();
+        // Return false to indicate that we have not consumed the event and that we wish
+        // for the default behavior to occur (which is for the camera to move such that the
+        // marker is centered and for the marker's info window to open, if it has one).
+        return false;
+    }
+
+    private AlertDialog createAlertDialog() {
+        AlertDialog.Builder ad;
+        ad = new AlertDialog.Builder(MainActivity.this);
+        ad.setTitle("Creating place");  // заголовок
+        ad.setMessage("Create new place here?"); // сообщение
+        ad.setPositiveButton("Yes!", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int arg1) {
+                Toast.makeText(MainActivity.this, "TODO: creating place", Toast.LENGTH_LONG).show();
+            }
+        });
+        ad.setNegativeButton("No", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int arg1) {
+                ;//Toast.makeText(MainActivity.this, "Exited", Toast.LENGTH_LONG).show();
+            }
+        });
+        ad.setCancelable(true);
+        /*ad.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            public void onCancel(DialogInterface dialog) {
+                ;
+            }
+        });*/
+        return ad.create();
     }
     @Override
     public void onBackPressed() {
@@ -160,5 +235,13 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onStop () {
         super.onStop();
+    }
+
+    @Override
+    public boolean onMyLocationButtonClick() {
+        Toast.makeText(this, "MyLocation button clicked", Toast.LENGTH_SHORT).show();
+        // Return false so that we don't consume the event and the default behavior still occurs
+        // (the camera animates to the user's current position).
+        return false;
     }
 }
