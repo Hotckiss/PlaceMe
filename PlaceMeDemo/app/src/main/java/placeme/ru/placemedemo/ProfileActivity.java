@@ -38,9 +38,9 @@ public class ProfileActivity extends AppCompatActivity {
         TextView tvNickname = (TextView) findViewById(R.id.nickname);
         tvNickname.setText(pi[index].getNickname());
 
-        CircularProgressButton editButton  = (CircularProgressButton) findViewById(R.id.button_edit);
+        Button editButton  = (Button) findViewById(R.id.button_edit);
         //Button mEmailSignInButton = (Button) findViewById(R.id.email_sign_in_button);
-        editButton.setIndeterminateProgressMode(true);
+        //editButton.setIndeterminateProgressMode(true);
         editButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
