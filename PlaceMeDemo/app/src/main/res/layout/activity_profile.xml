@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/colorSeashell"
+    android:background="@drawable/darkblue_small"
     tools:context="placeme.ru.placemedemo.ProfileActivity">
 
     <LinearLayout
@@ -42,30 +42,33 @@
                 android:layout_height="50dp"
                 android:gravity="center"
                 android:padding="3dp"
-                android:textSize="30dp"
-                android:textStyle="italic" />
+                android:textSize="25dp"
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/surname"
                 android:layout_width="wrap_content"
-                android:layout_height="30dp"
+                android:layout_height="50dp"
                 android:gravity="center"
                 android:padding="3dp"
-                android:textStyle="italic" />
+                android:textSize="25dp"
+                android:textStyle="bold" />
     </LinearLayout>
 
         <TextView
             android:id="@+id/nickname"
             android:layout_width="wrap_content"
-            android:layout_height="30dp"
+            android:layout_height="50dp"
             android:gravity="center"
-            android:padding="3dp"
+            android:padding="5dp"
+            android:layout_marginTop="-15dp"
+            android:textSize="20dp"
             android:textStyle="bold" />
 
         <com.dd.CircularProgressButton
             android:id="@+id/button_edit"
             android:layout_width="120dp"
-            android:padding="12dp"
+            android:padding="10dp"
             android:layout_height="wrap_content"
             android:textColor="@color/colorAccent"
             android:textStyle="bold"

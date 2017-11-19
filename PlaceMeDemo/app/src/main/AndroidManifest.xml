@@ -28,7 +28,7 @@
         android:theme="@style/AppTheme">
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyD1UIgAqE15y8SPCjzCtzdEyQndTfi_dI4" />
+            android:value="AIzaSyAUMMzsLOFHPpzCJSuoQRun2KoIs8_9cqY" />
 
         <activity
             android:name=".MainActivity"
@@ -72,7 +72,10 @@
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".SettingsActivity"
-            android:label="@string/title_activity_settings"></activity>
+            android:label="@string/title_activity_settings" />
+        <activity
+            android:name=".MapsActivity"
+            android:label="@string/title_activity_maps"></activity>
     </application>
 
 </manifest>
