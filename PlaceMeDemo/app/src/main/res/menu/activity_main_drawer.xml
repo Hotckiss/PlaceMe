@@ -9,15 +9,15 @@
             android:title="Profile" />
         <item
             android:id="@+id/nav_places"
-            android:icon="@drawable/ic_menu_gallery"
+            android:icon="@drawable/favourite_small"
             android:title="My Favourite Places" />
         <item
             android:id="@+id/nav_routes"
-            android:icon="@android:drawable/ic_menu_myplaces"
+            android:icon="@drawable/routes_small"
             android:title="My Routes" />
         <item
             android:id="@+id/nav_settings"
-            android:icon="@drawable/ic_menu_manage"
+            android:icon="@drawable/settings_small"
             android:title="Settings" />
     </group>
 
