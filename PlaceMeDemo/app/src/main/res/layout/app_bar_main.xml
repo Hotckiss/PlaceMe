@@ -21,7 +21,7 @@
     </android.support.design.widget.AppBarLayout>
 
     <include layout="@layout/content_main" />
-
+    <!--
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab"
         android:layout_width="wrap_content"
@@ -31,5 +31,6 @@
         app:backgroundTint="@color/cpb_green"
         app:rippleColor="@color/common_google_signin_btn_text_light_focused"
         app:srcCompat="@android:drawable/ic_lock_power_off" />
+        -->
 
 </android.support.design.widget.CoordinatorLayout>

@@ -65,16 +65,14 @@
             android:textSize="20dp"
             android:textStyle="bold" />
 
-        <com.dd.CircularProgressButton
+        <Button
             android:id="@+id/button_edit"
             android:layout_width="120dp"
-            android:padding="10dp"
             android:layout_height="wrap_content"
+            android:background="@color/cpb_green"
+            android:padding="10dp"
+            android:text="@string/edit"
             android:textColor="@color/colorAccent"
-            android:textStyle="bold"
-            app:cpb_cornerRadius="48dp"
-            app:cpb_iconComplete="@drawable/ic_action_accept"
-            app:cpb_iconError="@drawable/ic_action_cancel"
-            app:cpb_textIdle="@string/edit" />
+            android:textStyle="bold" />
     </LinearLayout>
 </android.support.constraint.ConstraintLayout>
