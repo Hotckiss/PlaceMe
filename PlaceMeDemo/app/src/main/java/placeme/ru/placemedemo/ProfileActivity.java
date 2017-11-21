@@ -22,6 +22,9 @@ import com.google.firebase.database.FirebaseDatabase;
 
 public class ProfileActivity extends AppCompatActivity {
 
+    private ProfileInfo[] pi = new ProfileInfo[] { new ProfileInfo("Alina", "Erokhina", "@aliscafo"), new ProfileInfo("Andrew", "Kirilenko", "@hotckiss"),
+            new ProfileInfo("Vika", "Erokhina", "@kinfsfoill") };
+
     private FirebaseDatabase mBase;
     private DatabaseReference mDatabaseReference;
     private ChildEventListener childEventListener;
@@ -56,7 +59,7 @@ public class ProfileActivity extends AppCompatActivity {
                         tvSurname.setText(user.getSurname());
 
                         TextView tvNickname = (TextView) findViewById(R.id.nickname);
-                        tvNickname.setText("@" + user.getNickname());
+                        tvNickname.setText(user.getNickname());
                     }
                     // if (LoginUtility.getLoggedIn())
 

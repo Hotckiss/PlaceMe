@@ -13,6 +13,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -24,7 +25,11 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.CheckedTextView;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -63,6 +68,8 @@ public class MainActivity extends AppCompatActivity
     private EditText edDescription;
     private EditText edTags;
     private Marker myPlace;
+
+    private EditText edSearch;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -89,6 +96,24 @@ public class MainActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+
+        edSearch = (EditText) findViewById(R.id.search);
+        edSearch.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                //Toast.makeText(getApplicationContext(), "tapped, point=0", Toast.LENGTH_LONG).show();
+                if(googleMap != null) {
+                    googleMap.clear();
+                }
+
+                Log.d("search", "find!");
+                final String toFind = edSearch.getText().toString();
+                Toast.makeText(getApplicationContext(), toFind, Toast.LENGTH_LONG).show();
+                MapUtilities.addFindedMarkers(googleMap, toFind);
+                AlertDialogCreator.createAlertDialogFinded(MainActivity.this, toFind).show();
+                return false;
+            }
+        });
     }
 
     private void login() {
@@ -107,10 +132,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onMapLongClick(LatLng point) {
         Log.d("onMapLongClick", "pressed" + point);
-        //googleMap.clear();
         googleMap.addMarker(new MarkerOptions().position(point).title("My Place"));
-        //googleMap.moveCamera(CameraUpdateFactory.newLatLng(point));
-        //Toast.makeText(getApplicationContext(), "tapped, point=" + point, Toast.LENGTH_SHORT).show();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
@@ -121,32 +143,9 @@ public class MainActivity extends AppCompatActivity
         googleMap.setOnMapClickListener(this);
         googleMap.setOnMapLongClickListener(this);
         googleMap.setOnMarkerClickListener(this);
-        Log.d("MAP", "enabled");
-        //enableLocation();
-        //if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
 
-        mBase = FirebaseDatabase.getInstance();
-        mDatabaseReference = mBase.getReference().child("places");
-        if( childEventListener == null ) {
-            childEventListener = new ChildEventListener() {
-
-                @Override
-                public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                    Place place = (Place) dataSnapshot.getValue(Place.class);
-                    googleMap.addMarker(new MarkerOptions()
-                            .position(new LatLng(place.getLatitude(), place.getLongitude()))
-                            .title(place.getName()));
-
-                }
-
-                @Override public void onChildChanged(DataSnapshot dataSnapshot, String s) {}
-                @Override public void onChildRemoved(DataSnapshot dataSnapshot) {}
-                @Override public void onChildMoved(DataSnapshot dataSnapshot, String s) {}
-                @Override public void onCancelled(DatabaseError databaseError) {}
-            };
-        }
-        mDatabaseReference.addChildEventListener(childEventListener);
+        requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
+        MapUtilities.addAllMarkers(googleMap);
     }
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
@@ -159,146 +158,20 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public boolean onMarkerClick(final Marker marker) {
-        //Log.d("MRK", "CLICK");
-        //Toast.makeText(this, "Ask to create new place?", Toast.LENGTH_LONG).show();
         if(marker.getTitle().equals("My Place")) {
-            AlertDialog alert = createAlertDialog(marker.getPosition());
+            AlertDialog alert = AlertDialogCreator.createAlertDialog(marker.getPosition(), MainActivity.this);
             alert.show();
             // TODO: i do not like this!
-            refreshMarkers();
+            MapUtilities.refreshMarkers(googleMap);
         }
         else {
-           //Log.d("MRK", "CLICK");
-            mBase = FirebaseDatabase.getInstance();
-            mDatabaseReference = mBase.getReference().child("places");
-            ChildEventListener childEventListener1 = new ChildEventListener() {
-
-                @Override
-                public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                    Place place = (Place) dataSnapshot.getValue(Place.class);
-                    //Log.d("MRK", "CLICK11111");
-                    if ((place.getLatitude() == marker.getPosition().latitude) && (place.getLongitude() == marker.getPosition().longitude)) {
-                        AlertDialog alert = createAlertDescriptionDialog(place);
-                        alert.show();
-                       // Toast.makeText(MainActivity.this, "Show Descr", Toast.LENGTH_LONG).show();
-                    }
-
-                }
-
-                @Override public void onChildChanged(DataSnapshot dataSnapshot, String s) {}
-                @Override public void onChildRemoved(DataSnapshot dataSnapshot) {}
-                @Override public void onChildMoved(DataSnapshot dataSnapshot, String s) {}
-                @Override public void onCancelled(DatabaseError databaseError) {}
-            };
-            mDatabaseReference.addChildEventListener(childEventListener1);
+            AlertDialogCreator.showDescriptionDialog(MainActivity.this, marker);
         }
 
         // Return false to indicate that we have not consumed the event and that we wish
         // for the default behavior to occur (which is for the camera to move such that the
         // marker is centered and for the marker's info window to open, if it has one).
         return false;
-    }
-
-    private void refreshMarkers() {
-        googleMap.clear();
-        ChildEventListener childEventListener1 = new ChildEventListener() {
-
-            @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                Place place = (Place) dataSnapshot.getValue(Place.class);
-                googleMap.addMarker(new MarkerOptions()
-                        .position(new LatLng(place.getLatitude(), place.getLongitude()))
-                        .title(place.getName()));
-
-            }
-
-            @Override public void onChildChanged(DataSnapshot dataSnapshot, String s) {}
-            @Override public void onChildRemoved(DataSnapshot dataSnapshot) {}
-            @Override public void onChildMoved(DataSnapshot dataSnapshot, String s) {}
-            @Override public void onCancelled(DatabaseError databaseError) {}
-        };
-        mDatabaseReference.addChildEventListener(childEventListener1);
-    }
-    private AlertDialog createAlertDialog(final LatLng latLng) {
-        AlertDialog.Builder ad;
-        ad = new AlertDialog.Builder(MainActivity.this);
-        ad.setTitle("Creating place");  // заголовок
-        ad.setMessage("Create new place here?"); // сообщение
-        ad.setPositiveButton("Yes!", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int arg1) {
-                //Toast.makeText(MainActivity.this, "TODO: creating place", Toast.LENGTH_LONG).show();
-                AlertDialog alertNewPlace = createNewPlace(latLng);
-                alertNewPlace.show();
-            }
-        });
-        ad.setNegativeButton("No", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int arg1) {
-
-            }
-        });
-        ad.setCancelable(true);
-        return ad.create();
-    }
-
-    private AlertDialog createAlertDescriptionDialog(final Place place) {
-        AlertDialog.Builder ad;
-        ad = new AlertDialog.Builder(MainActivity.this);
-        ad.setTitle(place.getName());  // заголовок
-        ad.setMessage(place.getDescription()); // сообщение
-        ad.setPositiveButton("Go here!", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int arg1) {
-                //TODO: build root
-                Toast.makeText(MainActivity.this, "TODO: build root", Toast.LENGTH_LONG).show();
-            }
-        });
-        ad.setNegativeButton("Ok", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int arg1) {
-
-            }
-        });
-        ad.setCancelable(true);
-        return ad.create();
-    }
-
-    private AlertDialog createNewPlace(final LatLng latLng) {
-        final AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-        LayoutInflater inflater = MainActivity.this.getLayoutInflater();
-        final View layout = inflater.inflate(R.layout.dialog_new_place, null);
-
-        builder.setPositiveButton("Finish", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int id) {
-                edName = (EditText) layout.findViewById(R.id.place_name);
-                edDescription = (EditText) layout.findViewById(R.id.place_description);
-                edTags = (EditText) layout.findViewById(R.id.place_tags);
-                mBase = FirebaseDatabase.getInstance();
-                mDatabaseReference = mBase.getReference().child("maxidplaces");
-                mDatabaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        Integer id = (Integer) dataSnapshot.getValue(Integer.class);
-                        iid = id;
-                        Place newPlace = new Place(iid, edName.getText().toString(), edDescription.getText().toString(), edTags.getText().toString(), latLng.latitude, latLng.longitude);
-                        DatabaseReference mDatabaseReference1 = mBase.getReference().child("places");
-                        mDatabaseReference1.child(id.toString()).setValue(newPlace);
-                        mDatabaseReference.setValue(iid + 1);
-                    }
-
-                    @Override
-                    public void onCancelled( DatabaseError firebaseError) {
-
-                        Log.d("User", "-1" );
-                    }
-                });
-
-
-            }
-        }).setNegativeButton("Back", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int arg1) {}
-        });
-        builder.setCancelable(true);
-        builder.setView(layout);
-        return builder.create();
     }
 
     @Override
@@ -387,11 +260,9 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public boolean onMyLocationButtonClick() {
-        Toast.makeText(this, "MyLocation button clicked", Toast.LENGTH_SHORT).show();
+        //Toast.makeText(this, "MyLocation button clicked", Toast.LENGTH_SHORT).show();
         // Return false so that we don't consume the event and the default behavior still occurs
         // (the camera animates to the user's current position).
         return false;
     }
-
-
 }
