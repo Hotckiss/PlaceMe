@@ -59,7 +59,7 @@ public class ProfileActivity extends AppCompatActivity {
                         tvSurname.setText(user.getSurname());
 
                         TextView tvNickname = (TextView) findViewById(R.id.nickname);
-                        tvNickname.setText(user.getNickname());
+                        tvNickname.setText("@" + user.getNickname());
                     }
                     // if (LoginUtility.getLoggedIn())
 
