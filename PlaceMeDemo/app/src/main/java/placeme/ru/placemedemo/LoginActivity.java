@@ -32,6 +32,12 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.dd.CircularProgressButton;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,15 +54,10 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
      */
     private static final int REQUEST_READ_CONTACTS = 0;
 
-    /**
-     * A dummy authentication store containing known user names and passwords.
-     * TODO: remove after connecting to a real authentication system.
-     */
-    private static final String[] DUMMY_CREDENTIALS = new String[]{
-            "alina@erokhina:12345",
-            "login@test.com:12345",
-            "vika@erokhina:12345"
-    };
+    private FirebaseDatabase mBase;
+    private DatabaseReference mDatabaseReference;
+    private ChildEventListener childEventListener;
+    private AuthData authData;
     /**
      * Keep track of the login task to ensure we can cancel it if requested.
      */
@@ -88,9 +89,9 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             }
         });
 
-        final CircularProgressButton mEmailSignInButton = (CircularProgressButton) findViewById(R.id.email_sign_in_button);
+        final Button mEmailSignInButton = (Button) findViewById(R.id.email_sign_in_button);
         //Button mEmailSignInButton = (Button) findViewById(R.id.email_sign_in_button);
-        mEmailSignInButton.setIndeterminateProgressMode(true);
+        //mEmailSignInButton.setIndeterminateProgressMode(true);
         mEmailSignInButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -98,7 +99,19 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             }
         });
 
-        mLoginFormView = findViewById(R.id.login_form);
+        final Button mEmailSignUpButton = (Button) findViewById(R.id.email_sign_up_button);
+        //Button mEmailSignInButton = (Button) findViewById(R.id.email_sign_in_button);
+        //mEmailSignInButton.setIndeterminateProgressMode(true);
+        mEmailSignUpButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                Intent register = new Intent(LoginActivity.this, RegisterActivity.class);
+                startActivity(register);
+            }
+        });
+
+        mLoginFormView = findViewById(R.id.email_login_form);
         mProgressView = findViewById(R.id.login_progress);
     }
 
@@ -153,9 +166,10 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
      */
     private void attemptLogin() {
         if (mAuthTask != null) {
+            Log.d("base", "lool");
             return;
         }
-
+        Log.d("base", "loddddfol");
         // Reset errors.
         mEmailView.setError(null);
         mPasswordView.setError(null);
@@ -163,7 +177,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         // Store values at the time of the login attempt.
         String email = mEmailView.getText().toString();
         String password = mPasswordView.getText().toString();
-
+        Log.d("base", password);
         boolean cancel = false;
         View focusView = null;
 
@@ -193,6 +207,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             showProgress(true);
+            Log.d("base1111", password);
             mAuthTask = new UserLoginTask(email, password);
             mAuthTask.execute((Void) null);
         }
@@ -306,7 +321,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
         private final String mEmail;
         private final String mPassword;
-
+        private int stage = -3;
         UserLoginTask(String email, String password) {
             mEmail = email;
             mPassword = password;
@@ -314,33 +329,69 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
         @Override
         protected Boolean doInBackground(Void... params) {
-            // TODO: attempt authentication against a network service.
 
+            mBase = FirebaseDatabase.getInstance();
+            mDatabaseReference = mBase.getReference().child("authdata");
+            if( childEventListener == null ) {
+                childEventListener = new ChildEventListener() {
+
+                    @Override
+                    public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                        AuthData authData = (AuthData) dataSnapshot.getValue(AuthData.class);
+                        if(authData.getLogin().equals(mEmail)) {
+                            stage = -2;
+                            if(authData.getPassword().equals(mPassword)) {
+                                stage = authData.getId();
+                            }
+                        }
+
+                    }
+
+                    @Override
+                    public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+                    }
+
+                    @Override
+                    public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+                    }
+
+                    @Override
+                    public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                };
+            }
+            mDatabaseReference.addChildEventListener(childEventListener);
+
+            // TODO: listener runs parallel thread?!
             try {
                 // Simulate network access.
-                Thread.sleep(2000);
+                Thread.sleep(3000);
             } catch (InterruptedException e) {
                 return false;
             }
-            int i = 0;
-            for (String credential : DUMMY_CREDENTIALS) {
+            mDatabaseReference.child("authdata").removeEventListener(childEventListener);
+            childEventListener = null;
 
-                String[] pieces = credential.split(":");
-                if (pieces[0].equals(mEmail)) {
-                    // Account exists, return true if the password matches.
-                    if(pieces[1].equals(mPassword)) {
-                       // Log.d("succcccccccccccc", ((Integer)i).toString());
-                        LoginUtility.setLoggedIn(LoginActivity.this, i);
-                        return true;
-                    } else {
-                        return false;
-                    }
-                }
-                i++;
+            if (stage == -3) {
+                //TODO: register
+                LoginUtility.setLoggedIn(LoginActivity.this, -1);
+                return false;
+            } else if(stage == -2) {
+                //TODO: incorrect password
+                LoginUtility.setLoggedIn(LoginActivity.this, -1);
+                return false;
             }
-            //return false;
-            // TODO: register the new account here.
-            return false;
+
+            LoginUtility.setLoggedIn(LoginActivity.this, stage);
+            return true;
         }
 
         @Override
@@ -349,8 +400,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             showProgress(false);
 
             if (success) {
-
-                //LoginUtility.setLoggedIn(LoginActivity.this, 1);
                 Intent main = new Intent(LoginActivity.this, MainActivity.class);
                 startActivity(main);
                 finish();
