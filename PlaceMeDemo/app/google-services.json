@@ -1,0 +1,63 @@
+{
+  "project_info": {
+    "project_number": "435472675542",
+    "firebase_url": "https://placemedemo-676f5.firebaseio.com",
+    "project_id": "placemedemo-676f5",
+    "storage_bucket": "placemedemo-676f5.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:435472675542:android:ece73f1160c34d16",
+        "android_client_info": {
+          "package_name": "placeme.ru.placemedemo"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "435472675542-6kr658tg7e6rqbugamg9m0h4kv3n2ui1.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "placeme.ru.placemedemo",
+            "certificate_hash": "967fac60818ca03a497704a566d2c91a9b796e90"
+          }
+        },
+        {
+          "client_id": "435472675542-d2qh62k0edthjf9i37m5869af16ltc9a.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "placeme.ru.placemedemo",
+            "certificate_hash": "d357f499d912713b3c3763654ac076a96f0030a4"
+          }
+        },
+        {
+          "client_id": "435472675542-psj55il959oksi1pt8ek5gfdjbiull8e.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBH8ipnLCxSsIjlLLX4sgcgWl50RBn7Jx8"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "435472675542-psj55il959oksi1pt8ek5gfdjbiull8e.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
