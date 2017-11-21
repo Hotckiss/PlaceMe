@@ -7,152 +7,72 @@
     android:background="@drawable/darkblue_small"
     tools:context="placeme.ru.placemedemo.ProfileActivity">
 
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:orientation="vertical"
+        tools:layout_constraintTop_creator="1"
+        tools:layout_constraintBottom_creator="1"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="1.0"
+        app:layout_constraintHorizontal_bias="1.0"
+        android:gravity="center_horizontal"
+        android:weightSum="1">
 
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            android:layout_marginTop="8dp"
-            android:gravity="center_horizontal"
-            android:orientation="vertical"
-            android:weightSum="1"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintHorizontal_bias="1.0"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="1.0"
-            tools:layout_constraintBottom_creator="1"
-            tools:layout_constraintTop_creator="1">
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:id="@+id/profile_image"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:src="@drawable/profile_face"/>
 
 
-            <de.hdodenhof.circleimageview.CircleImageView xmlns:app="http://schemas.android.com/apk/res-auto"
-                android:id="@+id/profile_image"
-                android:layout_width="120dp"
-                android:layout_height="120dp"
-                android:src="@drawable/profile_face" />
-
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:id="@+id/name"
-                    android:layout_width="wrap_content"
-                    android:layout_height="50dp"
-                    android:gravity="center"
-                    android:padding="3dp"
-                    android:textSize="25dp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/surname"
-                    android:layout_width="wrap_content"
-                    android:layout_height="50dp"
-                    android:gravity="center"
-                    android:padding="3dp"
-                    android:textSize="25dp"
-                    android:textStyle="bold" />
-            </LinearLayout>
+        <LinearLayout android:orientation="horizontal" android:layout_height="wrap_content" android:layout_width="wrap_content">
 
             <TextView
-                android:id="@+id/nickname"
+                android:id="@+id/name"
                 android:layout_width="wrap_content"
                 android:layout_height="50dp"
-                android:layout_marginTop="-15dp"
                 android:gravity="center"
-                android:padding="5dp"
-                android:textSize="20dp"
+                android:padding="3dp"
+                android:textSize="25dp"
                 android:textStyle="bold" />
 
-            <Button
-                android:id="@+id/button_edit"
-                android:layout_width="120dp"
-                android:layout_height="wrap_content"
-                android:background="@drawable/button_color"
-                android:padding="10dp"
-                android:text="@string/edit"
-                android:textColor="@color/colorAccent"
+            <TextView
+                android:id="@+id/surname"
+                android:layout_width="wrap_content"
+                android:layout_height="50dp"
+                android:gravity="center"
+                android:padding="3dp"
+                android:textSize="25dp"
                 android:textStyle="bold" />
-
-            <HorizontalScrollView
-                android:layout_width="match_parent"
-                android:layout_height="100dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"
-                    android:layout_marginTop="8dp"
-                    android:gravity="center_horizontal"
-                    android:orientation="horizontal"
-                    android:padding="10dp"
-                    android:weightSum="1"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintHorizontal_bias="10.0"
-                    app:layout_constraintLeft_toLeftOf="parent"
-                    app:layout_constraintRight_toRightOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintVertical_bias="10.0"
-                    tools:layout_constraintBottom_creator="1"
-                    tools:layout_constraintTop_creator="1">
-
-                    <de.hdodenhof.circleimageview.CircleImageView xmlns:app="http://schemas.android.com/apk/res-auto"
-                        android:id="@+id/friend1"
-                        android:layout_width="70dp"
-                        android:layout_height="60dp"
-                        android:src="@drawable/friend1" />
-
-                    <de.hdodenhof.circleimageview.CircleImageView xmlns:app="http://schemas.android.com/apk/res-auto"
-                        android:id="@+id/friend2"
-                        android:layout_width="70dp"
-                        android:layout_height="60dp"
-                        android:src="@drawable/friend2" />
-
-                    <de.hdodenhof.circleimageview.CircleImageView xmlns:app="http://schemas.android.com/apk/res-auto"
-                        android:id="@+id/friend3"
-                        android:layout_width="70dp"
-                        android:layout_height="60dp"
-                        android:src="@drawable/friend3" />
-
-                    <de.hdodenhof.circleimageview.CircleImageView xmlns:app="http://schemas.android.com/apk/res-auto"
-                        android:id="@+id/friend4"
-                        android:layout_width="70dp"
-                        android:layout_height="60dp"
-                        android:src="@drawable/friend4" />
-
-                    <de.hdodenhof.circleimageview.CircleImageView xmlns:app="http://schemas.android.com/apk/res-auto"
-                        android:id="@+id/friend5"
-                        android:layout_width="70dp"
-                        android:layout_height="60dp"
-                        android:src="@drawable/friend5" />
-
-                    <de.hdodenhof.circleimageview.CircleImageView xmlns:app="http://schemas.android.com/apk/res-auto"
-                        android:id="@+id/friend6"
-                        android:layout_width="70dp"
-                        android:layout_height="60dp"
-                        android:src="@drawable/friend6" />
-
-                    <de.hdodenhof.circleimageview.CircleImageView xmlns:app="http://schemas.android.com/apk/res-auto"
-                        android:id="@+id/friend7"
-                        android:layout_width="70dp"
-                        android:layout_height="60dp"
-                        android:src="@drawable/friend7" />
-
-
-                </LinearLayout>
-
-            </HorizontalScrollView>
-
-
     </LinearLayout>
 
-    </ScrollView>
+        <TextView
+            android:id="@+id/nickname"
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:gravity="center"
+            android:padding="5dp"
+            android:layout_marginTop="-15dp"
+            android:textSize="20dp"
+            android:textStyle="bold" />
 
+        <Button
+            android:id="@+id/button_edit"
+            android:layout_width="120dp"
+            android:layout_height="wrap_content"
+            android:background="@color/cpb_green"
+            android:padding="10dp"
+            android:text="@string/edit"
+            android:textColor="@color/colorAccent"
+            android:textStyle="bold" />
+    </LinearLayout>
 </android.support.constraint.ConstraintLayout>
