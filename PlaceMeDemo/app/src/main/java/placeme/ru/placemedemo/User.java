@@ -10,6 +10,7 @@ public class User {
     private String name;
     private String surname;
     private String nickname;
+    private String favouritePlaces;
 
     public User() {}
 
@@ -18,6 +19,15 @@ public class User {
         this.name = name;
         this.surname = surname;
         this.nickname = nickname;
+        this.favouritePlaces = "";
+    }
+
+    public User(int id, String name, String surname, String nickname, String favouritePlaces) {
+        this.id = id;
+        this.name = name;
+        this.surname = surname;
+        this.nickname = nickname;
+        this.favouritePlaces = favouritePlaces;
     }
 
     public int getId() {return id; }
@@ -34,6 +44,8 @@ public class User {
         return nickname;
     }
 
+    public String getFavouritePlaces() { return favouritePlaces; }
+
     public void setId(int newId) {this.id = newId; }
 
     public void setName(String newName) {
@@ -47,4 +59,9 @@ public class User {
     public void setNickname(String newProfileImg) {
         this.nickname = newProfileImg;
     }
+
+    public void setFavouritePlaces(String newFavouritePlaces) { this.favouritePlaces = newFavouritePlaces; }
+
+    public void addFavouritePlace(String favPlace) { favouritePlaces = favouritePlaces + "," + favPlace; }
+
 }
