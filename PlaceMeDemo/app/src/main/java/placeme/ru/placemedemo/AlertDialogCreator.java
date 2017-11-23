@@ -2,24 +2,58 @@ package placeme.ru.placemedemo;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.graphics.Color;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
+import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.Toast;
 
+import com.akexorcist.googledirection.DirectionCallback;
+import com.akexorcist.googledirection.GoogleDirection;
+import com.akexorcist.googledirection.constant.TransportMode;
+import com.akexorcist.googledirection.model.Direction;
+import com.akexorcist.googledirection.model.Leg;
+import com.akexorcist.googledirection.model.Route;
+import com.akexorcist.googledirection.model.Step;
+import com.akexorcist.googledirection.request.DirectionDestinationRequest;
+import com.akexorcist.googledirection.util.DirectionConverter;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.protocol.HttpContext;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 
 /**
  * Created by Андрей on 21.11.2017.
@@ -35,12 +69,19 @@ public class AlertDialogCreator {
     private static EditText edDescription;
     private static EditText edTags;
 
-    public static AlertDialog createAlertDialogFinded (final Context context, final String toFind) {
+    public static AlertDialog createAlertDialogFinded (final Context context, final String toFind, final GoogleMap googleMap, final LatLng myPosition) {
         AlertDialog.Builder builderSingle = new AlertDialog.Builder(context);
+        LayoutInflater inflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
+        final View layout = inflater.inflate(R.layout.list, null);
+        builderSingle.setView(layout);
         builderSingle.setIcon(R.drawable.icon);
         builderSingle.setTitle("Results of query");
+        final ListView lv = (ListView) layout.findViewById(R.id.lv);
+        lv.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
 
-        final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(context, android.R.layout.select_dialog_singlechoice);
+        final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(context, android.R.layout.select_dialog_multichoice);
+        final ArrayList<Place> placeArrayList = new ArrayList<>();
+
         FirebaseDatabase mBase;
         DatabaseReference mDatabaseReference;
         ChildEventListener childEventListener;
@@ -53,11 +94,13 @@ public class AlertDialogCreator {
                 Place place = (Place) dataSnapshot.getValue(Place.class);
                 if (place.getName().indexOf(toFind) != -1) {
                     arrayAdapter.add(place.getName());
+                    placeArrayList.add(place);
 
                 } else {
                     for (String tag : place.getTags().split(",")) {
                         if (toFind.equals(tag)) {
                             arrayAdapter.add(place.getName());
+                            placeArrayList.add(place);
                             break;
                         }
                     }
@@ -68,6 +111,7 @@ public class AlertDialogCreator {
             @Override public void onChildRemoved(DataSnapshot dataSnapshot) {}
             @Override public void onChildMoved(DataSnapshot dataSnapshot, String s) {}
             @Override public void onCancelled(DatabaseError databaseError) {}
+
         };
         mDatabaseReference.addChildEventListener(childEventListener);
 
@@ -78,31 +122,105 @@ public class AlertDialogCreator {
             }
         });
 
-        builderSingle.setAdapter(arrayAdapter, new DialogInterface.OnClickListener() {
+        lv.setAdapter(arrayAdapter);
+
+        lv.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
-            public void onClick(DialogInterface dialog, int which) {
-                String strName = arrayAdapter.getItem(which);
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                String strName = arrayAdapter.getItem(position);
                 AlertDialog.Builder builderInner = new AlertDialog.Builder(context);
-                builderInner.setMessage(strName);
-                builderInner.setTitle("Do you want to go there?");
-                builderInner.setPositiveButton("Yes!", new DialogInterface.OnClickListener() {
+                builderInner.setMessage(placeArrayList.get(position).getDescription());
+                builderInner.setTitle(placeArrayList.get(position).getName());
+                builderInner.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog,int which) {
-                        //TODO: build root
-                        Toast.makeText(context, "TODO: build root", Toast.LENGTH_LONG).show();
-                    }
-                });
-                builderInner.setNegativeButton("No", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
                         dialog.dismiss();
                     }
                 });
                 builderInner.show();
+                return false;
             }
         });
-        builderSingle.show();
+
+        builderSingle.setPositiveButton("Make route", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                SparseBooleanArray sp=lv.getCheckedItemPositions();
+
+                final LatLng origin = myPosition;
+                LatLng destination = myPosition;
+                DirectionDestinationRequest gd = GoogleDirection.withServerKey("AIzaSyD_WcUAMqVEVW0H84GsXLKBr0HokiO-v_4").from(origin);
+                int lastPoint = -1;
+                for(int i=0;i<placeArrayList.size();i++) {
+                    if(sp.get(i)) {
+                        lastPoint = i;
+                    }
+                    //Log.d(((Integer)i).toString(), ((Boolean)sp.get(i)).toString());
+                }
+
+                if(lastPoint != -1) {
+                    destination = new LatLng(placeArrayList.get(lastPoint).getLatitude(), placeArrayList.get(lastPoint).getLongitude());
+                }
+
+                for(int i=0;i<placeArrayList.size();i++) {
+                    if(sp.get(i)) {
+                        if(i != lastPoint) {
+                            gd.and(new LatLng(placeArrayList.get(i).getLatitude(), placeArrayList.get(i).getLongitude()));
+                        }
+                    }
+                    Log.d(((Integer)i).toString(), ((Boolean)sp.get(i)).toString());
+                }
+
+                gd.to(destination)
+                        .transportMode(TransportMode.DRIVING)
+                        .execute(new DirectionCallback() {
+                            @Override
+                            public void onDirectionSuccess(Direction direction, String rawBody) {
+                                if(direction.isOK()) {
+
+                                    Route route = direction.getRouteList().get(0);
+                                    int legCount = route.getLegList().size();
+                                    for (int index = 0; index < legCount; index++) {
+                                        Leg leg = route.getLegList().get(index);
+                                        googleMap.addMarker(new MarkerOptions().position(leg.getStartLocation().getCoordination()));
+                                        if (index == legCount - 1) {
+                                            googleMap.addMarker(new MarkerOptions().position(leg.getEndLocation().getCoordination()));
+                                        }
+                                        List<Step> stepList = leg.getStepList();
+                                        ArrayList<PolylineOptions> polylineOptionList = DirectionConverter.createTransitPolyline(context, stepList, 5, Color.RED, 3, Color.BLUE);
+                                        for (PolylineOptions polylineOption : polylineOptionList) {
+                                            googleMap.addPolyline(polylineOption);
+                                        }
+                                    }
+                                    // Do something
+                                } else {
+                                    // Do something
+                                }
+                            }
+
+                            @Override
+                            public void onDirectionFailure(Throwable t) {
+                                // Do something
+                            }
+                        });
+
+                String str="";
+                for(int i=0;i<placeArrayList.size();i++)
+                {
+                    Log.d(((Integer)i).toString(), ((Boolean)sp.get(i)).toString());
+                }
+                Toast.makeText(context, ""+str, Toast.LENGTH_SHORT).show();
+            }
+        });
+
         return builderSingle.create();
+    }
+
+    private static void setCameraWithCoordinationBounds(Route route, GoogleMap googleMap) {
+        LatLng southwest = route.getBound().getSouthwestCoordination().getCoordination();
+        LatLng northeast = route.getBound().getNortheastCoordination().getCoordination();
+        LatLngBounds bounds = new LatLngBounds(southwest, northeast);
+        googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100));
     }
 
     public static void showDescriptionDialog(final Context context, final Marker marker) {
