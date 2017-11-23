@@ -1,6 +1,7 @@
 package placeme.ru.placemedemo;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Path;
 import android.support.v7.app.AppCompatActivity;
@@ -98,7 +99,9 @@ public class ProfileActivity extends AppCompatActivity {
         editButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(getApplicationContext(), "Button pressed!", Toast.LENGTH_SHORT).show();
+                Intent edit = new Intent(ProfileActivity.this, EditActivity.class);
+                //profile.putExtra("jjlkn", "kjhgkjbjhbj,kh");
+                startActivity(edit);
             }
         });
     }
