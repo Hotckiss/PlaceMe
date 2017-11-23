@@ -256,9 +256,45 @@ public class AlertDialogCreator {
                 Toast.makeText(context, "TODO: build root", Toast.LENGTH_LONG).show();
             }
         });
+        ad.setNeutralButton("Add to favourite",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        //dialog.cancel();
+
+                        mBase = FirebaseDatabase.getInstance();
+                        mDatabaseReference = mBase.getReference().child("users").child(((Integer)LoginUtility.getLoggedIn(context)).toString()).child("favouritePlaces");
+                        mDatabaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                Log.d("PLACES", dataSnapshot.getValue().toString());
+                                String[] places = dataSnapshot.getValue().toString().split(",");
+                                int flag = 0;
+                                for(String str : places) {
+                                    if(str.equals(((Integer)place.getId()).toString())) {
+                                        flag = 1;
+                                    }
+                                }
+
+                                if(flag == 0) {
+                                    String newFavourite = dataSnapshot.getValue().toString() + "," + ((Integer)place.getId()).toString();
+                                    DatabaseReference mDatabaseReference1 = mBase.getReference().child("users").child(((Integer)LoginUtility.getLoggedIn(context)).toString()).child("favouritePlaces");
+                                    mDatabaseReference1.setValue(newFavourite);
+
+                                }
+                            }
+
+                            @Override
+                            public void onCancelled( DatabaseError firebaseError) {
+
+                                Log.d("User", "-1" );
+                            }
+                        });
+
+                    }
+                });
         ad.setNegativeButton("Ok", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int arg1) {
-
+                dialog.cancel();
             }
         });
         ad.setCancelable(true);
