@@ -103,7 +103,7 @@ public class MainActivity extends AppCompatActivity
 
                 Log.d("search", "find!");
                 final String toFind = edSearch.getText().toString();
-                Toast.makeText(getApplicationContext(), toFind, Toast.LENGTH_LONG).show();
+                //Toast.makeText(getApplicationContext(), toFind, Toast.LENGTH_LONG).show();
                 MapUtilities.addFindedMarkers(googleMap, toFind);
                 AlertDialogCreator.createAlertDialogFinded(MainActivity.this, toFind, googleMap, myPosition).show();
                 return false;
@@ -171,6 +171,10 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public boolean onMarkerClick(final Marker marker) {
+        //Log.d("ddd", marker.getTitle());
+        if(marker.getTitle() == null) {
+            return false;
+        }
         if(marker.getTitle().equals("My Place")) {
             AlertDialog alert = AlertDialogCreator.createAlertDialog(marker.getPosition(), MainActivity.this);
             alert.show();
