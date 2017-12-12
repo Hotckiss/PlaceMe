@@ -63,7 +63,17 @@ public class ProfileActivity extends AppCompatActivity {
                         tvNickname.setText("@" + user.getNickname());
                     }
                     // if (LoginUtility.getLoggedIn())
-
+                    Button editButton  = (Button) findViewById(R.id.button_edit);
+                    //Button mEmailSignInButton = (Button) findViewById(R.id.email_sign_in_button);
+                    //editButton.setIndeterminateProgressMode(true);
+                    editButton.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            Intent edit = new Intent(ProfileActivity.this, EditActivity.class);
+                            //profile.putExtra("jjlkn", "kjhgkjbjhbj,kh");
+                            startActivity(edit);
+                        }
+                    });
                 }
 
                 @Override
@@ -99,9 +109,7 @@ public class ProfileActivity extends AppCompatActivity {
         editButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent edit = new Intent(ProfileActivity.this, EditActivity.class);
-                //profile.putExtra("jjlkn", "kjhgkjbjhbj,kh");
-                startActivity(edit);
+                Toast.makeText(getApplicationContext(), "Button pressed!", Toast.LENGTH_SHORT).show();
             }
         });
     }

@@ -17,7 +17,7 @@ import android.widget.Toast;
 public class RoutesActivity extends AppCompatActivity {
 
     final String[][] routes = {
-            {"Zurich -> St.Petersburg"}, {"Mc Donald's -> Burger King"}, {"London -> Zurich"}
+            {"Zurich->St.Petersburg"}, {"Mc Donald's -> Burger King"}, {"London->Zurich"}
     };
 
     @Override
