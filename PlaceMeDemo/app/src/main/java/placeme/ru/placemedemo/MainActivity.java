@@ -273,14 +273,11 @@ public class MainActivity extends AppCompatActivity
             startActivity(settings);
 
         } else if (id == R.id.nav_share) {
-            //Toast.makeText(getApplicationContext(), "Nothing to share :(",Toast.LENGTH_SHORT).show();
-            Toast.makeText(getApplicationContext(), "Test",
-                    Toast.LENGTH_SHORT).show();
-            //Intent intent = new Intent(Intent.ACTION_PICK);
-
-           // intent.setType("image/*");
-          //  startActivityForResult(intent, GALLERY_INTENT);
-
+            Intent sendIntent = new Intent();
+            sendIntent.setAction(Intent.ACTION_SEND);
+            sendIntent.putExtra(Intent.EXTRA_TEXT, "Я пользуюсь приложением PlaceMe! Присоединяйся и ты: placeme.com :)");
+            sendIntent.setType("text/plain");
+            startActivity(Intent.createChooser(sendIntent, getResources().getText(R.string.send_to)));
         } else if (id == R.id.nav_exit) {
             LoginUtility.setLoggedOut(MainActivity.this);
             login();
