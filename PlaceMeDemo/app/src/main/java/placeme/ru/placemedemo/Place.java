@@ -11,6 +11,9 @@ public class Place {
     private String tags;
     private double latitude;
     private double longitude;
+    private long numberOfRatings;
+    private float sumOfMarks;
+
     Place() {
     }
 
@@ -21,6 +24,19 @@ public class Place {
         this.tags = tags;
         this.latitude = latitude;
         this.longitude = longitude;
+        this.numberOfRatings = 0;
+        this.sumOfMarks = (float)0.0;
+    }
+
+    public void AddTags(String newTags) {
+        this.description = this.description + "," + newTags;
+    }
+
+    public float getMark() {
+        if (numberOfRatings == 0) {
+            return (float)0;
+        }
+        return (float)sumOfMarks/ numberOfRatings;
     }
 
     public int getId() {
@@ -35,9 +51,7 @@ public class Place {
         return description;
     }
 
-    public String getTags() {
-        return tags;
-    }
+    public String getTags() { return tags; }
 
     public double getLatitude() {
         return latitude;
@@ -46,6 +60,10 @@ public class Place {
     public double getLongitude() {
         return longitude;
     }
+
+    public long getNumberOfRatings() { return numberOfRatings; }
+
+    public float getSumOfMarks() { return sumOfMarks; }
 
     public void setId(int newId) {
         this.id = newId;
@@ -63,10 +81,6 @@ public class Place {
         this.tags = newTags;
     }
 
-    public void AddTags(String newTags) {
-        this.description = this.description + "," + newTags;
-    }
-
     public void setLatitude(double newLatitude) {
         this.latitude = newLatitude;
     }
@@ -74,4 +88,8 @@ public class Place {
     public void setLongitude(double newLongitude) {
         this.longitude = newLongitude;
     }
+
+    public void setNumberOfRatings(long newNumberOfRatings) { this.numberOfRatings = newNumberOfRatings; }
+
+    public void setSumOfMarks(float newSumOfMarks) { this.sumOfMarks = newSumOfMarks; }
 }

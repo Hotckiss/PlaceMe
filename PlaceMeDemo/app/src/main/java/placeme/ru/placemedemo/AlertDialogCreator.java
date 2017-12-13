@@ -1,7 +1,9 @@
 package placeme.ru.placemedemo;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Color;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
@@ -11,7 +13,10 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.RatingBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.akexorcist.googledirection.DirectionCallback;
@@ -31,12 +36,16 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -50,10 +59,13 @@ import org.w3c.dom.NodeList;
 
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+
+import static android.support.v4.app.ActivityCompat.startActivityForResult;
 
 /**
  * Created by Андрей on 21.11.2017.
@@ -68,6 +80,11 @@ public class AlertDialogCreator {
     private static EditText edName;
     private static EditText edDescription;
     private static EditText edTags;
+
+    //image
+    private static StorageReference mStorageRef;
+    private static final int GALLERY_INTENT = 2;
+    private static ImageView iv;
 
     public static AlertDialog createAlertDialogFinded (final Context context, final String toFind, final GoogleMap googleMap, final LatLng myPosition) {
         AlertDialog.Builder builderSingle = new AlertDialog.Builder(context);
@@ -203,13 +220,6 @@ public class AlertDialogCreator {
                                 // Do something
                             }
                         });
-
-                String str="";
-                for(int i=0;i<placeArrayList.size();i++)
-                {
-                    Log.d(((Integer)i).toString(), ((Boolean)sp.get(i)).toString());
-                }
-                Toast.makeText(context, ""+str, Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -223,7 +233,7 @@ public class AlertDialogCreator {
         googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100));
     }
 
-    public static void showDescriptionDialog(final Context context, final Marker marker) {
+    /*public static void showDescriptionDialog(final Context context, final Marker marker) {
         mBase = FirebaseDatabase.getInstance();
         mDatabaseReference = mBase.getReference().child("places");
         ChildEventListener childEventListener1 = new ChildEventListener() {
@@ -246,17 +256,85 @@ public class AlertDialogCreator {
     }
 
     public static AlertDialog createAlertDescriptionDialog(final Place place, final Context context) {
-        AlertDialog.Builder ad;
-        ad = new AlertDialog.Builder(context);
-        ad.setTitle(place.getName());  // заголовок
-        ad.setMessage(place.getDescription()); // сообщение
-        ad.setPositiveButton("Go here!", new DialogInterface.OnClickListener() {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        LayoutInflater inflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
+        final View layout = inflater.inflate(R.layout.dialog_description, null);
+
+        builder.setTitle(place.getName());
+        //builder.setMessage(place.getDescription());
+
+        TextView descriptionText = (TextView) layout.findViewById(R.id.descriptionText);
+        descriptionText.setText(place.getDescription());
+
+        RatingBar rb = (RatingBar) layout.findViewById(R.id.total_rating);
+        rb.setRating(place.getMark());
+        builder.setPositiveButton("Go here!", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int arg1) {
                 //TODO: build root
                 Toast.makeText(context, "TODO: build root", Toast.LENGTH_LONG).show();
             }
+        }).setNeutralButton("Rate place!",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        AlertDialog alert = AlertDialogCreator.createAlertRateDialog(place, context);
+                        alert.show();
+
+                    }
+                }).setNegativeButton("Ok", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int arg1) {
+                dialog.cancel();
+            }
         });
-        ad.setNeutralButton("Add to favourite",
+        builder.setCancelable(true);
+        builder.setView(layout);
+        return builder.create();
+
+
+
+    }*/
+
+    public static AlertDialog createAlertRateDialog(final Place place, final Context context) {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        LayoutInflater inflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
+        final View layout = inflater.inflate(R.layout.dialog_rate_place, null);
+
+        builder.setPositiveButton("Rate it!", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int arg1) {
+                //TODO: build root
+                mBase = FirebaseDatabase.getInstance();
+                mDatabaseReference = mBase.getReference().child("places").child(((Integer)place.getId()).toString());
+                mDatabaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+
+                        HashMap<String, Object> currentPlace = (HashMap<String, Object>) dataSnapshot.getValue();
+
+                        RatingBar rb = (RatingBar) layout.findViewById(R.id.rate_place);
+                        Float mark = rb.getRating();
+                        Log.d("RATE", mark.toString());
+                        //Log.d("RATE", currentPlace.get("sumOfMarks").toString());
+                        Float curSum = Float.parseFloat(currentPlace.get("sumOfMarks").toString());
+                        Long curNumOfMarks = Long.parseLong(currentPlace.get("numberOfRatings").toString());
+                        curSum += mark;
+                        curNumOfMarks++;
+
+                        DatabaseReference mDatabaseReference1 = mBase.getReference().child("places").child(((Integer)place.getId()).toString()).child("sumOfMarks");
+                        mDatabaseReference1.setValue(curSum);
+
+                        mDatabaseReference1 = mBase.getReference().child("places").child(((Integer)place.getId()).toString()).child("numberOfRatings");
+                        mDatabaseReference1.setValue(curNumOfMarks);
+                    }
+
+                    @Override
+                    public void onCancelled( DatabaseError firebaseError) {
+
+                        Log.d("User", "-1" );
+                    }
+                });
+                //Toast.makeText(context, "TODO: rate it", Toast.LENGTH_LONG).show();
+            }
+        });
+                builder.setNeutralButton("Add to favourite",
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
                         //dialog.cancel();
@@ -292,16 +370,17 @@ public class AlertDialogCreator {
 
                     }
                 });
-        ad.setNegativeButton("Ok", new DialogInterface.OnClickListener() {
+                        builder.setNegativeButton("Ok", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int arg1) {
                 dialog.cancel();
             }
         });
-        ad.setCancelable(true);
-        return ad.create();
+        builder.setCancelable(true);
+        builder.setView(layout);
+        return builder.create();
     }
 
-    public static AlertDialog createAlertDialog(final LatLng latLng, final Context context) {
+    /*public static AlertDialog createAlertDialogNewPlace(final LatLng latLng, final Context context) {
         AlertDialog.Builder ad;
         ad = new AlertDialog.Builder(context);
         ad.setTitle("Creating place");  // заголовок
@@ -328,6 +407,27 @@ public class AlertDialogCreator {
         LayoutInflater inflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
         final View layout = inflater.inflate(R.layout.dialog_new_place, null);
 
+        iv = (ImageView) layout.findViewById(R.id.new_place_image);
+        iv.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+
+                //Toast.makeText(context, "ttt", Toast.LENGTH_LONG).show();
+                mStorageRef = FirebaseStorage.getInstance().getReference();
+                Intent intent = new Intent(Intent.ACTION_PICK);
+
+                intent.setType("image/*");
+                //intent.se
+                Log.d("sdvsvd", intent.getType());
+                if (context instanceof Activity) {
+                    ((Activity) context).startActivityForResult(intent, GALLERY_INTENT);
+                }
+                //context.
+                //context.startActivity(intent);
+                //context.getActivity().startActivityForResult(context, intent, GALLERY_INTENT);
+            }
+        });
         builder.setPositiveButton("Finish", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int id) {
@@ -362,5 +462,5 @@ public class AlertDialogCreator {
         builder.setCancelable(true);
         builder.setView(layout);
         return builder.create();
-    }
+    }*/
 }

@@ -1,8 +1,12 @@
 package placeme.ru.placemedemo;
 
 import android.Manifest;
+import android.app.Activity;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -16,9 +20,14 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -32,10 +41,19 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
+import com.squareup.picasso.Picasso;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, GoogleMap.OnMapClickListener,
@@ -62,6 +80,13 @@ public class MainActivity extends AppCompatActivity
     private Marker myPlace;
 
     private EditText edSearch;
+
+    //img
+    private StorageReference mStorageRef;
+    private static final int GALLERY_INTENT = 2;
+    private static ImageView iv;
+    private Uri uri;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -77,7 +102,8 @@ public class MainActivity extends AppCompatActivity
         mapFragment.getMapAsync(this);
 
 
-
+        //img
+        mStorageRef = FirebaseStorage.getInstance().getReference();
 
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -103,7 +129,7 @@ public class MainActivity extends AppCompatActivity
 
                 Log.d("search", "find!");
                 final String toFind = edSearch.getText().toString();
-
+                //Toast.makeText(getApplicationContext(), toFind, Toast.LENGTH_LONG).show();
                 MapUtilities.addFindedMarkers(googleMap, toFind);
                 AlertDialogCreator.createAlertDialogFinded(MainActivity.this, toFind, googleMap, myPosition).show();
                 return false;
@@ -171,17 +197,18 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public boolean onMarkerClick(final Marker marker) {
+        //Log.d("ddd", marker.getTitle());
         if(marker.getTitle() == null) {
             return false;
         }
         if(marker.getTitle().equals("My Place")) {
-            AlertDialog alert = AlertDialogCreator.createAlertDialog(marker.getPosition(), MainActivity.this);
+            AlertDialog alert = createAlertDialogNewPlace(marker.getPosition());
             alert.show();
             // TODO: i do not like this!
             MapUtilities.refreshMarkers(googleMap);
         }
         else {
-            AlertDialogCreator.showDescriptionDialog(MainActivity.this, marker);
+            showDescriptionDialog(MainActivity.this, marker);
         }
 
         // Return false to indicate that we have not consumed the event and that we wish
@@ -251,7 +278,6 @@ public class MainActivity extends AppCompatActivity
             sendIntent.putExtra(Intent.EXTRA_TEXT, "Я пользуюсь приложением PlaceMe! Присоединяйся и ты: placeme.com :)");
             sendIntent.setType("text/plain");
             startActivity(Intent.createChooser(sendIntent, getResources().getText(R.string.send_to)));
-
         } else if (id == R.id.nav_exit) {
             LoginUtility.setLoggedOut(MainActivity.this);
             login();
@@ -284,4 +310,232 @@ public class MainActivity extends AppCompatActivity
         // (the camera animates to the user's current position).
         return false;
     }
+
+    /*@Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if(requestCode == GALLERY_INTENT && resultCode == RESULT_OK) {
+            Uri uri = data.getData();
+
+            Toast.makeText(getApplicationContext(), data.getType(),
+                    Toast.LENGTH_LONG).show();
+            //Log.d("sdvvsfsvasbabrsvd", data.getType());
+            StorageReference child = mStorageRef.child("photos").child("test");
+
+            child.putFile(uri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                @Override
+                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                    //Toast.makeText(getApplicationContext(), "Ok upload",
+                           // Toast.LENGTH_SHORT).show();
+                }
+            }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    //Toast.makeText(getApplicationContext(), "Fail upload",
+                         //   Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+    }*/
+
+    public AlertDialog createAlertDialogNewPlace(final LatLng latLng) {
+        AlertDialog.Builder ad;
+        ad = new AlertDialog.Builder(MainActivity.this);
+        ad.setTitle("Creating place");  // заголовок
+        ad.setMessage("Create new place here?"); // сообщение
+        ad.setPositiveButton("Yes!", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int arg1) {
+                //Toast.makeText(MainActivity.this, "TODO: creating place", Toast.LENGTH_LONG).show();
+                AlertDialog alertNewPlace = createNewPlace(latLng);
+                alertNewPlace.show();
+            }
+        });
+        ad.setNegativeButton("No", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int arg1) {
+
+            }
+        });
+        ad.setCancelable(true);
+        return ad.create();
+    }
+
+    public AlertDialog createNewPlace(final LatLng latLng) {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+        //LayoutInflater inflater = MainActivity.this.getLayoutInflater();
+        LayoutInflater inflater = (LayoutInflater) MainActivity.this.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
+        final View layout = inflater.inflate(R.layout.dialog_new_place, null);
+
+        iv = (ImageView) layout.findViewById(R.id.new_place_image);
+        iv.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+
+                //Toast.makeText(context, "ttt", Toast.LENGTH_LONG).show();
+                mStorageRef = FirebaseStorage.getInstance().getReference();
+                Intent intent = new Intent(Intent.ACTION_PICK);
+
+                intent.setType("image/*");
+                //intent.se
+                //Log.d("sdvsvd", intent.getType());
+                startActivityForResult(intent, GALLERY_INTENT);
+
+                //context.
+                //context.startActivity(intent);
+                //context.getActivity().startActivityForResult(context, intent, GALLERY_INTENT);
+            }
+        });
+
+        builder.setPositiveButton("Finish", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int id) {
+                edName = (EditText) layout.findViewById(R.id.place_name);
+                edDescription = (EditText) layout.findViewById(R.id.place_description);
+                edTags = (EditText) layout.findViewById(R.id.place_tags);
+
+                if(uri == null)
+                    Log.d("uri", "NULL");
+                else
+                    Log.d("uri", uri.toString());
+
+
+
+
+                mBase = FirebaseDatabase.getInstance();
+                mDatabaseReference = mBase.getReference().child("maxidplaces");
+                mDatabaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        Integer id = (Integer) dataSnapshot.getValue(Integer.class);
+                        iid = id;
+                        Place newPlace = new Place(iid, edName.getText().toString(), edDescription.getText().toString(), edTags.getText().toString(), latLng.latitude, latLng.longitude);
+                        DatabaseReference mDatabaseReference1 = mBase.getReference().child("places");
+                        mDatabaseReference1.child(id.toString()).setValue(newPlace);
+                        mDatabaseReference.setValue(iid + 1);
+
+                        StorageReference child = mStorageRef.child("photos").child(iid.toString() + "place_photo");
+
+                        child.putFile(uri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                            @Override
+                            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                                //Toast.makeText(getApplicationContext(), "Ok upload",
+                                // Toast.LENGTH_SHORT).show();
+                            }
+                        }).addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                //Toast.makeText(getApplicationContext(), "Fail upload",
+                                //   Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onCancelled( DatabaseError firebaseError) {
+
+                        Log.d("User", "-1" );
+                    }
+                });
+
+
+            }
+        }).setNegativeButton("Back", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int arg1) {}
+        });
+        builder.setCancelable(true);
+        builder.setView(layout);
+        return builder.create();
+    }
+
+
+    public void showDescriptionDialog(final Context context, final Marker marker) {
+        mBase = FirebaseDatabase.getInstance();
+        mDatabaseReference = mBase.getReference().child("places");
+        ChildEventListener childEventListener1 = new ChildEventListener() {
+
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                Place place = (Place) dataSnapshot.getValue(Place.class);
+                if ((place.getLatitude() == marker.getPosition().latitude) && (place.getLongitude() == marker.getPosition().longitude)) {
+                    AlertDialog alert = createAlertDescriptionDialog(place);
+                    alert.show();
+                }
+            }
+
+            @Override public void onChildChanged(DataSnapshot dataSnapshot, String s) {}
+            @Override public void onChildRemoved(DataSnapshot dataSnapshot) {}
+            @Override public void onChildMoved(DataSnapshot dataSnapshot, String s) {}
+            @Override public void onCancelled(DatabaseError databaseError) {}
+        };
+        mDatabaseReference.addChildEventListener(childEventListener1);
+    }
+
+    public AlertDialog createAlertDescriptionDialog(final Place place) {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+        LayoutInflater inflater = (LayoutInflater) MainActivity.this.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
+        final View layout = inflater.inflate(R.layout.dialog_description, null);
+
+        builder.setTitle(place.getName());
+        //builder.setMessage(place.getDescription());
+        TextView descriptionText = (TextView) layout.findViewById(R.id.descriptionText);
+        descriptionText.setText(place.getDescription());
+
+        //StorageReference gsReference = storage.getReferenceFromUrl("gs://bucket/images/stars.jpg");
+        StorageReference child = mStorageRef.child("photos").child(((Integer)place.getId()).toString() + "place_photo");
+        final ImageView imgView = (ImageView) layout.findViewById(R.id.pic_descr);
+        child.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+            @Override
+            public void onSuccess(Uri uri) {
+                Picasso.with(MainActivity.this).load(uri)
+                        .placeholder(android.R.drawable.btn_star_big_on)
+                        .error(android.R.drawable.btn_star_big_on)
+                        .into(imgView);
+
+            }
+        });
+        RatingBar rb = (RatingBar) layout.findViewById(R.id.total_rating);
+        rb.setRating(place.getMark());
+        builder.setPositiveButton("Go here!", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int arg1) {
+                //TODO: build root
+                Toast.makeText(MainActivity.this, "TODO: build root", Toast.LENGTH_LONG).show();
+            }
+        }).setNeutralButton("Rate place!",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        AlertDialog alert = AlertDialogCreator.createAlertRateDialog(place,MainActivity.this);
+                        alert.show();
+
+                    }
+                }).setNegativeButton("Ok", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int arg1) {
+                dialog.cancel();
+            }
+        });
+        builder.setCancelable(true);
+        builder.setView(layout);
+        return builder.create();
+
+
+
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if(requestCode == GALLERY_INTENT && resultCode == RESULT_OK) {
+            uri = data.getData();
+            if(uri == null)
+                Log.d("uriiii", "NULL");
+            else {
+                Log.d("uriiii", uri.toString());
+
+                iv.setImageURI(uri);
+            }
+        }
+    }
+
+
 }
