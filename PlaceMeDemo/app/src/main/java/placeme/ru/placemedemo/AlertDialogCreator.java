@@ -86,6 +86,12 @@ public class AlertDialogCreator {
     private static final int GALLERY_INTENT = 2;
     private static ImageView iv;
 
+    private static ArrayList<LatLng> points = new ArrayList<>();
+
+    public static ArrayList<LatLng> getPoints() {
+        return points;
+    }
+
     public static AlertDialog createAlertDialogFinded (final Context context, final String toFind, final GoogleMap googleMap, final LatLng myPosition) {
         AlertDialog.Builder builderSingle = new AlertDialog.Builder(context);
         LayoutInflater inflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
@@ -189,7 +195,7 @@ public class AlertDialogCreator {
                 }
 
                 gd.to(destination)
-                        .transportMode(TransportMode.DRIVING)
+                        .transportMode(TransportMode.WALKING)
                         .execute(new DirectionCallback() {
                             @Override
                             public void onDirectionSuccess(Direction direction, String rawBody) {
@@ -197,6 +203,7 @@ public class AlertDialogCreator {
 
                                     Route route = direction.getRouteList().get(0);
                                     int legCount = route.getLegList().size();
+                                    Log.d ("length", ((Integer)legCount).toString());
                                     for (int index = 0; index < legCount; index++) {
                                         Leg leg = route.getLegList().get(index);
                                         googleMap.addMarker(new MarkerOptions().position(leg.getStartLocation().getCoordination()));
@@ -205,9 +212,14 @@ public class AlertDialogCreator {
                                         }
                                         List<Step> stepList = leg.getStepList();
                                         ArrayList<PolylineOptions> polylineOptionList = DirectionConverter.createTransitPolyline(context, stepList, 5, Color.RED, 3, Color.BLUE);
+                                        //Log.d ("length", ((Integer)polylineOptionList.size()).toString());
+                                        Integer cnt = 0;
                                         for (PolylineOptions polylineOption : polylineOptionList) {
+                                            cnt += polylineOption.getPoints().size();
+                                            points.addAll(polylineOption.getPoints());
                                             googleMap.addPolyline(polylineOption);
                                         }
+                                        Log.d ("lengthfff", ((Integer)points.size()).toString());
                                     }
                                     // Do something
                                 } else {
