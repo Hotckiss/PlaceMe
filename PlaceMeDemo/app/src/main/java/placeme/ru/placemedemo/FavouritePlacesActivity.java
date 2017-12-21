@@ -1,8 +1,6 @@
 package placeme.ru.placemedemo;
 
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -10,12 +8,10 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.CheckedTextView;
-import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.firebase.FirebaseException;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -27,17 +23,12 @@ import java.util.Arrays;
 
 public class FavouritePlacesActivity extends AppCompatActivity {
 
-    /*final String[][] places = {
-            {"Zurich", "Market Place"}, {"Burger King", "Ketch Up"}, {"London", "Dve Palochki"}
-    };*/
     int ptr = 0;
     Integer[] ids;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_favourite_places);
-
-        //int index = LoginUtility.getLoggedIn(this);
 
         ListView favouriteList = (ListView) findViewById(R.id.fav_places);
 

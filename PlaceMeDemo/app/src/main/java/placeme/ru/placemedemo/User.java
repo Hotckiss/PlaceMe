@@ -11,6 +11,7 @@ public class User {
     private String surname;
     private String nickname;
     private String favouritePlaces;
+    private String friends = "";
 
     public User() {}
 
@@ -46,6 +47,8 @@ public class User {
 
     public String getFavouritePlaces() { return favouritePlaces; }
 
+    public String getFriends() { return friends; }
+
     public void setId(int newId) {this.id = newId; }
 
     public void setName(String newName) {
@@ -62,6 +65,33 @@ public class User {
 
     public void setFavouritePlaces(String newFavouritePlaces) { this.favouritePlaces = newFavouritePlaces; }
 
+    public void setFriends(String newFriends) { this.friends = newFriends; }
+
     public void addFavouritePlace(String favPlace) { favouritePlaces = favouritePlaces + "," + favPlace; }
 
+    public boolean addFriend(String newFriend) {
+        String[] currentFriends = friends.split(",");
+        for (String friend : currentFriends) {
+            if(newFriend.equals(friend)) {
+                return false;
+            }
+        }
+
+        friends = friends + "," + newFriend;
+
+        return true;
+    }
+
+    public int getFriendsLength() {
+        if (friends.length() == 0) {
+            return 0;
+        } else {
+            /*Log.d("prrrrrr3r", friends);
+            for (String s : friends.split(",")) {
+                Log.d("prrrrr5", "```" + s);
+            }
+            Log.d("prrrrrr4r", ((Integer)(friends.split(",").length + 1)).toString());*/
+            return friends.split(",").length;
+        }
+    }
 }

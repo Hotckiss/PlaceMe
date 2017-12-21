@@ -1,43 +1,81 @@
 package placeme.ru.placemedemo;
 
-import android.content.Context;
 import android.content.Intent;
-import android.graphics.Canvas;
-import android.graphics.Path;
-import android.support.v7.app.AppCompatActivity;
+import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
+import android.support.v4.app.FragmentManager;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.dd.CircularProgressButton;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.squareup.picasso.Picasso;
+
+import de.hdodenhof.circleimageview.CircleImageView;
 
 public class ProfileActivity extends AppCompatActivity {
-
-    private ProfileInfo[] pi = new ProfileInfo[] { new ProfileInfo("Alina", "Erokhina", "@aliscafo"), new ProfileInfo("Andrew", "Kirilenko", "@hotckiss"),
-            new ProfileInfo("Vika", "Erokhina", "@kinfsfoill") };
 
     private FirebaseDatabase mBase;
     private DatabaseReference mDatabaseReference;
     private ChildEventListener childEventListener;
-    private User userInfo;
+    private StorageReference mStorageRef;
+
+
+    private RecyclerView mRecyclerView;
+    private RecyclerView.Adapter mAdapter;
+    private RecyclerView.LayoutManager mLayoutManager;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
 
-        Log.d("user::::", ((Integer)LoginUtility.getLoggedIn(this)).toString());
+        //TODO: make good placeholder for profile image: instead of star or lens
+        loadProfileImage();
 
+        setEditButton();
+
+        loadUserProfile();
+    }
+
+    private void loadProfileImage() {
+        mStorageRef = FirebaseStorage.getInstance().getReference();
+        final CircleImageView civ = findViewById(R.id.profile_image);
+        StorageReference child = mStorageRef.child("avatars").child(LoginUtility.getLoggedInAsString(ProfileActivity.this) + "avatar");
+        child.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+            @Override
+            public void onSuccess(Uri uri) {
+                Picasso.with(ProfileActivity.this).load(uri)
+                        .placeholder(android.R.drawable.btn_star_big_on)
+                        .error(android.R.drawable.btn_star_big_on)
+                        .into(civ);
+
+            }
+        });
+    }
+
+    private void setEditButton() {
+        Button editButton  = findViewById(R.id.button_edit);
+        editButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent edit = new Intent(ProfileActivity.this, EditActivity.class);
+                startActivity(edit);
+            }
+        });
+    }
+
+    private void loadUserProfile() {
         mBase = FirebaseDatabase.getInstance();
         mDatabaseReference = mBase.getReference().child("users");
 
@@ -45,96 +83,54 @@ public class ProfileActivity extends AppCompatActivity {
             childEventListener = new ChildEventListener() {
                 @Override
                 public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                    User user = (User)dataSnapshot.getValue(User.class);
+                    User user = dataSnapshot.getValue(User.class);
                     if(user == null) {
-                        Log.d("cdbbdbcccc", "dfbdkgbd");
                         return;
                     }
-                    if(((Integer)LoginUtility.getLoggedIn(ProfileActivity.this)).equals(user.getId())) {
-                        //Log.d("ccccc", user.getName());
-                       // userInfo = user;
-                        TextView tvName = (TextView) findViewById(R.id.name);
+                    if(LoginUtility.getLoggedIn(ProfileActivity.this) == user.getId()) {
+                        TextView tvName = findViewById(R.id.name);
                         tvName.setText(user.getName());
 
-                        TextView tvSurname = (TextView) findViewById(R.id.surname);
+                        TextView tvSurname = findViewById(R.id.surname);
                         tvSurname.setText(user.getSurname());
 
-                        TextView tvNickname = (TextView) findViewById(R.id.nickname);
+                        //TODO: move string constant to values/strings
+                        TextView tvNickname = findViewById(R.id.nickname);
                         tvNickname.setText("@" + user.getNickname());
-                    }
-                    // if (LoginUtility.getLoggedIn())
-                    Button editButton  = (Button) findViewById(R.id.button_edit);
-                    //Button mEmailSignInButton = (Button) findViewById(R.id.email_sign_in_button);
-                    //editButton.setIndeterminateProgressMode(true);
-                    editButton.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            Intent edit = new Intent(ProfileActivity.this, EditActivity.class);
-                            //profile.putExtra("jjlkn", "kjhgkjbjhbj,kh");
-                            startActivity(edit);
+
+                        //TODO: add friends list
+                        LoginUtility.setFriendsLength(ProfileActivity.this, user.getFriendsLength());
+                        LoginUtility.setFriends(ProfileActivity.this, user.getFriends());
+                        //Log.d("prrrrrr1r", user.getFriends());
+                        //Log.d("prrrrrr2r", ((Integer)user.getFriendsLength()).toString());
+                        FragmentManager fm = getSupportFragmentManager();
+                        android.support.v4.app.Fragment fragment = fm.findFragmentById(R.id.fragmentContainer);
+
+                        if (fragment == null) {
+                            fragment = new HorizontalListViewFragment();
+                            fm.beginTransaction().add(R.id.fragmentContainer, fragment).commit();
                         }
-                    });
+
+
+                    }
                 }
+                @Override
+                public void onChildChanged(DataSnapshot dataSnapshot, String s) {}
 
                 @Override
-                public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-
-                }
+                public void onChildRemoved(DataSnapshot dataSnapshot) {}
 
                 @Override
-                public void onChildRemoved(DataSnapshot dataSnapshot) {
-
-                }
+                public void onChildMoved(DataSnapshot dataSnapshot, String s) {}
 
                 @Override
-                public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
-                }
-
-                @Override
-                public void onCancelled(DatabaseError databaseError) {
-
-                }
+                public void onCancelled(DatabaseError databaseError) {}
             };
         }
         mDatabaseReference.addChildEventListener(childEventListener);
         mDatabaseReference.child("users").removeEventListener(childEventListener);
         childEventListener = null;
-        //ImageView iv = (ImageView) findViewById(R.id)
-        //int index = LoginUtility.getLoggedIn(this);
-
-        Button editButton  = (Button) findViewById(R.id.button_edit);
-        //Button mEmailSignInButton = (Button) findViewById(R.id.email_sign_in_button);
-        //editButton.setIndeterminateProgressMode(true);
-        editButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(getApplicationContext(), "Button pressed!", Toast.LENGTH_SHORT).show();
-            }
-        });
     }
 
-    private class ProfileInfo {
-        private String name;
-        private String surname;
-        private String nickname;
-        public ProfileInfo(String name, String surname, String nickname) {
-            this.name = name;
-            this.surname = surname;
-            this.nickname = nickname;
-        }
 
-        public String getName() {
-            return name;
-        }
-
-        public String getSurname() {
-            return surname;
-        }
-
-        public String getNickname() {
-            return nickname;
-        }
-
-    }
 }

@@ -1,10 +1,10 @@
 package placeme.ru.placemedemo;
 
 import android.Manifest;
-import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Build;
@@ -12,6 +12,8 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 import android.support.design.widget.NavigationView;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -24,16 +26,15 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
@@ -54,6 +55,15 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.squareup.picasso.Picasso;
+
+import java.util.ArrayList;
+
+import geo.GeoObj;
+import gl.GL1Renderer;
+import gl.GLFactory;
+import system.ArActivity;
+import system.MySetup;
+import worldData.World;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, GoogleMap.OnMapClickListener,
@@ -87,11 +97,14 @@ public class MainActivity extends AppCompatActivity
     private static ImageView iv;
     private Uri uri;
 
+    //ar
+    private static ArrayList<LatLng> points = new ArrayList<>();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        Log.d("seaddddddddrch", "find!");
         if (LoginUtility.getLoggedIn(this) == -1) {
             login();
             return;
@@ -146,6 +159,13 @@ public class MainActivity extends AppCompatActivity
                         // Set the map's camera position to the current location of the device.
                         mLastKnownLocation = task.getResult();
                         myPosition = new LatLng(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude());
+                        //Log.d("coords", ((Double)mLastKnownLocation.getLatitude()).toString());
+
+                        //Log.d("coords", ((Double)mLastKnownLocation.getLongitude()).toString());
+
+                        //Log.d("coords", ((Double)mLastKnownLocation.getAltitude()).toString());
+                        //59.9473787
+                        //30.2621547
                     } else {
                         Log.d("FATAL ERROR", "Current location is null. Using defaults.");
                     }
@@ -153,6 +173,16 @@ public class MainActivity extends AppCompatActivity
         } catch (SecurityException e)  {
             Log.e("Exception: %s", e.getMessage());
         }
+
+
+        if(ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED){
+            Log.d("aaaaaaaaaaaaaaaaa", "rtfgnsftjnrtgggn");
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA},1);//выводит диалог, где пользователю предоставляется выбор
+        }else{
+            Log.d("en", "rtfgnsftjnrtgggn");
+            testCam();
+        }
+
     }
 
     private void login() {
@@ -188,6 +218,10 @@ public class MainActivity extends AppCompatActivity
     }
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        if(requestCode == 1) {
+            Log.d("eeeeeeeeeeeeeeeeee", "rtfgnsftjnrtgggn");
+            testCam();
+        }
         try {
             googleMap.setMyLocationEnabled(true);
         } catch (SecurityException se) {
@@ -273,11 +307,20 @@ public class MainActivity extends AppCompatActivity
             startActivity(settings);
 
         } else if (id == R.id.nav_share) {
+            //Toast.makeText(getApplicationContext(), "Nothing to share :(",Toast.LENGTH_SHORT).show();
+            //TODO:STRING/PICTURE
             Intent sendIntent = new Intent();
             sendIntent.setAction(Intent.ACTION_SEND);
             sendIntent.putExtra(Intent.EXTRA_TEXT, "Я пользуюсь приложением PlaceMe! Присоединяйся и ты: placeme.com :)");
             sendIntent.setType("text/plain");
-            startActivity(Intent.createChooser(sendIntent, getResources().getText(R.string.send_to)));
+            startActivity(Intent.createChooser(sendIntent, "Share using..."));
+            /*mStorageRef = FirebaseStorage.getInstance().getReference();
+            Intent intent = new Intent(Intent.ACTION_PICK);
+
+            intent.setType("image/*");
+            startActivityForResult(intent, GALLERY_INTENT);
+            */
+
         } else if (id == R.id.nav_exit) {
             LoginUtility.setLoggedOut(MainActivity.this);
             login();
@@ -310,34 +353,6 @@ public class MainActivity extends AppCompatActivity
         // (the camera animates to the user's current position).
         return false;
     }
-
-    /*@Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        if(requestCode == GALLERY_INTENT && resultCode == RESULT_OK) {
-            Uri uri = data.getData();
-
-            Toast.makeText(getApplicationContext(), data.getType(),
-                    Toast.LENGTH_LONG).show();
-            //Log.d("sdvvsfsvasbabrsvd", data.getType());
-            StorageReference child = mStorageRef.child("photos").child("test");
-
-            child.putFile(uri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                @Override
-                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                    //Toast.makeText(getApplicationContext(), "Ok upload",
-                           // Toast.LENGTH_SHORT).show();
-                }
-            }).addOnFailureListener(new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception e) {
-                    //Toast.makeText(getApplicationContext(), "Fail upload",
-                         //   Toast.LENGTH_SHORT).show();
-                }
-            });
-        }
-    }*/
 
     public AlertDialog createAlertDialogNewPlace(final LatLng latLng) {
         AlertDialog.Builder ad;
@@ -399,9 +414,6 @@ public class MainActivity extends AppCompatActivity
                 else
                     Log.d("uri", uri.toString());
 
-
-
-
                 mBase = FirebaseDatabase.getInstance();
                 mDatabaseReference = mBase.getReference().child("maxidplaces");
                 mDatabaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -458,6 +470,7 @@ public class MainActivity extends AppCompatActivity
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 Place place = (Place) dataSnapshot.getValue(Place.class);
                 if ((place.getLatitude() == marker.getPosition().latitude) && (place.getLongitude() == marker.getPosition().longitude)) {
+                    //Toast.makeText(MainActivity.this, place.getDescription(), Toast.LENGTH_SHORT).show();
                     AlertDialog alert = createAlertDescriptionDialog(place);
                     alert.show();
                 }
@@ -517,8 +530,6 @@ public class MainActivity extends AppCompatActivity
         builder.setView(layout);
         return builder.create();
 
-
-
     }
 
     @Override
@@ -527,15 +538,105 @@ public class MainActivity extends AppCompatActivity
 
         if(requestCode == GALLERY_INTENT && resultCode == RESULT_OK) {
             uri = data.getData();
-            if(uri == null)
-                Log.d("uriiii", "NULL");
-            else {
-                Log.d("uriiii", uri.toString());
+            iv.setImageURI(uri);
+            /*for (int i = 0; i < 30; i++) {
+                StorageReference child = mStorageRef.child("avatars").child(((Integer)i).toString() + "avatar");
 
-                iv.setImageURI(uri);
-            }
+            child.putFile(uri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                @Override
+                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                    //Toast.makeText(getApplicationContext(), "Ok upload",
+                    // Toast.LENGTH_SHORT).show();
+                }
+            }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    //Toast.makeText(getApplicationContext(), "Fail upload",
+                    //   Toast.LENGTH_SHORT).show();
+                }
+            });
+            }*/
+        }
+
+        /*if(requestCode == 3 && resultCode == RESULT_OK) {
+            StorageReference child = mStorageRef.child("photos").child("1place_photo");
+            child.putFile(data.getData());
+        }*/
+    }
+
+
+    private void putLineToPoint(GL1Renderer renderer, final World world, GLFactory objectFactory, LatLng start, LatLng finish) {
+        double maxx = Math.max(start.latitude, finish.latitude);
+        double maxy = Math.max(start.longitude, finish.longitude);
+        double minx = Math.min(start.latitude, finish.latitude);
+        double miny = Math.min(start.longitude, finish.longitude);
+        double dx = maxx - minx;
+        double dy = maxy - miny;
+        int iter = (int)(100 * Math.max(dx, dy)) + 3;
+        if(dx * dx + dy * dy < 1e-14) {
+            iter = 1;
+        }
+        for (int i = 0; i <= iter; i++) {
+            Location l = new Location("");
+            l.setLatitude(start.latitude + (finish.latitude - start.latitude) * i / iter);
+            l.setLongitude(start.longitude + (finish.longitude - start.longitude) * i / iter);
+            GeoObj next = new GeoObj(l);
+            next.setComp(objectFactory.newArrow());
+
+            world.add(next);
         }
     }
 
+    private void testCam() {
+        Log.d("fffgggggggggggff", "asfdeabbe");
+        Button b = findViewById(R.id.button4);
+        b.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.d("ffffffffffffffff", "asfdeabbe");
+                //ArActivity.startWithSetup(MainActivity.this, new CollectItemsSetup());
+                //DefaultARSetup
+                ArActivity.startWithSetup(MainActivity.this, new MySetup() {
+                    @Override
+                    public void addObjectsTo(GL1Renderer renderer, final World world, GLFactory objectFactory) {
+                        //Obj grid = new Obj();
+                        //MeshComponent gridMesh = objectFactory.newGrid(Color.blue(), 1, 100);
+                        //grid.setComp(objectFactory.newGrid(Color.blue(), 1, 20));
+                        //world.add(grid);
+
+                        points = AlertDialogCreator.getPoints();
+                        if(points == null) {
+                            Log.d("kek lol", "arbidol");
+                        }
+                        else {
+                            if (points.size() == 0) {
+                                Log.d("mdaaaaa", "vot neudacha");
+                            } else {
+                                putLineToPoint(renderer, world, objectFactory, new LatLng(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude()), points.get(0));
+
+                                for (int i = 0; i < points.size() - 1; i++) {
+                                    putLineToPoint(renderer, world, objectFactory, points.get(i), points.get(i + 1));
+                                }
+                                Location ls = new Location("");
+                                LatLng end = points.get(points.size() - 1);
+                                ls.setLatitude(end.latitude);
+                                ls.setLongitude(end.longitude);
+                                GeoObj endObj = new GeoObj(ls);
+                                endObj.setComp(objectFactory.newArrow());
+                                world.add(endObj);
+                            }
+                        }
+                        //world.add(tm);
+
+
+                        //Location l = new Location("");
+                        //l.setLatitude(59.9473787);
+                        //l.setLongitude(30.2621547);
+                        //world.update();
+                    }
+                });
+            }
+        });
+    }
 
 }
