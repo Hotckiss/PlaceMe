@@ -18,7 +18,6 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -29,15 +28,10 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import com.google.firebase.database.ChildEventListener;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-
 import java.util.ArrayList;
 import java.util.List;
 
+import placeme.ru.placemedemo.core.database.DatabaseManager;
 import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
 
 import static android.Manifest.permission.READ_CONTACTS;
@@ -51,10 +45,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
      * Id to identity READ_CONTACTS permission request.
      */
     private static final int REQUEST_READ_CONTACTS = 0;
-
-    private FirebaseDatabase mBase;
-    private DatabaseReference mDatabaseReference;
-    private ChildEventListener childEventListener;
     /**
      * Keep track of the login task to ensure we can cancel it if requested.
      */
@@ -167,7 +157,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         // Store values at the time of the login attempt.
         String email = mEmailView.getText().toString();
         String password = mPasswordView.getText().toString();
-        Log.d("base", password);
         boolean cancel = false;
         View focusView = null;
 
@@ -278,9 +267,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     }
 
     @Override
-    public void onLoaderReset(Loader<Cursor> cursorLoader) {
-
-    }
+    public void onLoaderReset(Loader<Cursor> cursorLoader) {}
 
     private void addEmailsToAutoComplete(List<String> emailAddressCollection) {
         //Create adapter to tell the AutoCompleteTextView what to show in its dropdown list.
@@ -318,35 +305,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
         @Override
         protected Boolean doInBackground(Void... params) {
-
-            mBase = FirebaseDatabase.getInstance();
-            mDatabaseReference = mBase.getReference().child("authdata");
-                childEventListener = new ChildEventListener() {
-
-                    @Override
-                    public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                        AuthData authData = dataSnapshot.getValue(AuthData.class);
-                        if(authData.getLogin().equals(mEmail)) {
-                            stage = -2;
-                            if(authData.getPassword().equals(mPassword)) {
-                                stage = authData.getId();
-                            }
-                        }
-                    }
-
-                    @Override
-                    public void onChildChanged(DataSnapshot dataSnapshot, String s) {}
-
-                    @Override
-                    public void onChildRemoved(DataSnapshot dataSnapshot) {}
-
-                    @Override
-                    public void onChildMoved(DataSnapshot dataSnapshot, String s) {}
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {}
-                };
-            mDatabaseReference.addChildEventListener(childEventListener);
+            DatabaseManager.findUserAndCheckPassword(LoginActivity.this, mEmail, mPassword);
 
             // TODO: listener runs other thread
             try {
@@ -355,21 +314,11 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 return false;
             }
 
-            mDatabaseReference.child("authdata").removeEventListener(childEventListener);
-            //childEventListener = null;
-
-            if (stage == -3) {
-                //TODO: register
-                AuthorizationUtils.setLoggedIn(LoginActivity.this, -1);
+            if(AuthorizationUtils.getLoggedIn(LoginActivity.this) == -1) {
                 return false;
-            } else if(stage == -2) {
-                //TODO: incorrect password
-                AuthorizationUtils.setLoggedIn(LoginActivity.this, -1);
-                return false;
+            } else {
+                return true;
             }
-
-            AuthorizationUtils.setLoggedIn(LoginActivity.this, stage);
-            return true;
         }
 
         @Override

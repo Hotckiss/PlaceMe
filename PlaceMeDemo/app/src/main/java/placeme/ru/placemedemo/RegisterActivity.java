@@ -1,22 +1,17 @@
 package placeme.ru.placemedemo;
 
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.KeyEvent;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
-import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import com.google.firebase.database.ChildEventListener;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
+import placeme.ru.placemedemo.core.database.DatabaseManager;
 
+/**
+ * Activity that provides user to register in the application
+ */
 public class RegisterActivity extends AppCompatActivity {
 
     private EditText teLogin;
@@ -25,76 +20,75 @@ public class RegisterActivity extends AppCompatActivity {
     private EditText teSurname;
     private EditText teNickname;
 
-    private FirebaseDatabase mBase;
-
-    private DatabaseReference mDatabaseReference;
-
-    private DatabaseReference mDatabaseReference1;
-
-    private Integer iid = -1;
-
-    private ChildEventListener childEventListener;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
 
-        TextView tvLogin = (TextView) findViewById(R.id.tvLogin);
-        tvLogin.setText("Login:");
+        initializeTextFields();
 
-        TextView tvPassword = (TextView) findViewById(R.id.tvPassword);
-        tvPassword.setText("Password:");
+        initializeEditTextFields();
 
-        TextView tvName = (TextView) findViewById(R.id.tvName);
-        tvName.setText("Name:");
-
-        TextView tvSurname = (TextView) findViewById(R.id.tvSurname);
-        tvSurname.setText("Surname:");
-
-        TextView tvNickname = (TextView) findViewById(R.id.tvNickname);
-        tvNickname.setText("Nickname:");
-
-        teLogin = (EditText) findViewById(R.id.teLogin);
-
-        tePassword = (EditText) findViewById(R.id.tePassword);
-
-        teName = (EditText) findViewById(R.id.teName);
-
-        teSurname = (EditText) findViewById(R.id.teSurname);
-
-        teNickname = (EditText) findViewById(R.id.teNickname);
-
-        Button submit = (Button) findViewById(R.id.submit_up);
+        Button submit = findViewById(R.id.submit_up);
 
         submit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mBase = FirebaseDatabase.getInstance();
-                mDatabaseReference = mBase.getReference().child("maxid");
-                Log.d("tst", "start");
-                mDatabaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        Integer id = (Integer) dataSnapshot.getValue(Integer.class);
-                        iid = id;
-                        AuthData newAuthData = new AuthData(id, teLogin.getText().toString(), tePassword.getText().toString());
-                        User newUser = new User(id, teName.getText().toString(), teSurname.getText().toString(), teNickname.getText().toString());
-                        mDatabaseReference1 = mBase.getReference().child("users");
-                        mDatabaseReference1.child(id.toString()).setValue(newUser);
-                        mDatabaseReference1 = mBase.getReference().child("authdata");
-                        mDatabaseReference1.child(id.toString()).setValue(newAuthData);
-                        mDatabaseReference.setValue(iid + 1);
-                        finish();
-                    }
-
-                    @Override
-                    public void onCancelled( DatabaseError firebaseError) {
-
-                        Log.d("User", "-1" );
-                    }
-                });
+                //TODO: check correctness of login and password
+                DatabaseManager.registerUser(RegisterActivity.this, generateNewUserData());
+                finish();
             }
 
         });
+    }
+
+    private String[] generateNewUserData() {
+        String[] result = new String[5];
+        result[0] = teLogin.getText().toString();
+        result[1] = tePassword.getText().toString();
+        result[2] = teName.getText().toString();
+        result[3] = teSurname.getText().toString();
+        result[4] = teNickname.getText().toString();
+
+        return result;
+    }
+
+    //TODO: implement
+    private boolean checkLogin() {
+        return false;
+    }
+
+    //TODO: implement
+    private boolean checkPassword() {
+        return false;
+    }
+
+    private void initializeTextFields() {
+        TextView tvLogin = findViewById(R.id.tvLogin);
+        tvLogin.setText(R.string.register_login);
+
+        TextView tvPassword = findViewById(R.id.tvPassword);
+        tvPassword.setText(R.string.register_password);
+
+        TextView tvName = findViewById(R.id.tvName);
+        tvName.setText(R.string.register_name);
+
+        TextView tvSurname = findViewById(R.id.tvSurname);
+        tvSurname.setText(R.string.register_surname);
+
+        TextView tvNickname = findViewById(R.id.tvNickname);
+        tvNickname.setText(R.string.register_nickname);
+    }
+
+    private void initializeEditTextFields() {
+        teLogin = findViewById(R.id.teLogin);
+
+        tePassword = findViewById(R.id.tePassword);
+
+        teName = findViewById(R.id.teName);
+
+        teSurname = findViewById(R.id.teSurname);
+
+        teNickname = findViewById(R.id.teNickname);
     }
 }
