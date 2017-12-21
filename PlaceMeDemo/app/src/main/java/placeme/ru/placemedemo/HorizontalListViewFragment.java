@@ -5,22 +5,18 @@ package placeme.ru.placemedemo;
  */
 
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -37,7 +33,9 @@ import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 
-import de.hdodenhof.circleimageview.CircleImageView;
+import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
+import placeme.ru.placemedemo.core.utils.ChatUtils;
+import placeme.ru.placemedemo.core.utils.FriendsDataUtils;
 
 public class HorizontalListViewFragment extends Fragment {
 
@@ -48,8 +46,8 @@ public class HorizontalListViewFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         listitems.clear();
-        Integer finish = LoginUtility.getFriendsLength(getActivity().getBaseContext());
-        String[] friends = LoginUtility.getFriends(getActivity().getBaseContext()).split(",");
+        Integer finish = FriendsDataUtils.getFriendsLength(getActivity().getBaseContext());
+        String[] friends = FriendsDataUtils.getFriends(getActivity().getBaseContext()).split(",");
         for(int i = 0; i < finish; i++){
             Friend item = new Friend();
             //TODO: delete string
@@ -191,10 +189,7 @@ public class HorizontalListViewFragment extends Fragment {
             shareImageView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    //Toast.makeText(getActivity(),"TODO: message?", Toast.LENGTH_LONG).show();
-                    Log.d("chat", LoginUtility.getLoggedInAsString(getContext()));
-                    Log.d("chat1", ((Integer)listitems.get(pos).getId()).toString());
-                    LoginUtility.setChatPair(getContext(), LoginUtility.getLoggedInAsString(getContext()) + "," + ((Integer)listitems.get(pos).getId()).toString());
+                    ChatUtils.setChatPair(getContext(), AuthorizationUtils.getLoggedInAsString(getContext()) + "," + ((Integer)listitems.get(pos).getId()).toString());
                     startActivity(new Intent(getActivity().getBaseContext(), Chat.class));
                 }
             });

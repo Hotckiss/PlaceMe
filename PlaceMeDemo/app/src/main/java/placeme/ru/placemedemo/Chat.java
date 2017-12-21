@@ -1,7 +1,7 @@
 package placeme.ru.placemedemo;
 
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,6 +19,9 @@ import com.firebase.client.FirebaseError;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
+import placeme.ru.placemedemo.core.utils.ChatUtils;
 
 
 public class Chat extends AppCompatActivity {
@@ -41,7 +44,7 @@ public class Chat extends AppCompatActivity {
         scrollView = (ScrollView)findViewById(R.id.scrollView);
 
         Firebase.setAndroidContext(this);
-        final String[] chatPair = LoginUtility.getChatPair(Chat.this).split(",");
+        final String[] chatPair = ChatUtils.getChatPair(Chat.this).split(",");
         if (chatPair.length < 2) {
             finish();
         }
@@ -72,7 +75,7 @@ public class Chat extends AppCompatActivity {
                 String message = map.get("message").toString();
                 String userName = map.get("user").toString();
 
-                if(userName.equals(LoginUtility.getLoggedInAsString(Chat.this))){
+                if(userName.equals(AuthorizationUtils.getLoggedInAsString(Chat.this))){
                     addMessageBox(message, 1);
                 }
                 else{

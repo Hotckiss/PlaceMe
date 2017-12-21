@@ -21,6 +21,8 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.Arrays;
 
+import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
+
 public class FavouritePlacesActivity extends AppCompatActivity {
 
     int ptr = 0;
@@ -39,8 +41,8 @@ public class FavouritePlacesActivity extends AppCompatActivity {
         DatabaseReference mDatabaseReference;
         ChildEventListener childEventListener;
         mBase = FirebaseDatabase.getInstance();
-        mDatabaseReference = mBase.getReference().child("users").child(((Integer)LoginUtility.getLoggedIn(FavouritePlacesActivity.this)).toString()).child("favouritePlaces");
-        //Log.d("ddd", mBase.getReference().child("users").child(((Integer)LoginUtility.getLoggedIn(FavouritePlacesActivity.this)).toString()).child("favouritePlaces").getKey());
+        mDatabaseReference = mBase.getReference().child("users").child(AuthorizationUtils.getLoggedInAsString(FavouritePlacesActivity.this)).child("favouritePlaces");
+        //Log.d("ddd", mBase.getReference().child("users").child(((Integer)ChatUtils.getLoggedIn(FavouritePlacesActivity.this)).toString()).child("favouritePlaces").getKey());
         mDatabaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {

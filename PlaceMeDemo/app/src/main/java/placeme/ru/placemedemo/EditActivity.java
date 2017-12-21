@@ -13,6 +13,8 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.HashMap;
 
+import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
+
 public class EditActivity extends AppCompatActivity {
 
     @Override
@@ -39,8 +41,7 @@ public class EditActivity extends AppCompatActivity {
         DatabaseReference mDatabaseReferenceUser;
 
         mBase = FirebaseDatabase.getInstance();
-        mDatabaseReferenceUser = mBase.getReference().child("users").child((((Integer)LoginUtility
-                .getLoggedIn(this)).toString()));
+        mDatabaseReferenceUser = mBase.getReference().child("users").child(AuthorizationUtils.getLoggedInAsString(this));
 
         mDatabaseReferenceUser.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -63,8 +64,7 @@ public class EditActivity extends AppCompatActivity {
             }
         });
 
-        mDatabaseReferenceUser = mBase.getReference().child("authdata").child((((Integer)LoginUtility
-                .getLoggedIn(this)).toString()));
+        mDatabaseReferenceUser = mBase.getReference().child("authdata").child(AuthorizationUtils.getLoggedInAsString(this));
 
         mDatabaseReferenceUser.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override

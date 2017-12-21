@@ -61,6 +61,7 @@ import java.util.ArrayList;
 import geo.GeoObj;
 import gl.GL1Renderer;
 import gl.GLFactory;
+import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
 import system.ArActivity;
 import system.MySetup;
 import worldData.World;
@@ -104,8 +105,9 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         Log.d("seaddddddddrch", "find!");
-        if (LoginUtility.getLoggedIn(this) == -1) {
+        if (AuthorizationUtils.getLoggedIn(this) == -1) {
             login();
             return;
         }
@@ -322,7 +324,7 @@ public class MainActivity extends AppCompatActivity
             */
 
         } else if (id == R.id.nav_exit) {
-            LoginUtility.setLoggedOut(MainActivity.this);
+            AuthorizationUtils.setLoggedOut(MainActivity.this);
             login();
 
         }
@@ -496,7 +498,7 @@ public class MainActivity extends AppCompatActivity
 
         //StorageReference gsReference = storage.getReferenceFromUrl("gs://bucket/images/stars.jpg");
         StorageReference child = mStorageRef.child("photos").child(((Integer)place.getId()).toString() + "place_photo");
-        final ImageView imgView = (ImageView) layout.findViewById(R.id.pic_descr);
+        final ImageView imgView = (ImageView) layout.findViewById(R.id.description_picture);
         child.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
             @Override
             public void onSuccess(Uri uri) {

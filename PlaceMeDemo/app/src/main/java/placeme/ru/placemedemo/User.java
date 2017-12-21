@@ -86,11 +86,6 @@ public class User {
         if (friends.length() == 0) {
             return 0;
         } else {
-            /*Log.d("prrrrrr3r", friends);
-            for (String s : friends.split(",")) {
-                Log.d("prrrrr5", "```" + s);
-            }
-            Log.d("prrrrrr4r", ((Integer)(friends.split(",").length + 1)).toString());*/
             return friends.split(",").length;
         }
     }

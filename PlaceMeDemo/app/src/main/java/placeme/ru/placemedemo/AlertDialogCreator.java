@@ -1,9 +1,7 @@
 package placeme.ru.placemedemo;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.graphics.Color;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
@@ -16,8 +14,6 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.RatingBar;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import com.akexorcist.googledirection.DirectionCallback;
 import com.akexorcist.googledirection.GoogleDirection;
@@ -32,40 +28,21 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
-import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.UploadTask;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.protocol.BasicHttpContext;
-import org.apache.http.protocol.HttpContext;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-
-import static android.support.v4.app.ActivityCompat.startActivityForResult;
+import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
 
 /**
  * Created by Андрей on 21.11.2017.
@@ -352,7 +329,7 @@ public class AlertDialogCreator {
                         //dialog.cancel();
 
                         mBase = FirebaseDatabase.getInstance();
-                        mDatabaseReference = mBase.getReference().child("users").child(((Integer)LoginUtility.getLoggedIn(context)).toString()).child("favouritePlaces");
+                        mDatabaseReference = mBase.getReference().child("users").child(AuthorizationUtils.getLoggedInAsString(context)).child("favouritePlaces");
                         mDatabaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
                             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -367,7 +344,7 @@ public class AlertDialogCreator {
 
                                 if(flag == 0) {
                                     String newFavourite = dataSnapshot.getValue().toString() + "," + ((Integer)place.getId()).toString();
-                                    DatabaseReference mDatabaseReference1 = mBase.getReference().child("users").child(((Integer)LoginUtility.getLoggedIn(context)).toString()).child("favouritePlaces");
+                                    DatabaseReference mDatabaseReference1 = mBase.getReference().child("users").child(AuthorizationUtils.getLoggedInAsString(context)).child("favouritePlaces");
                                     mDatabaseReference1.setValue(newFavourite);
 
                                 }

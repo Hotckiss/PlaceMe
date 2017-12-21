@@ -3,22 +3,20 @@ package placeme.ru.placemedemo;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
-import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.support.annotation.NonNull;
-import android.support.design.widget.Snackbar;
-import android.support.v7.app.AppCompatActivity;
 import android.app.LoaderManager.LoaderCallbacks;
-
 import android.content.CursorLoader;
+import android.content.Intent;
 import android.content.Loader;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
-
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract;
+import android.support.annotation.NonNull;
+import android.support.design.widget.Snackbar;
+import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -31,16 +29,16 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import com.dd.CircularProgressButton;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
 
 import static android.Manifest.permission.READ_CONTACTS;
 
@@ -57,7 +55,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private FirebaseDatabase mBase;
     private DatabaseReference mDatabaseReference;
     private ChildEventListener childEventListener;
-    private AuthData authData;
     /**
      * Keep track of the login task to ensure we can cancel it if requested.
      */
@@ -90,8 +87,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         });
 
         final Button mEmailSignInButton = (Button) findViewById(R.id.email_sign_in_button);
-        //Button mEmailSignInButton = (Button) findViewById(R.id.email_sign_in_button);
-        //mEmailSignInButton.setIndeterminateProgressMode(true);
         mEmailSignInButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -100,12 +95,9 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         });
 
         final Button mEmailSignUpButton = (Button) findViewById(R.id.email_sign_up_button);
-        //Button mEmailSignInButton = (Button) findViewById(R.id.email_sign_in_button);
-        //mEmailSignInButton.setIndeterminateProgressMode(true);
         mEmailSignUpButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
-
                 Intent register = new Intent(LoginActivity.this, RegisterActivity.class);
                 startActivity(register);
             }
@@ -166,10 +158,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
      */
     private void attemptLogin() {
         if (mAuthTask != null) {
-            Log.d("base", "lool");
             return;
         }
-        Log.d("base", "loddddfol");
         // Reset errors.
         mEmailView.setError(null);
         mPasswordView.setError(null);
@@ -207,7 +197,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             showProgress(true);
-            Log.d("base1111", password);
             mAuthTask = new UserLoginTask(email, password);
             mAuthTask.execute((Void) null);
         }
@@ -215,7 +204,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
     private boolean isEmailValid(String email) {
         //TODO: Replace this with your own logic
-        return email.contains("@");
+        return (email.contains("@") && email.contains("."));
     }
 
     private boolean isPasswordValid(String password) {
@@ -332,65 +321,54 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
             mBase = FirebaseDatabase.getInstance();
             mDatabaseReference = mBase.getReference().child("authdata");
-            if( childEventListener == null ) {
                 childEventListener = new ChildEventListener() {
 
                     @Override
                     public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                        AuthData authData = (AuthData) dataSnapshot.getValue(AuthData.class);
+                        AuthData authData = dataSnapshot.getValue(AuthData.class);
                         if(authData.getLogin().equals(mEmail)) {
                             stage = -2;
                             if(authData.getPassword().equals(mPassword)) {
                                 stage = authData.getId();
                             }
                         }
-
                     }
 
                     @Override
-                    public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-
-                    }
+                    public void onChildChanged(DataSnapshot dataSnapshot, String s) {}
 
                     @Override
-                    public void onChildRemoved(DataSnapshot dataSnapshot) {
-
-                    }
+                    public void onChildRemoved(DataSnapshot dataSnapshot) {}
 
                     @Override
-                    public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
-                    }
+                    public void onChildMoved(DataSnapshot dataSnapshot, String s) {}
 
                     @Override
-                    public void onCancelled(DatabaseError databaseError) {
-
-                    }
+                    public void onCancelled(DatabaseError databaseError) {}
                 };
-            }
             mDatabaseReference.addChildEventListener(childEventListener);
 
-            // TODO: listener runs parallel thread?!
+            // TODO: listener runs other thread
             try {
-                // Simulate network access.
                 Thread.sleep(3000);
             } catch (InterruptedException e) {
                 return false;
             }
+
             mDatabaseReference.child("authdata").removeEventListener(childEventListener);
-            childEventListener = null;
+            //childEventListener = null;
 
             if (stage == -3) {
                 //TODO: register
-                LoginUtility.setLoggedIn(LoginActivity.this, -1);
+                AuthorizationUtils.setLoggedIn(LoginActivity.this, -1);
                 return false;
             } else if(stage == -2) {
                 //TODO: incorrect password
-                LoginUtility.setLoggedIn(LoginActivity.this, -1);
+                AuthorizationUtils.setLoggedIn(LoginActivity.this, -1);
                 return false;
             }
 
-            LoginUtility.setLoggedIn(LoginActivity.this, stage);
+            AuthorizationUtils.setLoggedIn(LoginActivity.this, stage);
             return true;
         }
 

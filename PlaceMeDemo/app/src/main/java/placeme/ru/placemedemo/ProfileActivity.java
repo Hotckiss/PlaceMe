@@ -21,6 +21,8 @@ import com.google.firebase.storage.StorageReference;
 import com.squareup.picasso.Picasso;
 
 import de.hdodenhof.circleimageview.CircleImageView;
+import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
+import placeme.ru.placemedemo.core.utils.FriendsDataUtils;
 
 public class ProfileActivity extends AppCompatActivity {
 
@@ -51,7 +53,7 @@ public class ProfileActivity extends AppCompatActivity {
     private void loadProfileImage() {
         mStorageRef = FirebaseStorage.getInstance().getReference();
         final CircleImageView civ = findViewById(R.id.profile_image);
-        StorageReference child = mStorageRef.child("avatars").child(LoginUtility.getLoggedInAsString(ProfileActivity.this) + "avatar");
+        StorageReference child = mStorageRef.child("avatars").child(AuthorizationUtils.getLoggedInAsString(ProfileActivity.this) + "avatar");
         child.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
             @Override
             public void onSuccess(Uri uri) {
@@ -87,7 +89,7 @@ public class ProfileActivity extends AppCompatActivity {
                     if(user == null) {
                         return;
                     }
-                    if(LoginUtility.getLoggedIn(ProfileActivity.this) == user.getId()) {
+                    if(AuthorizationUtils.getLoggedIn(ProfileActivity.this) == user.getId()) {
                         TextView tvName = findViewById(R.id.name);
                         tvName.setText(user.getName());
 
@@ -99,8 +101,8 @@ public class ProfileActivity extends AppCompatActivity {
                         tvNickname.setText("@" + user.getNickname());
 
                         //TODO: add friends list
-                        LoginUtility.setFriendsLength(ProfileActivity.this, user.getFriendsLength());
-                        LoginUtility.setFriends(ProfileActivity.this, user.getFriends());
+                        FriendsDataUtils.setFriendsLength(ProfileActivity.this, user.getFriendsLength());
+                        FriendsDataUtils.setFriends(ProfileActivity.this, user.getFriends());
                         //Log.d("prrrrrr1r", user.getFriends());
                         //Log.d("prrrrrr2r", ((Integer)user.getFriendsLength()).toString());
                         FragmentManager fm = getSupportFragmentManager();

@@ -2,17 +2,17 @@ package placeme.ru.placemedemo;
 
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.CheckedTextView;
-import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
 
 public class RoutesActivity extends AppCompatActivity {
 
@@ -25,7 +25,7 @@ public class RoutesActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_routes);
 
-        int index = LoginUtility.getLoggedIn(this);
+        int index = AuthorizationUtils.getLoggedIn(this);
 
         ListView favouriteList = (ListView) findViewById(R.id.fav_routes);
 
