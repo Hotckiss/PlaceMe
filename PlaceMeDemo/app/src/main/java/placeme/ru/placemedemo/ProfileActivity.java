@@ -24,6 +24,7 @@ import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
 import placeme.ru.placemedemo.core.utils.FriendsDataUtils;
 import placeme.ru.placemedemo.elements.User;
 
+
 public class ProfileActivity extends AppCompatActivity {
 
     private FirebaseDatabase mBase;

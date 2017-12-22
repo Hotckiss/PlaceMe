@@ -36,12 +36,12 @@ import java.util.ArrayList;
 import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
 import placeme.ru.placemedemo.core.utils.ChatUtils;
 import placeme.ru.placemedemo.core.utils.FriendsDataUtils;
-import placeme.ru.placemedemo.elements.Friend;
+import placeme.ru.placemedemo.elements.cards.FriendCard;
 import placeme.ru.placemedemo.elements.User;
 
 public class HorizontalListViewFragment extends Fragment {
 
-    ArrayList<Friend> listitems = new ArrayList<>();
+    ArrayList<FriendCard> listitems = new ArrayList<>();
     RecyclerView MyRecyclerView;
 
     @Override
@@ -51,15 +51,15 @@ public class HorizontalListViewFragment extends Fragment {
         Integer finish = FriendsDataUtils.getFriendsLength(getActivity().getBaseContext());
         String[] friends = FriendsDataUtils.getFriends(getActivity().getBaseContext()).split(",");
         for(int i = 0; i < finish; i++){
-            Friend item = new Friend();
+            FriendCard item = new FriendCard();
             //TODO: delete string
             item.setCardName("friend " + (i + 1));
 
             item.setImageResourceId(android.R.drawable.star_big_on);
             item.setId(Integer.parseInt(friends[i]));
             //TODO: ??
-            item.setIsfav(1);
-            item.setIsturned(1);
+            //item.setIsfav(1);
+            //item.setIsturned(1);
             listitems.add(item);
         }
     }
@@ -87,9 +87,9 @@ public class HorizontalListViewFragment extends Fragment {
     }
 
     public class MyAdapter extends RecyclerView.Adapter<MyViewHolder> {
-        private ArrayList<Friend> list;
+        private ArrayList<FriendCard> list;
 
-        public MyAdapter(ArrayList<Friend> Data) {
+        public MyAdapter(ArrayList<FriendCard> Data) {
             list = Data;
         }
 
