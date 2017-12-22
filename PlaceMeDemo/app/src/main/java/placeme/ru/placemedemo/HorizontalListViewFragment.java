@@ -36,6 +36,8 @@ import java.util.ArrayList;
 import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
 import placeme.ru.placemedemo.core.utils.ChatUtils;
 import placeme.ru.placemedemo.core.utils.FriendsDataUtils;
+import placeme.ru.placemedemo.elements.Friend;
+import placeme.ru.placemedemo.elements.User;
 
 public class HorizontalListViewFragment extends Fragment {
 

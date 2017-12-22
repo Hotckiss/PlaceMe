@@ -1,4 +1,4 @@
-package placeme.ru.placemedemo;
+package placeme.ru.placemedemo.elements;
 
 /**
  * Created by ?????? on 20.12.2017.

@@ -62,6 +62,7 @@ import geo.GeoObj;
 import gl.GL1Renderer;
 import gl.GLFactory;
 import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
+import placeme.ru.placemedemo.elements.Place;
 import system.ArActivity;
 import system.MySetup;
 import worldData.World;

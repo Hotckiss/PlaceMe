@@ -10,8 +10,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.RatingBar;
 
@@ -24,46 +22,23 @@ import com.akexorcist.googledirection.model.Route;
 import com.akexorcist.googledirection.model.Step;
 import com.akexorcist.googledirection.request.DirectionDestinationRequest;
 import com.akexorcist.googledirection.util.DirectionConverter;
-import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
-import com.google.firebase.database.ChildEventListener;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.storage.StorageReference;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import placeme.ru.placemedemo.core.database.DatabaseManager;
 import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
+import placeme.ru.placemedemo.elements.Place;
 
 /**
  * Created by Андрей on 21.11.2017.
  */
 
 public class AlertDialogCreator {
-    private static FirebaseDatabase mBase;
-    private static DatabaseReference mDatabaseReference;
-    private static ChildEventListener childEventListener;
-
-    private static Integer iid;
-    private static EditText edName;
-    private static EditText edDescription;
-    private static EditText edTags;
-
-    //image
-    private static StorageReference mStorageRef;
-    private static final int GALLERY_INTENT = 2;
-    private static ImageView iv;
-
     private static ArrayList<LatLng> points = new ArrayList<>();
 
     public static ArrayList<LatLng> getPoints() {
@@ -77,7 +52,7 @@ public class AlertDialogCreator {
         builderSingle.setView(layout);
         builderSingle.setIcon(R.drawable.icon);
         builderSingle.setTitle("Results of query");
-        final ListView lv = (ListView) layout.findViewById(R.id.lv);
+        final ListView lv = layout.findViewById(R.id.lv);
         lv.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
 
         final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(context, android.R.layout.select_dialog_multichoice);
@@ -97,7 +72,6 @@ public class AlertDialogCreator {
         lv.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                String strName = arrayAdapter.getItem(position);
                 AlertDialog.Builder builderInner = new AlertDialog.Builder(context);
                 builderInner.setMessage(placeArrayList.get(position).getDescription());
                 builderInner.setTitle(placeArrayList.get(position).getName());
@@ -185,13 +159,6 @@ public class AlertDialogCreator {
         return builderSingle.create();
     }
 
-    private static void setCameraWithCoordinationBounds(Route route, GoogleMap googleMap) {
-        LatLng southwest = route.getBound().getSouthwestCoordination().getCoordination();
-        LatLng northeast = route.getBound().getNortheastCoordination().getCoordination();
-        LatLngBounds bounds = new LatLngBounds(southwest, northeast);
-        googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100));
-    }
-
     public static AlertDialog createAlertRateDialog(final Place place, final Context context) {
         final AlertDialog.Builder builder = new AlertDialog.Builder(context);
         LayoutInflater inflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
@@ -203,43 +170,13 @@ public class AlertDialogCreator {
                 DatabaseManager.updatePlaceRating(rb, place.getIdAsString());
             }
         });
-                builder.setNeutralButton("Add to favourite",
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        //dialog.cancel();
+        builder.setNeutralButton("Add to favourite", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                DatabaseManager.addPlaceToFavourite(AuthorizationUtils.getLoggedInAsString(context), place.getIdAsString());
 
-                        mBase = FirebaseDatabase.getInstance();
-                        mDatabaseReference = mBase.getReference().child("users").child(AuthorizationUtils.getLoggedInAsString(context)).child("favouritePlaces");
-                        mDatabaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
-                            @Override
-                            public void onDataChange(DataSnapshot dataSnapshot) {
-                                Log.d("PLACES", dataSnapshot.getValue().toString());
-                                String[] places = dataSnapshot.getValue().toString().split(",");
-                                int flag = 0;
-                                for(String str : places) {
-                                    if(str.equals(((Integer)place.getId()).toString())) {
-                                        flag = 1;
-                                    }
-                                }
-
-                                if(flag == 0) {
-                                    String newFavourite = dataSnapshot.getValue().toString() + "," + ((Integer)place.getId()).toString();
-                                    DatabaseReference mDatabaseReference1 = mBase.getReference().child("users").child(AuthorizationUtils.getLoggedInAsString(context)).child("favouritePlaces");
-                                    mDatabaseReference1.setValue(newFavourite);
-
-                                }
-                            }
-
-                            @Override
-                            public void onCancelled( DatabaseError firebaseError) {
-
-                                Log.d("User", "-1" );
-                            }
-                        });
-
-                    }
-                });
-                        builder.setNegativeButton("Ok", new DialogInterface.OnClickListener() {
+            }
+        });
+        builder.setNegativeButton("Ok", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int arg1) {
                 dialog.cancel();
             }

@@ -22,6 +22,7 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.Arrays;
 
 import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
+import placeme.ru.placemedemo.elements.Place;
 
 public class FavouritePlacesActivity extends AppCompatActivity {
 

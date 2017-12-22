@@ -9,6 +9,8 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import placeme.ru.placemedemo.elements.Place;
+
 /**
  * Created by Андрей on 21.11.2017.
  */

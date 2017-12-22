@@ -1,4 +1,4 @@
-package placeme.ru.placemedemo;
+package placeme.ru.placemedemo.elements;
 
 /**
  * Created by DNS on 17.11.2017.
