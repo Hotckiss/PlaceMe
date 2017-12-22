@@ -25,6 +25,10 @@ public abstract class AbstractChildEventListener implements ChildEventListener {
     @Override
     public void onChildMoved(DataSnapshot dataSnapshot, String s) {}
 
+    /**
+     * Method that prints error in the log if some errors occurred in database
+     * @param databaseError database error
+     */
     @Override
     public void onCancelled(DatabaseError databaseError) {
         Log.d(DATABASE_ERROR_TAG, databaseError.getMessage());

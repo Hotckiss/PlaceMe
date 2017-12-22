@@ -15,6 +15,10 @@ import util.Log;
 public abstract class AbstractValueEventListener implements ValueEventListener {
     private static final String DATABASE_ERROR_TAG = "DATABASE_ERROR_TAG";
 
+    /**
+     * Method that prints error in the log if some errors occurred in database
+     * @param firebaseError database error
+     */
     @Override
     public void onCancelled( DatabaseError firebaseError) {
         Log.d(DATABASE_ERROR_TAG, firebaseError.getMessage());
