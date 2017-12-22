@@ -36,11 +36,15 @@ public class Place {
         if (numberOfRatings == 0) {
             return (float)0;
         }
-        return (float)sumOfMarks/ numberOfRatings;
+        return sumOfMarks / numberOfRatings;
     }
 
     public int getId() {
         return id;
+    }
+
+    public String getIdAsString() {
+        return String.valueOf(id);
     }
 
     public String getName() {

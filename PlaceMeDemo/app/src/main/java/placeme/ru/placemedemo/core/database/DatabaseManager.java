@@ -1,18 +1,23 @@
 package placeme.ru.placemedemo.core.database;
 
 import android.content.Context;
+import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.RatingBar;
 
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import placeme.ru.placemedemo.AuthData;
 import placeme.ru.placemedemo.Place;
+import placeme.ru.placemedemo.R;
 import placeme.ru.placemedemo.User;
 import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
 
@@ -92,5 +97,28 @@ public class DatabaseManager {
             }
         };
         mDatabaseReference.addChildEventListener(childEventListener);
+    }
+
+    public static void updatePlaceRating(final RatingBar ratingBar, final String placeId) {
+        mBase = FirebaseDatabase.getInstance();
+        mDatabaseReference = mBase.getReference().child("places").child(placeId);
+        mDatabaseReference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                HashMap<String, Object> currentPlace = (HashMap<String, Object>) dataSnapshot.getValue();
+                Float mark = ratingBar.getRating();
+                Float curSum = Float.parseFloat(currentPlace.get("sumOfMarks").toString());
+                Long curNumOfMarks = Long.parseLong(currentPlace.get("numberOfRatings").toString());
+
+                curSum += mark;
+                curNumOfMarks++;
+
+                DatabaseReference mDatabaseReferenceSet = mBase.getReference().child("places").child(placeId).child("sumOfMarks");
+                mDatabaseReferenceSet.setValue(curSum);
+
+                mDatabaseReferenceSet = mBase.getReference().child("places").child(placeId).child("numberOfRatings");
+                mDatabaseReferenceSet.setValue(curNumOfMarks);
+            }
+        });
     }
 }

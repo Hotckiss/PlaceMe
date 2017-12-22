@@ -82,7 +82,7 @@ public class AlertDialogCreator {
 
         final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(context, android.R.layout.select_dialog_multichoice);
         final ArrayList<Place> placeArrayList = new ArrayList<>();
-        
+
         DatabaseManager.findPlacesByString(arrayAdapter, placeArrayList, toFind);
 
         builderSingle.setNegativeButton("cancel", new DialogInterface.OnClickListener() {
@@ -196,41 +196,11 @@ public class AlertDialogCreator {
         final AlertDialog.Builder builder = new AlertDialog.Builder(context);
         LayoutInflater inflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
         final View layout = inflater.inflate(R.layout.dialog_rate_place, null);
+        final RatingBar rb = layout.findViewById(R.id.rate_place);
 
         builder.setPositiveButton("Rate it!", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int arg1) {
-                //TODO: build root
-                mBase = FirebaseDatabase.getInstance();
-                mDatabaseReference = mBase.getReference().child("places").child(((Integer)place.getId()).toString());
-                mDatabaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-
-                        HashMap<String, Object> currentPlace = (HashMap<String, Object>) dataSnapshot.getValue();
-
-                        RatingBar rb = (RatingBar) layout.findViewById(R.id.rate_place);
-                        Float mark = rb.getRating();
-                        Log.d("RATE", mark.toString());
-                        //Log.d("RATE", currentPlace.get("sumOfMarks").toString());
-                        Float curSum = Float.parseFloat(currentPlace.get("sumOfMarks").toString());
-                        Long curNumOfMarks = Long.parseLong(currentPlace.get("numberOfRatings").toString());
-                        curSum += mark;
-                        curNumOfMarks++;
-
-                        DatabaseReference mDatabaseReference1 = mBase.getReference().child("places").child(((Integer)place.getId()).toString()).child("sumOfMarks");
-                        mDatabaseReference1.setValue(curSum);
-
-                        mDatabaseReference1 = mBase.getReference().child("places").child(((Integer)place.getId()).toString()).child("numberOfRatings");
-                        mDatabaseReference1.setValue(curNumOfMarks);
-                    }
-
-                    @Override
-                    public void onCancelled( DatabaseError firebaseError) {
-
-                        Log.d("User", "-1" );
-                    }
-                });
-                //Toast.makeText(context, "TODO: rate it", Toast.LENGTH_LONG).show();
+                DatabaseManager.updatePlaceRating(rb, place.getIdAsString());
             }
         });
                 builder.setNeutralButton("Add to favourite",
