@@ -61,6 +61,7 @@ import java.util.ArrayList;
 import geo.GeoObj;
 import gl.GL1Renderer;
 import gl.GLFactory;
+import placeme.ru.placemedemo.core.map.MapManager;
 import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
 import placeme.ru.placemedemo.elements.Place;
 import system.ArActivity;
@@ -146,7 +147,7 @@ public class MainActivity extends AppCompatActivity
                 Log.d("search", "find!");
                 final String toFind = edSearch.getText().toString();
                 //Toast.makeText(getApplicationContext(), toFind, Toast.LENGTH_LONG).show();
-                MapUtilities.addFindedMarkers(googleMap, toFind);
+                MapManager.addFoundedMarkers(googleMap, toFind);
                 AlertDialogCreator.createAlertDialogFinded(MainActivity.this, toFind, googleMap, myPosition).show();
                 return false;
             }
@@ -217,7 +218,7 @@ public class MainActivity extends AppCompatActivity
         googleMap.setOnMarkerClickListener(this);
 
         requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
-        MapUtilities.addAllMarkers(googleMap);
+        MapManager.addAllMarkers(googleMap);
     }
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
@@ -242,7 +243,7 @@ public class MainActivity extends AppCompatActivity
             AlertDialog alert = createAlertDialogNewPlace(marker.getPosition());
             alert.show();
             // TODO: i do not like this!
-            MapUtilities.refreshMarkers(googleMap);
+            MapManager.refreshMarkers(googleMap);
         }
         else {
             showDescriptionDialog(MainActivity.this, marker);

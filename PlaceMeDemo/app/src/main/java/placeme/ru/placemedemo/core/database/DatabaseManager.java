@@ -1,9 +1,13 @@
 package placeme.ru.placemedemo.core.database;
 
 import android.content.Context;
+import android.support.annotation.Nullable;
 import android.widget.ArrayAdapter;
 import android.widget.RatingBar;
 
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
@@ -12,10 +16,10 @@ import com.google.firebase.database.FirebaseDatabase;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import placeme.ru.placemedemo.AuthData;
+import placeme.ru.placemedemo.elements.AuthData;
+import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
 import placeme.ru.placemedemo.elements.Place;
 import placeme.ru.placemedemo.elements.User;
-import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
 
 /**
  * Created by Андрей on 21.12.2017.
@@ -168,6 +172,54 @@ public class DatabaseManager {
         });
     }
 
+    /**
+     * Method that loads all markers from database to the map
+     * @param googleMap markers destination map
+     */
+    public static void loadMarkersToMap(final GoogleMap googleMap) {
+        mDatabaseReference = getDatabaseChild("places");
+        mDatabaseReference.addChildEventListener(new AbstractChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                Place place = dataSnapshot.getValue(Place.class);
+                googleMap.addMarker(new MarkerOptions()
+                         .position(new LatLng(place.getLatitude(), place.getLongitude()))
+                         .title(place.getName()));
+            }
+
+        });
+    }
+
+    /**
+     * Method that loads markers founded by query from database to the map
+     * @param googleMap markers destination map
+     * @param query user search query
+     */
+    public static void addMarkersByQuery(final GoogleMap googleMap, final String query) {
+        mDatabaseReference = getDatabaseChild("places");
+        mDatabaseReference.addChildEventListener(new AbstractChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                Place place = dataSnapshot.getValue(Place.class);
+                if (place.getName().toLowerCase().contains(query.toLowerCase())) {
+                    googleMap.addMarker(new MarkerOptions()
+                             .position(new LatLng(place.getLatitude(), place.getLongitude()))
+                             .title(place.getName()));
+                } else {
+                    for (String tag : place.getTags().split(",")) {
+                        if (query.toLowerCase().equals(tag.toLowerCase())) {
+                            googleMap.addMarker(new MarkerOptions()
+                                     .position(new LatLng(place.getLatitude(), place.getLongitude()))
+                                     .title(place.getName()));
+                            break;
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    @Nullable
     private static DatabaseReference getDatabaseChild(String childName) {
         DatabaseReference databaseReference = getDatabaseReference();
         if(databaseReference != null) {
@@ -177,6 +229,7 @@ public class DatabaseManager {
         return null;
     }
 
+    @Nullable
     private static DatabaseReference getDatabaseReference() {
         if(mBase != null) {
             return mBase.getReference();

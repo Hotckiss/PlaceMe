@@ -1,9 +1,10 @@
-package placeme.ru.placemedemo;
+package placeme.ru.placemedemo.elements;
 
 /**
  * Created by Андрей on 18.11.2017.
  */
 
+//TODO: javadoc
 public class AuthData {
 
     private int id;
