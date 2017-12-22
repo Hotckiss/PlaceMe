@@ -42,6 +42,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import placeme.ru.placemedemo.core.database.DatabaseManager;
 import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
 
 /**
@@ -79,41 +80,10 @@ public class AlertDialogCreator {
         final ListView lv = (ListView) layout.findViewById(R.id.lv);
         lv.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
 
-        final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(context, android.R.layout.select_dialog_multichoice);
+        final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(context, android.R.layout.select_dialog_multichoice);
         final ArrayList<Place> placeArrayList = new ArrayList<>();
-
-        FirebaseDatabase mBase;
-        DatabaseReference mDatabaseReference;
-        ChildEventListener childEventListener;
-        mBase = FirebaseDatabase.getInstance();
-        mDatabaseReference = mBase.getReference().child("places");
-        childEventListener = new ChildEventListener() {
-
-            @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                Place place = (Place) dataSnapshot.getValue(Place.class);
-                if (place.getName().indexOf(toFind) != -1) {
-                    arrayAdapter.add(place.getName());
-                    placeArrayList.add(place);
-
-                } else {
-                    for (String tag : place.getTags().split(",")) {
-                        if (toFind.equals(tag)) {
-                            arrayAdapter.add(place.getName());
-                            placeArrayList.add(place);
-                            break;
-                        }
-                    }
-                }
-            }
-
-            @Override public void onChildChanged(DataSnapshot dataSnapshot, String s) {}
-            @Override public void onChildRemoved(DataSnapshot dataSnapshot) {}
-            @Override public void onChildMoved(DataSnapshot dataSnapshot, String s) {}
-            @Override public void onCancelled(DatabaseError databaseError) {}
-
-        };
-        mDatabaseReference.addChildEventListener(childEventListener);
+        
+        DatabaseManager.findPlacesByString(arrayAdapter, placeArrayList, toFind);
 
         builderSingle.setNegativeButton("cancel", new DialogInterface.OnClickListener() {
             @Override
@@ -222,66 +192,6 @@ public class AlertDialogCreator {
         googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100));
     }
 
-    /*public static void showDescriptionDialog(final Context context, final Marker marker) {
-        mBase = FirebaseDatabase.getInstance();
-        mDatabaseReference = mBase.getReference().child("places");
-        ChildEventListener childEventListener1 = new ChildEventListener() {
-
-            @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                Place place = (Place) dataSnapshot.getValue(Place.class);
-                if ((place.getLatitude() == marker.getPosition().latitude) && (place.getLongitude() == marker.getPosition().longitude)) {
-                    AlertDialog alert = AlertDialogCreator.createAlertDescriptionDialog(place, context);
-                    alert.show();
-                }
-            }
-
-            @Override public void onChildChanged(DataSnapshot dataSnapshot, String s) {}
-            @Override public void onChildRemoved(DataSnapshot dataSnapshot) {}
-            @Override public void onChildMoved(DataSnapshot dataSnapshot, String s) {}
-            @Override public void onCancelled(DatabaseError databaseError) {}
-        };
-        mDatabaseReference.addChildEventListener(childEventListener1);
-    }
-
-    public static AlertDialog createAlertDescriptionDialog(final Place place, final Context context) {
-        final AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        LayoutInflater inflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
-        final View layout = inflater.inflate(R.layout.dialog_description, null);
-
-        builder.setTitle(place.getName());
-        //builder.setMessage(place.getDescription());
-
-        TextView descriptionText = (TextView) layout.findViewById(R.id.descriptionText);
-        descriptionText.setText(place.getDescription());
-
-        RatingBar rb = (RatingBar) layout.findViewById(R.id.total_rating);
-        rb.setRating(place.getMark());
-        builder.setPositiveButton("Go here!", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int arg1) {
-                //TODO: build root
-                Toast.makeText(context, "TODO: build root", Toast.LENGTH_LONG).show();
-            }
-        }).setNeutralButton("Rate place!",
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        AlertDialog alert = AlertDialogCreator.createAlertRateDialog(place, context);
-                        alert.show();
-
-                    }
-                }).setNegativeButton("Ok", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int arg1) {
-                dialog.cancel();
-            }
-        });
-        builder.setCancelable(true);
-        builder.setView(layout);
-        return builder.create();
-
-
-
-    }*/
-
     public static AlertDialog createAlertRateDialog(final Place place, final Context context) {
         final AlertDialog.Builder builder = new AlertDialog.Builder(context);
         LayoutInflater inflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
@@ -368,88 +278,4 @@ public class AlertDialogCreator {
         builder.setView(layout);
         return builder.create();
     }
-
-    /*public static AlertDialog createAlertDialogNewPlace(final LatLng latLng, final Context context) {
-        AlertDialog.Builder ad;
-        ad = new AlertDialog.Builder(context);
-        ad.setTitle("Creating place");  // заголовок
-        ad.setMessage("Create new place here?"); // сообщение
-        ad.setPositiveButton("Yes!", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int arg1) {
-                //Toast.makeText(MainActivity.this, "TODO: creating place", Toast.LENGTH_LONG).show();
-                AlertDialog alertNewPlace = createNewPlace(latLng, context);
-                alertNewPlace.show();
-            }
-        });
-        ad.setNegativeButton("No", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int arg1) {
-
-            }
-        });
-        ad.setCancelable(true);
-        return ad.create();
-    }
-
-    public static AlertDialog createNewPlace(final LatLng latLng, final Context context) {
-        final AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        //LayoutInflater inflater = MainActivity.this.getLayoutInflater();
-        LayoutInflater inflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
-        final View layout = inflater.inflate(R.layout.dialog_new_place, null);
-
-        iv = (ImageView) layout.findViewById(R.id.new_place_image);
-        iv.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-
-                //Toast.makeText(context, "ttt", Toast.LENGTH_LONG).show();
-                mStorageRef = FirebaseStorage.getInstance().getReference();
-                Intent intent = new Intent(Intent.ACTION_PICK);
-
-                intent.setType("image/*");
-                //intent.se
-                Log.d("sdvsvd", intent.getType());
-                if (context instanceof Activity) {
-                    ((Activity) context).startActivityForResult(intent, GALLERY_INTENT);
-                }
-                //context.
-                //context.startActivity(intent);
-                //context.getActivity().startActivityForResult(context, intent, GALLERY_INTENT);
-            }
-        });
-        builder.setPositiveButton("Finish", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int id) {
-                edName = (EditText) layout.findViewById(R.id.place_name);
-                edDescription = (EditText) layout.findViewById(R.id.place_description);
-                edTags = (EditText) layout.findViewById(R.id.place_tags);
-                mBase = FirebaseDatabase.getInstance();
-                mDatabaseReference = mBase.getReference().child("maxidplaces");
-                mDatabaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        Integer id = (Integer) dataSnapshot.getValue(Integer.class);
-                        iid = id;
-                        Place newPlace = new Place(iid, edName.getText().toString(), edDescription.getText().toString(), edTags.getText().toString(), latLng.latitude, latLng.longitude);
-                        DatabaseReference mDatabaseReference1 = mBase.getReference().child("places");
-                        mDatabaseReference1.child(id.toString()).setValue(newPlace);
-                        mDatabaseReference.setValue(iid + 1);
-                    }
-
-                    @Override
-                    public void onCancelled( DatabaseError firebaseError) {
-
-                        Log.d("User", "-1" );
-                    }
-                });
-
-
-            }
-        }).setNegativeButton("Back", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int arg1) {}
-        });
-        builder.setCancelable(true);
-        builder.setView(layout);
-        return builder.create();
-    }*/
 }

@@ -1,13 +1,18 @@
 package placeme.ru.placemedemo.core.database;
 
 import android.content.Context;
+import android.widget.ArrayAdapter;
 
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import java.util.ArrayList;
+
 import placeme.ru.placemedemo.AuthData;
+import placeme.ru.placemedemo.Place;
 import placeme.ru.placemedemo.User;
 import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
 
@@ -61,5 +66,31 @@ public class DatabaseManager {
                 mDatabaseReference.setValue(id + 1);
             }
         });
+    }
+
+    public static void findPlacesByString(final ArrayAdapter<String> arrayAdapter, final ArrayList<Place> places, final String toFind) {
+        mBase = FirebaseDatabase.getInstance();
+        mDatabaseReference = mBase.getReference().child("places");
+
+        childEventListener = new AbstractChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                Place place = dataSnapshot.getValue(Place.class);
+                if (place.getName().toLowerCase().contains(toFind.toLowerCase())) {
+                    arrayAdapter.add(place.getName());
+                    places.add(place);
+
+                } else {
+                    for (String tag : place.getTags().split(",")) {
+                        if (toFind.toLowerCase().equals(tag.toLowerCase())) {
+                            arrayAdapter.add(place.getName());
+                            places.add(place);
+                            break;
+                        }
+                    }
+                }
+            }
+        };
+        mDatabaseReference.addChildEventListener(childEventListener);
     }
 }
