@@ -1,4 +1,4 @@
-package placeme.ru.placemedemo;
+package placeme.ru.placemedemo.ui;
 
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -12,6 +12,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import placeme.ru.placemedemo.R;
 import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
 
 public class RoutesActivity extends AppCompatActivity {

@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/darkblue_small"
-    tools:context="placeme.ru.placemedemo.ProfileActivity">
+    tools:context="placeme.ru.placemedemo.ui.ProfileActivity">
 
     <ScrollView
         android:id="@+id/scrollView2"

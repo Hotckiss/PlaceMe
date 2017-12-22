@@ -1,4 +1,4 @@
-package placeme.ru.placemedemo;
+package placeme.ru.placemedemo.ui;
 
 import android.content.Intent;
 import android.net.Uri;
@@ -20,9 +20,12 @@ import com.google.firebase.storage.StorageReference;
 import com.squareup.picasso.Picasso;
 
 import de.hdodenhof.circleimageview.CircleImageView;
+import placeme.ru.placemedemo.HorizontalListViewFragment;
+import placeme.ru.placemedemo.R;
 import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
 import placeme.ru.placemedemo.core.utils.FriendsDataUtils;
 import placeme.ru.placemedemo.elements.User;
+import util.Log;
 
 
 public class ProfileActivity extends AppCompatActivity {
@@ -31,6 +34,8 @@ public class ProfileActivity extends AppCompatActivity {
     private DatabaseReference mDatabaseReference;
     private ChildEventListener childEventListener;
     private StorageReference mStorageRef;
+
+    private static final int PROFILE_CHANGED_CODE = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +48,14 @@ public class ProfileActivity extends AppCompatActivity {
         setEditButton();
 
         loadUserProfile();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode == PROFILE_CHANGED_CODE) {
+            loadUserProfile();
+        }
     }
 
     private void loadProfileImage() {
@@ -67,7 +80,7 @@ public class ProfileActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent edit = new Intent(ProfileActivity.this, EditActivity.class);
-                startActivity(edit);
+                startActivityForResult(edit, PROFILE_CHANGED_CODE);
             }
         });
     }
@@ -98,8 +111,7 @@ public class ProfileActivity extends AppCompatActivity {
                         //TODO: add friends list
                         FriendsDataUtils.setFriendsLength(ProfileActivity.this, user.getFriendsLength());
                         FriendsDataUtils.setFriends(ProfileActivity.this, user.getFriends());
-                        //Log.d("prrrrrr1r", user.getFriends());
-                        //Log.d("prrrrrr2r", ((Integer)user.getFriendsLength()).toString());
+
                         FragmentManager fm = getSupportFragmentManager();
                         android.support.v4.app.Fragment fragment = fm.findFragmentById(R.id.fragmentContainer);
 
@@ -128,6 +140,4 @@ public class ProfileActivity extends AppCompatActivity {
         mDatabaseReference.child("users").removeEventListener(childEventListener);
         childEventListener = null;
     }
-
-
 }

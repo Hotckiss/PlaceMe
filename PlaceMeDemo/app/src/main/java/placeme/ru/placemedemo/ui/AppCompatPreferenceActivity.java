@@ -1,4 +1,4 @@
-package placeme.ru.placemedemo;
+package placeme.ru.placemedemo.ui;
 
 import android.content.res.Configuration;
 import android.os.Bundle;

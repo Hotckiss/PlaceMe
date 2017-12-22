@@ -3,6 +3,7 @@ package placeme.ru.placemedemo.core.database;
 import android.content.Context;
 import android.support.annotation.Nullable;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.RatingBar;
 
 import com.google.android.gms.maps.GoogleMap;
@@ -16,8 +17,8 @@ import com.google.firebase.database.FirebaseDatabase;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import placeme.ru.placemedemo.elements.AuthData;
 import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
+import placeme.ru.placemedemo.elements.AuthData;
 import placeme.ru.placemedemo.elements.Place;
 import placeme.ru.placemedemo.elements.User;
 
@@ -215,6 +216,58 @@ public class DatabaseManager {
                         }
                     }
                 }
+            }
+        });
+    }
+
+    /**
+     * Method that loads user information from the database to the edit fields
+     * @param toLoad array of fields to init
+     * @param userId user id to search in database
+     */
+    public static void loadUserDataForEdit(final EditText[] toLoad, String userId) {
+        mDatabaseReference = getDatabaseChild("users").child(userId);
+
+        mDatabaseReference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                HashMap<String, String> currentUser = (HashMap<String, String>) dataSnapshot.getValue();
+
+                toLoad[2].setText(currentUser.get("name"));
+                toLoad[3].setText(currentUser.get("surname"));
+                toLoad[4].setText(currentUser.get("nickname"));
+            }
+        });
+
+        DatabaseReference mDatabaseReferenceAuth = getDatabaseChild("authdata").child(userId);
+
+        mDatabaseReferenceAuth.addListenerForSingleValueEvent(new AbstractValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                HashMap<String, String> currentUser = (HashMap<String, String>) dataSnapshot.getValue();
+
+                toLoad[0].setText(currentUser.get("login"));
+                toLoad[1].setText(currentUser.get("password"));
+            }
+        });
+    }
+
+    /**
+     * Method that saves changed user data
+     * @param userId user id
+     * @param information new user information
+     */
+    public static void saveProfileChanges(final String userId, final String[] information) {
+        mDatabaseReference = getDatabaseChild("users").child(userId);
+
+        mDatabaseReference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                getDatabaseChild("authdata").child(userId).child("login").setValue(information[0]);
+                getDatabaseChild("authdata").child(userId).child("password").setValue(information[1]);
+                getDatabaseChild("users").child(userId).child("name").setValue(information[2]);
+                getDatabaseChild("users").child(userId).child("surname").setValue(information[3]);
+                getDatabaseChild("users").child(userId).child("nickname").setValue(information[4]);
             }
         });
     }

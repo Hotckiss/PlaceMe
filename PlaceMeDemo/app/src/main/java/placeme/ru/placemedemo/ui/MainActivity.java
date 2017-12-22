@@ -1,4 +1,4 @@
-package placeme.ru.placemedemo;
+package placeme.ru.placemedemo.ui;
 
 import android.Manifest;
 import android.content.Context;
@@ -61,6 +61,8 @@ import java.util.ArrayList;
 import geo.GeoObj;
 import gl.GL1Renderer;
 import gl.GLFactory;
+import placeme.ru.placemedemo.AlertDialogCreator;
+import placeme.ru.placemedemo.R;
 import placeme.ru.placemedemo.core.map.MapManager;
 import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
 import placeme.ru.placemedemo.elements.Place;
