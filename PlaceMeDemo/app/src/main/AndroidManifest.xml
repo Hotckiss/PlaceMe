@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="placeme.ru.placemedemo">
 
     <!-- To auto-complete the email text field in the login form with the user's emails -->
@@ -9,8 +10,12 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
+    <uses-feature android:name="android.hardware.camera" />
+    <uses-feature android:name="android.hardware.camera.autofocus" />
 
     <!--
          The ACCESS_COARSE/FINE_LOCATION permissions are not required to use
@@ -25,13 +30,14 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme">
+        android:theme="@style/AppTheme"
+        tools:replace="android:icon">
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyDQk0jLtZY5dV4sY0BbvIzxDVkv8CPDAcg" />
 
         <activity
-            android:name=".MainActivity"
+            android:name=".ui.MainActivity"
             android:label="@string/app_name"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
@@ -41,7 +47,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".LoginActivity"
+            android:name=".ui.LoginActivity"
             android:label="@string/title_activity_login" />
 
         <!--
@@ -53,9 +59,9 @@
              You can define the keys for the debug and release targets in src/debug/ and src/release/. 
         -->
 
-        <activity android:name=".ProfileActivity" />
+        <activity android:name=".ui.ProfileActivity" />
         <activity
-            android:name=".FavouritePlacesActivity"
+            android:name=".ui.FavouritePlacesActivity"
             android:label="@string/title_activity_favourite_places"
             android:theme="@style/AppTheme.NoActionBar" />
         <!--
@@ -67,14 +73,15 @@
              You can define the keys for the debug and release targets in src/debug/ and src/release/. 
         -->
         <activity
-            android:name=".RoutesActivity"
+            android:name=".ui.RoutesActivity"
             android:label="@string/title_activity_routes"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
-            android:name=".SettingsActivity"
+            android:name=".ui.SettingsActivity"
             android:label="@string/title_activity_settings" />
-        <activity android:name=".RegisterActivity" />
-        <activity android:name=".EditActivity"></activity>
+        <activity android:name=".ui.RegisterActivity" />
+        <activity android:name=".ui.EditActivity" />
+        <activity android:name=".core.chat.Chat"></activity>
     </application>
 
 </manifest>

@@ -5,11 +5,17 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/darkblue_small"
-    tools:context="placeme.ru.placemedemo.ProfileActivity">
+    tools:context="placeme.ru.placemedemo.ui.ProfileActivity">
 
     <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:id="@+id/scrollView2"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        app:layout_constraintBottom_toTopOf="@+id/fragmentContainer"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
 
         <LinearLayout
@@ -34,7 +40,7 @@
                 android:id="@+id/profile_image"
                 android:layout_width="120dp"
                 android:layout_height="120dp"
-                android:src="@drawable/profile_face" />
+                android:src="@drawable/ic_placeme_icon" />
 
 
             <LinearLayout
@@ -81,78 +87,22 @@
                 android:textColor="@color/colorAccent"
                 android:textStyle="bold" />
 
-            <HorizontalScrollView
-                android:layout_width="match_parent"
-                android:layout_height="100dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"
-                    android:layout_marginTop="8dp"
-                    android:gravity="center_horizontal"
-                    android:orientation="horizontal"
-                    android:padding="10dp"
-                    android:weightSum="1"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintHorizontal_bias="10.0"
-                    app:layout_constraintLeft_toLeftOf="parent"
-                    app:layout_constraintRight_toRightOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintVertical_bias="10.0"
-                    tools:layout_constraintBottom_creator="1"
-                    tools:layout_constraintTop_creator="1">
-
-                    <de.hdodenhof.circleimageview.CircleImageView xmlns:app="http://schemas.android.com/apk/res-auto"
-                        android:id="@+id/friend1"
-                        android:layout_width="70dp"
-                        android:layout_height="60dp"
-                        android:src="@drawable/friend1" />
-
-                    <de.hdodenhof.circleimageview.CircleImageView xmlns:app="http://schemas.android.com/apk/res-auto"
-                        android:id="@+id/friend2"
-                        android:layout_width="70dp"
-                        android:layout_height="60dp"
-                        android:src="@drawable/friend2" />
-
-                    <de.hdodenhof.circleimageview.CircleImageView xmlns:app="http://schemas.android.com/apk/res-auto"
-                        android:id="@+id/friend3"
-                        android:layout_width="70dp"
-                        android:layout_height="60dp"
-                        android:src="@drawable/friend3" />
-
-                    <de.hdodenhof.circleimageview.CircleImageView xmlns:app="http://schemas.android.com/apk/res-auto"
-                        android:id="@+id/friend4"
-                        android:layout_width="70dp"
-                        android:layout_height="60dp"
-                        android:src="@drawable/friend4" />
-
-                    <de.hdodenhof.circleimageview.CircleImageView xmlns:app="http://schemas.android.com/apk/res-auto"
-                        android:id="@+id/friend5"
-                        android:layout_width="70dp"
-                        android:layout_height="60dp"
-                        android:src="@drawable/friend5" />
-
-                    <de.hdodenhof.circleimageview.CircleImageView xmlns:app="http://schemas.android.com/apk/res-auto"
-                        android:id="@+id/friend6"
-                        android:layout_width="70dp"
-                        android:layout_height="60dp"
-                        android:src="@drawable/friend6" />
-
-                    <de.hdodenhof.circleimageview.CircleImageView xmlns:app="http://schemas.android.com/apk/res-auto"
-                        android:id="@+id/friend7"
-                        android:layout_width="70dp"
-                        android:layout_height="60dp"
-                        android:src="@drawable/friend7" />
-
-
-                </LinearLayout>
-
-            </HorizontalScrollView>
-
-
         </LinearLayout>
 
     </ScrollView>
+
+    <FrameLayout
+        android:id="@+id/fragmentContainer"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/scrollView2">
+
+    </FrameLayout>
 
 </android.support.constraint.ConstraintLayout>
