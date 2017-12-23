@@ -1,6 +1,7 @@
 package placeme.ru.placemedemo.core.database;
 
 import android.content.Context;
+import android.net.Uri;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentManager;
 import android.widget.ArrayAdapter;
@@ -10,23 +11,25 @@ import android.widget.TextView;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
-import placeme.ru.placemedemo.HorizontalListViewFragment;
+import placeme.ru.placemedemo.ui.dialogs.AlertDialogCreator;
+import placeme.ru.placemedemo.ui.views.HorizontalListViewFragment;
 import placeme.ru.placemedemo.R;
 import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
 import placeme.ru.placemedemo.core.utils.FriendsDataUtils;
-import placeme.ru.placemedemo.elements.AuthData;
-import placeme.ru.placemedemo.elements.Place;
-import placeme.ru.placemedemo.elements.User;
+import placeme.ru.placemedemo.elements.*;
 
 /**
  * Created by Андрей on 21.12.2017.
@@ -41,8 +44,11 @@ public class DatabaseManager {
     private static DatabaseReference mDatabaseReference;
     private static ChildEventListener childEventListener;
 
+    private static StorageReference mStorageRef;
+
     static {
         mBase = FirebaseDatabase.getInstance();
+        mStorageRef = FirebaseStorage.getInstance().getReference();
     }
 
     /**
@@ -341,6 +347,40 @@ public class DatabaseManager {
                         fragment = new HorizontalListViewFragment();
                         fragmentManager.beginTransaction().add(R.id.fragmentContainer, fragment).commit();
                     }
+                }
+            }
+        });
+    }
+
+    public static void saveCreatedPlace(final Uri uri, final String[] placeInfo, final LatLng position) {
+        mDatabaseReference = getDatabaseChild("maxidplaces");
+        mDatabaseReference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                final Integer id = dataSnapshot.getValue(Integer.class);
+
+                Place newPlace = new Place(id, placeInfo[0], placeInfo[1], placeInfo[2], position.latitude, position.longitude);
+
+                getDatabaseChild("places").child(id.toString()).setValue(newPlace);
+                mDatabaseReference.setValue(id + 1);
+
+                StorageReference child = mStorageRef.child("photos").child(id.toString() + "place_photo");
+
+                if(uri != null) {
+                    child.putFile(uri);
+                }
+            }
+        });
+    }
+
+    public static void runDescriptionDialog(final Context context, final Marker marker) {
+        getDatabaseChild("places").addChildEventListener(new AbstractChildEventListener() {
+
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                Place place = dataSnapshot.getValue(Place.class);
+                if ((place.getLatitude() == marker.getPosition().latitude) && (place.getLongitude() == marker.getPosition().longitude)) {
+                    AlertDialogCreator.createAlertDescriptionDialog(context, place).show();
                 }
             }
         });

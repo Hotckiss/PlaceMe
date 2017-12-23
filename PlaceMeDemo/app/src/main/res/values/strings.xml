@@ -109,4 +109,13 @@
     <string name="register_name">Name:</string>
     <string name="register_surname">Surname:</string>
     <string name="register_nickname">Nickname:</string>
+
+    <!--- User answers -->
+    <string name="answer_yes">Yes!</string>
+    <string name="answer_no">No</string>
+    <string name="answer_finish">Finish</string>
+    <string name="answer_back">Back</string>
+    <!--- Places -->
+    <string name="places_creating">Creating place</string>
+    <string name="places_creating_question">Create new place here?</string>
 </resources>

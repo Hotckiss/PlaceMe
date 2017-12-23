@@ -1,4 +1,4 @@
-package placeme.ru.placemedemo;
+package placeme.ru.placemedemo.ui.dialogs;
 
 import android.content.Context;
 import android.content.DialogInterface;
@@ -10,8 +10,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.RatingBar;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.akexorcist.googledirection.DirectionCallback;
 import com.akexorcist.googledirection.GoogleDirection;
@@ -26,10 +29,14 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import placeme.ru.placemedemo.R;
 import placeme.ru.placemedemo.core.database.DatabaseManager;
 import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
 import placeme.ru.placemedemo.elements.Place;
@@ -38,6 +45,7 @@ import placeme.ru.placemedemo.elements.Place;
  * Created by Андрей on 21.11.2017.
  */
 
+//TODO: refactor
 public class AlertDialogCreator {
     private static ArrayList<LatLng> points = new ArrayList<>();
 
@@ -95,11 +103,10 @@ public class AlertDialogCreator {
                 LatLng destination = myPosition;
                 DirectionDestinationRequest gd = GoogleDirection.withServerKey("AIzaSyD_WcUAMqVEVW0H84GsXLKBr0HokiO-v_4").from(origin);
                 int lastPoint = -1;
-                for(int i=0;i<placeArrayList.size();i++) {
+                for (int i = 0; i < placeArrayList.size(); i++) {
                     if(sp.get(i)) {
                         lastPoint = i;
                     }
-                    //Log.d(((Integer)i).toString(), ((Boolean)sp.get(i)).toString());
                 }
 
                 if(lastPoint != -1) {
@@ -133,30 +140,57 @@ public class AlertDialogCreator {
                                         }
                                         List<Step> stepList = leg.getStepList();
                                         ArrayList<PolylineOptions> polylineOptionList = DirectionConverter.createTransitPolyline(context, stepList, 5, Color.RED, 3, Color.BLUE);
-                                        //Log.d ("length", ((Integer)polylineOptionList.size()).toString());
-                                        Integer cnt = 0;
+
                                         for (PolylineOptions polylineOption : polylineOptionList) {
-                                            cnt += polylineOption.getPoints().size();
                                             points.addAll(polylineOption.getPoints());
                                             googleMap.addPolyline(polylineOption);
                                         }
-                                        Log.d ("lengthfff", ((Integer)points.size()).toString());
                                     }
-                                    // Do something
-                                } else {
-                                    // Do something
                                 }
                             }
 
                             @Override
-                            public void onDirectionFailure(Throwable t) {
-                                // Do something
-                            }
+                            public void onDirectionFailure(Throwable t) {}
                         });
             }
         });
 
         return builderSingle.create();
+    }
+
+    public static AlertDialog createAlertDescriptionDialog(final Context context, final Place place) {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        LayoutInflater inflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
+        final View layout = inflater.inflate(R.layout.dialog_description, null);
+
+        builder.setTitle(place.getName());
+        TextView descriptionText = (TextView) layout.findViewById(R.id.descriptionText);
+        descriptionText.setText(place.getDescription());
+        StorageReference mStorageRef = FirebaseStorage.getInstance().getReference();
+        StorageReference child = mStorageRef.child("photos").child(place.getIdAsString() + "place_photo");
+        final ImageView imgView = (ImageView) layout.findViewById(R.id.description_picture);
+        child.getDownloadUrl().addOnSuccessListener(uri -> Picasso.with(context).load(uri)
+                .placeholder(android.R.drawable.btn_star_big_on)
+                .error(android.R.drawable.btn_star_big_on)
+                .into(imgView));
+
+        RatingBar rb = (RatingBar) layout.findViewById(R.id.total_rating);
+        rb.setRating(place.getMark());
+
+        builder.setPositiveButton("Go here!", (dialog, arg1) -> {
+            //TODO: build root
+            Toast.makeText(context, "TODO: build root", Toast.LENGTH_LONG).show();
+        }).setNeutralButton("Rate place!",
+                (dialog, id) -> {
+                    AlertDialog alert = AlertDialogCreator.createAlertRateDialog(place,context);
+                    alert.show();
+
+                }).setNegativeButton("Ok", (dialog, arg1) -> dialog.cancel());
+
+        builder.setCancelable(true);
+        builder.setView(layout);
+        return builder.create();
+
     }
 
     public static AlertDialog createAlertRateDialog(final Place place, final Context context) {

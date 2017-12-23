@@ -22,6 +22,7 @@ public class EditActivity extends AppCompatActivity {
 
         initializeTextFields();
         final EditText[] toLoad = initializeEditFields();
+
         DatabaseManager.loadUserDataForEdit(toLoad, AuthorizationUtils.getLoggedInAsString(this));
 
         Button saveButton = findViewById(R.id.saveEdit);

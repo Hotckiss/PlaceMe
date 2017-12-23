@@ -1,4 +1,4 @@
-package placeme.ru.placemedemo;
+package placeme.ru.placemedemo.core.chat;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -20,10 +20,11 @@ import com.firebase.client.FirebaseError;
 import java.util.HashMap;
 import java.util.Map;
 
+import placeme.ru.placemedemo.R;
 import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
 import placeme.ru.placemedemo.core.utils.ChatUtils;
 
-
+//TODO: refactor
 public class Chat extends AppCompatActivity {
     LinearLayout layout;
     RelativeLayout layout_2;
@@ -37,18 +38,18 @@ public class Chat extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
 
-        layout = (LinearLayout) findViewById(R.id.layout1);
-        layout_2 = (RelativeLayout)findViewById(R.id.layout2);
-        sendButton = (ImageView)findViewById(R.id.sendButton);
-        messageArea = (EditText)findViewById(R.id.messageArea);
-        scrollView = (ScrollView)findViewById(R.id.scrollView);
+        layout = findViewById(R.id.layout1);
+        layout_2 = findViewById(R.id.layout2);
+        sendButton = findViewById(R.id.sendButton);
+        messageArea = findViewById(R.id.messageArea);
+        scrollView = findViewById(R.id.scrollView);
 
         Firebase.setAndroidContext(this);
         final String[] chatPair = ChatUtils.getChatPair(Chat.this).split(",");
         if (chatPair.length < 2) {
             finish();
         }
-        //TODO: id
+
         reference1 = new Firebase("https://placemedemo-676f5.firebaseio.com/messages/" + chatPair[0] + "_" + chatPair[1]);
         reference2 = new Firebase("https://placemedemo-676f5.firebaseio.com/messages/" + chatPair[1] + "_" + chatPair[0]);
 

@@ -1,4 +1,4 @@
-package placeme.ru.placemedemo;
+package placeme.ru.placemedemo.ui.views;
 
 /**
  * Created by ?????? on 20.12.2017.
@@ -33,12 +33,15 @@ import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 
+import placeme.ru.placemedemo.R;
+import placeme.ru.placemedemo.core.chat.Chat;
 import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
 import placeme.ru.placemedemo.core.utils.ChatUtils;
 import placeme.ru.placemedemo.core.utils.FriendsDataUtils;
 import placeme.ru.placemedemo.elements.cards.FriendCard;
 import placeme.ru.placemedemo.elements.User;
 
+//TODO:refactor
 public class HorizontalListViewFragment extends Fragment {
 
     ArrayList<FriendCard> listitems = new ArrayList<>();

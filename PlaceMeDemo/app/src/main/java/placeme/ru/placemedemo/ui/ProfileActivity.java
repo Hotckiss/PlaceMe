@@ -17,6 +17,7 @@ import placeme.ru.placemedemo.core.database.DatabaseManager;
 import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
 
 
+//TODO: exclude storage
 public class ProfileActivity extends AppCompatActivity {
 
     private StorageReference mStorageRef;

@@ -81,7 +81,7 @@
             android:label="@string/title_activity_settings" />
         <activity android:name=".ui.RegisterActivity" />
         <activity android:name=".ui.EditActivity" />
-        <activity android:name=".Chat"></activity>
+        <activity android:name=".core.chat.Chat"></activity>
     </application>
 
 </manifest>

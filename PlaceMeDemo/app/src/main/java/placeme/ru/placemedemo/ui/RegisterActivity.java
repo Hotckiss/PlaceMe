@@ -32,14 +32,10 @@ public class RegisterActivity extends AppCompatActivity {
 
         Button submit = findViewById(R.id.submit_up);
 
-        submit.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //TODO: check correctness of login and password
-                DatabaseManager.registerUser(RegisterActivity.this, generateNewUserData());
-                finish();
-            }
-
+        submit.setOnClickListener(v -> {
+            //TODO: check correctness of login and password
+            DatabaseManager.registerUser(RegisterActivity.this, generateNewUserData());
+            finish();
         });
     }
 
