@@ -1,38 +1,24 @@
 package placeme.ru.placemedemo.ui;
 
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
-import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.firebase.database.ChildEventListener;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.squareup.picasso.Picasso;
 
 import de.hdodenhof.circleimageview.CircleImageView;
-import placeme.ru.placemedemo.HorizontalListViewFragment;
 import placeme.ru.placemedemo.R;
+import placeme.ru.placemedemo.core.database.DatabaseManager;
 import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
-import placeme.ru.placemedemo.core.utils.FriendsDataUtils;
-import placeme.ru.placemedemo.elements.User;
-import util.Log;
 
 
 public class ProfileActivity extends AppCompatActivity {
 
-    private FirebaseDatabase mBase;
-    private DatabaseReference mDatabaseReference;
-    private ChildEventListener childEventListener;
     private StorageReference mStorageRef;
 
     private static final int PROFILE_CHANGED_CODE = 1;
@@ -42,7 +28,7 @@ public class ProfileActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
 
-        //TODO: make good placeholder for profile image: instead of star or lens
+        //TODO: make good placeholder for profile image: instead of star
         loadProfileImage();
 
         setEditButton();
@@ -62,82 +48,32 @@ public class ProfileActivity extends AppCompatActivity {
         mStorageRef = FirebaseStorage.getInstance().getReference();
         final CircleImageView civ = findViewById(R.id.profile_image);
         StorageReference child = mStorageRef.child("avatars").child(AuthorizationUtils.getLoggedInAsString(ProfileActivity.this) + "avatar");
-        child.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-            @Override
-            public void onSuccess(Uri uri) {
-                Picasso.with(ProfileActivity.this).load(uri)
-                        .placeholder(android.R.drawable.btn_star_big_on)
-                        .error(android.R.drawable.btn_star_big_on)
-                        .into(civ);
-
-            }
-        });
+        child.getDownloadUrl().addOnSuccessListener(uri -> Picasso.with(ProfileActivity.this).load(uri)
+                .placeholder(android.R.drawable.btn_star_big_on)
+                .error(android.R.drawable.btn_star_big_on)
+                .into(civ));
     }
 
     private void setEditButton() {
         Button editButton  = findViewById(R.id.button_edit);
-        editButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent edit = new Intent(ProfileActivity.this, EditActivity.class);
-                startActivityForResult(edit, PROFILE_CHANGED_CODE);
-            }
+        editButton.setOnClickListener(v -> {
+            Intent edit = new Intent(ProfileActivity.this, EditActivity.class);
+            startActivityForResult(edit, PROFILE_CHANGED_CODE);
         });
     }
 
     private void loadUserProfile() {
-        mBase = FirebaseDatabase.getInstance();
-        mDatabaseReference = mBase.getReference().child("users");
+        TextView[] userProfileFields = profileInfoFields();
+        FragmentManager fm = getSupportFragmentManager();
+        DatabaseManager.loadUserProfile(ProfileActivity.this, AuthorizationUtils.getLoggedIn(ProfileActivity.this), userProfileFields, fm);
+    }
 
-        if( childEventListener == null ) {
-            childEventListener = new ChildEventListener() {
-                @Override
-                public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                    User user = dataSnapshot.getValue(User.class);
-                    if(user == null) {
-                        return;
-                    }
-                    if(AuthorizationUtils.getLoggedIn(ProfileActivity.this) == user.getId()) {
-                        TextView tvName = findViewById(R.id.name);
-                        tvName.setText(user.getName());
+    private TextView[] profileInfoFields() {
+        TextView[] result = new TextView[3];
+        result[0] = findViewById(R.id.name);
+        result[1] = findViewById(R.id.surname);
+        result[2] = findViewById(R.id.nickname);
 
-                        TextView tvSurname = findViewById(R.id.surname);
-                        tvSurname.setText(user.getSurname());
-
-                        //TODO: move string constant to values/strings
-                        TextView tvNickname = findViewById(R.id.nickname);
-                        tvNickname.setText("@" + user.getNickname());
-
-                        //TODO: add friends list
-                        FriendsDataUtils.setFriendsLength(ProfileActivity.this, user.getFriendsLength());
-                        FriendsDataUtils.setFriends(ProfileActivity.this, user.getFriends());
-
-                        FragmentManager fm = getSupportFragmentManager();
-                        android.support.v4.app.Fragment fragment = fm.findFragmentById(R.id.fragmentContainer);
-
-                        if (fragment == null) {
-                            fragment = new HorizontalListViewFragment();
-                            fm.beginTransaction().add(R.id.fragmentContainer, fragment).commit();
-                        }
-
-
-                    }
-                }
-                @Override
-                public void onChildChanged(DataSnapshot dataSnapshot, String s) {}
-
-                @Override
-                public void onChildRemoved(DataSnapshot dataSnapshot) {}
-
-                @Override
-                public void onChildMoved(DataSnapshot dataSnapshot, String s) {}
-
-                @Override
-                public void onCancelled(DatabaseError databaseError) {}
-            };
-        }
-        mDatabaseReference.addChildEventListener(childEventListener);
-        mDatabaseReference.child("users").removeEventListener(childEventListener);
-        childEventListener = null;
+        return result;
     }
 }

@@ -2,7 +2,6 @@ package placeme.ru.placemedemo.ui;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -11,6 +10,9 @@ import placeme.ru.placemedemo.R;
 import placeme.ru.placemedemo.core.database.DatabaseManager;
 import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
 
+/**
+ * Activity that provides to edit user profile
+ */
 public class EditActivity extends AppCompatActivity {
 
     @Override
@@ -24,12 +26,9 @@ public class EditActivity extends AppCompatActivity {
 
         Button saveButton = findViewById(R.id.saveEdit);
 
-        saveButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                DatabaseManager.saveProfileChanges(AuthorizationUtils.getLoggedInAsString(EditActivity.this), generateNewUserData(toLoad));
-                finish();
-            }
+        saveButton.setOnClickListener(v -> {
+            DatabaseManager.saveProfileChanges(AuthorizationUtils.getLoggedInAsString(EditActivity.this), generateNewUserData(toLoad));
+            finish();
         });
     }
 

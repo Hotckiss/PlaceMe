@@ -2,9 +2,11 @@ package placeme.ru.placemedemo.core.database;
 
 import android.content.Context;
 import android.support.annotation.Nullable;
+import android.support.v4.app.FragmentManager;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.RatingBar;
+import android.widget.TextView;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
@@ -15,9 +17,13 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 
+import placeme.ru.placemedemo.HorizontalListViewFragment;
+import placeme.ru.placemedemo.R;
 import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
+import placeme.ru.placemedemo.core.utils.FriendsDataUtils;
 import placeme.ru.placemedemo.elements.AuthData;
 import placeme.ru.placemedemo.elements.Place;
 import placeme.ru.placemedemo.elements.User;
@@ -268,6 +274,74 @@ public class DatabaseManager {
                 getDatabaseChild("users").child(userId).child("name").setValue(information[2]);
                 getDatabaseChild("users").child(userId).child("surname").setValue(information[3]);
                 getDatabaseChild("users").child(userId).child("nickname").setValue(information[4]);
+            }
+        });
+    }
+
+    /**
+     * Method that allows to load user favorite places from database to array adapter
+     * @param userId user id
+     * @param adapter adapter to put places
+     */
+    public static void loadUserFavouritePlacesList(final String userId, ArrayAdapter<String> adapter) {
+        mDatabaseReference = getDatabaseChild("users").child(userId).child("favouritePlaces");
+        mDatabaseReference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                String[] idArray = dataSnapshot.getValue().toString().split(",");
+
+                Arrays.sort(idArray, (a, b) -> (Integer.parseInt(a) - Integer.parseInt(b)));
+                DatabaseReference mDatabaseReferencePlaces= getDatabaseChild("places");
+                mDatabaseReferencePlaces.addChildEventListener(new AbstractChildEventListener() {
+                    int position = 0;
+                    @Override
+                    public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                        Place place = dataSnapshot.getValue(Place.class);
+                        if (position < idArray.length && (place.getIdAsString()).equals(idArray[position])) {
+                            position++;
+                            adapter.add(place.getName());
+
+                        }
+                    }
+                });
+            }
+        });
+    }
+
+    /**
+     * Method that loads all user profile information and initializes list of friends
+     * @param context current context
+     * @param userId user id
+     * @param userProfileInfo fields with user profile information
+     * @param fragmentManager fragment manager to load friends list
+     */
+    public static void loadUserProfile(final Context context, final int userId, final TextView[] userProfileInfo, final FragmentManager fragmentManager) {
+        mDatabaseReference = getDatabaseChild("users");
+
+        mDatabaseReference.addChildEventListener(new AbstractChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                User user = dataSnapshot.getValue(User.class);
+                if(user == null) {
+                    return;
+                }
+
+                if(userId == user.getId()) {
+                    userProfileInfo[0].setText(user.getName());
+                    userProfileInfo[1].setText(user.getSurname());
+                    //TODO: move string constant to values/strings
+                    userProfileInfo[2].setText("@" + user.getNickname());
+
+                    //TODO: add friends list
+                    FriendsDataUtils.setFriendsLength(context, user.getFriendsLength());
+                    FriendsDataUtils.setFriends(context, user.getFriends());
+                    android.support.v4.app.Fragment fragment = fragmentManager.findFragmentById(R.id.fragmentContainer);
+
+                    if (fragment == null) {
+                        fragment = new HorizontalListViewFragment();
+                        fragmentManager.beginTransaction().add(R.id.fragmentContainer, fragment).commit();
+                    }
+                }
             }
         });
     }
