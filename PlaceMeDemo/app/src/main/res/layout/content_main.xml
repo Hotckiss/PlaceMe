@@ -26,22 +26,45 @@
         tools:layout_constraintRight_creator="1"
         tools:layout_constraintTop_creator="1" />
 
-    <EditText
-        android:id="@+id/search"
-        android:layout_width="220dp"
-        android:layout_height="50dp"
-        android:layout_marginBottom="355dp"
+    <LinearLayout
+        android:id="@+id/linearLayout2"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_marginBottom="365dp"
+        android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
-        android:background="@drawable/frame"
-        android:ems="10"
-        android:gravity="center"
-        android:hint="Search!"
-        android:inputType="textPersonName"
-        android:textSize="30dp"
         app:layout_constraintBottom_toTopOf="@+id/button4"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginLeft="16dp">
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/google_places_button"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:clickable="true"
+            app:backgroundTint="@color/cpb_red"
+            app:srcCompat="@drawable/ic_room_black_36dp"
+            tools:layout_editor_absoluteX="16dp"
+            tools:layout_editor_absoluteY="30dp"
+            android:focusable="true" />
+
+        <EditText
+            android:id="@+id/search"
+            android:layout_width="240dp"
+            android:layout_height="50dp"
+            android:background="@drawable/frame"
+            android:ems="10"
+            android:gravity="center"
+            android:hint="Search!"
+            android:inputType="textPersonName"
+            android:textSize="30sp"
+            app:layout_constraintBottom_toTopOf="@+id/button4"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </LinearLayout>
 
     <Button
         android:id="@+id/button4"
@@ -52,7 +75,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/search" />
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout2" />
 
 
 </android.support.constraint.ConstraintLayout>

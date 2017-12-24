@@ -2,13 +2,16 @@ package placeme.ru.placemedemo.ui;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
+import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -25,9 +28,17 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.Toast;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
+import com.google.android.gms.common.GooglePlayServicesRepairableException;
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.Places;
+import com.google.android.gms.location.places.ui.PlacePicker;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
@@ -55,7 +66,7 @@ import worldData.World;
  */
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback,
-        GoogleMap.OnMapLongClickListener, GoogleMap.OnMarkerClickListener {
+        GoogleMap.OnMapLongClickListener, GoogleMap.OnMarkerClickListener, GoogleApiClient.OnConnectionFailedListener {
 
     private GoogleMap googleMap;
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
@@ -75,6 +86,7 @@ public class MainActivity extends AppCompatActivity
     //AR
     private static ArrayList<LatLng> points = new ArrayList<>();
 
+    private static final int PLACE_PICKER_REQUEST = 1;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -106,6 +118,44 @@ public class MainActivity extends AppCompatActivity
         } else {
             initializeCamera();
         }
+
+        initGooglePlacesButton();
+    }
+
+    private void initGooglePlacesButton() {
+        FloatingActionButton floatingActionButton = findViewById(R.id.google_places_button);
+
+        floatingActionButton.setOnClickListener(v -> alertDialogAskGooglePlacesUsage(MainActivity.this).show());
+    }
+
+    public AlertDialog alertDialogAskGooglePlacesUsage(final Context context) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+
+        builder.setTitle("Search in Google Places");
+        builder.setMessage("Do you want to search place in google places?\n(Google places widget will be opened)");
+
+        builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                //Toast.makeText(context, "TODO:open GP", Toast.LENGTH_SHORT).show();
+
+                PlacePicker.IntentBuilder builder = new PlacePicker.IntentBuilder();
+
+                try {
+                    startActivityForResult(builder.build(MainActivity.this), PLACE_PICKER_REQUEST);
+                } catch (GooglePlayServicesRepairableException e) {
+                    e.printStackTrace();
+                } catch (GooglePlayServicesNotAvailableException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        builder.setNegativeButton("No", (dialog, which) -> dialog.cancel());
+
+        builder.setCancelable(true);
+
+        return builder.create();
     }
 
     @Override
@@ -119,6 +169,8 @@ public class MainActivity extends AppCompatActivity
         googleMap = map;
         googleMap.setOnMapLongClickListener(this);
         googleMap.setOnMarkerClickListener(this);
+        googleMap.getUiSettings().setMapToolbarEnabled(false);
+        googleMap.getUiSettings().setCompassEnabled(false);
 
         requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
         MapManager.addAllMarkers(googleMap);
@@ -182,12 +234,7 @@ public class MainActivity extends AppCompatActivity
             Intent settings = new Intent(this, SettingsActivity.class);
             startActivity(settings);
         } else if (id == R.id.nav_share) {
-            //TODO:PICTURE
-            Intent sendIntent = new Intent();
-            sendIntent.setAction(Intent.ACTION_SEND);
-            sendIntent.putExtra(Intent.EXTRA_TEXT, "Я пользуюсь приложением PlaceMe! Присоединяйся и ты: placeme.com :)");
-            sendIntent.setType("text/plain");
-            startActivity(Intent.createChooser(sendIntent, "Share using..."));
+            shareApplication();
         } else if (id == R.id.nav_exit) {
             AuthorizationUtils.setLoggedOut(MainActivity.this);
             login();
@@ -198,6 +245,14 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
+    private void shareApplication() {
+        //TODO:PICTURE
+        Intent sendIntent = new Intent();
+        sendIntent.setAction(Intent.ACTION_SEND);
+        sendIntent.putExtra(Intent.EXTRA_TEXT, "Я пользуюсь приложением PlaceMe! Присоединяйся и ты: placeme.com :)");
+        sendIntent.setType("text/plain");
+        startActivity(Intent.createChooser(sendIntent, "Share using..."));
+    }
     @Override
     public void onStop () {
         super.onStop();
@@ -215,6 +270,16 @@ public class MainActivity extends AppCompatActivity
         if(requestCode == GALLERY_INTENT && resultCode == RESULT_OK) {
             uri = data.getData();
             imageView.setImageURI(uri);
+        }
+
+        if (requestCode == PLACE_PICKER_REQUEST) {
+            if (resultCode == RESULT_OK) {
+                //TODO: ?
+                Place place = PlacePicker.getPlace(data, this);
+                //place.getPlaceTypes()
+                String toastMsg = String.format("Place: %s", place.getName());
+                Toast.makeText(this, toastMsg, Toast.LENGTH_LONG).show();
+            }
         }
     }
 
@@ -367,5 +432,10 @@ public class MainActivity extends AppCompatActivity
 
     private void showDescriptionDialog(final Marker marker) {
         DatabaseManager.runDescriptionDialog(MainActivity.this, marker);
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
     }
 }

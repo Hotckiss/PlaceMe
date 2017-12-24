@@ -68,91 +68,75 @@ public class AlertDialogCreator {
 
         DatabaseManager.findPlacesByString(arrayAdapter, placeArrayList, toFind);
 
-        builderSingle.setNegativeButton("cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-            }
-        });
+        builderSingle.setNegativeButton("cancel", (dialog, which) -> dialog.dismiss());
 
         lv.setAdapter(arrayAdapter);
 
-        lv.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-            @Override
-            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                AlertDialog.Builder builderInner = new AlertDialog.Builder(context);
-                builderInner.setMessage(placeArrayList.get(position).getDescription());
-                builderInner.setTitle(placeArrayList.get(position).getName());
-                builderInner.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog,int which) {
-                        dialog.dismiss();
-                    }
-                });
-                builderInner.show();
-                return false;
-            }
+        lv.setOnItemLongClickListener((parent, view, position, id) -> {
+            AlertDialog.Builder builderInner = new AlertDialog.Builder(context);
+            builderInner.setMessage(placeArrayList.get(position).getDescription());
+            builderInner.setTitle(placeArrayList.get(position).getName());
+            builderInner.setPositiveButton("Ok", (dialog, which) -> dialog.dismiss());
+            builderInner.show();
+            return false;
         });
 
-        builderSingle.setPositiveButton("Make route", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                SparseBooleanArray sp=lv.getCheckedItemPositions();
+        builderSingle.setPositiveButton("Make route", (dialog, which) -> {
+            SparseBooleanArray sp=lv.getCheckedItemPositions();
 
-                final LatLng origin = myPosition;
-                LatLng destination = myPosition;
-                DirectionDestinationRequest gd = GoogleDirection.withServerKey("AIzaSyD_WcUAMqVEVW0H84GsXLKBr0HokiO-v_4").from(origin);
-                int lastPoint = -1;
-                for (int i = 0; i < placeArrayList.size(); i++) {
-                    if(sp.get(i)) {
-                        lastPoint = i;
+            final LatLng origin = myPosition;
+            LatLng destination = myPosition;
+            DirectionDestinationRequest gd = GoogleDirection.withServerKey("AIzaSyD_WcUAMqVEVW0H84GsXLKBr0HokiO-v_4").from(origin);
+            int lastPoint = -1;
+            for (int i = 0; i < placeArrayList.size(); i++) {
+                if(sp.get(i)) {
+                    lastPoint = i;
+                }
+            }
+
+            if(lastPoint != -1) {
+                destination = new LatLng(placeArrayList.get(lastPoint).getLatitude(), placeArrayList.get(lastPoint).getLongitude());
+            }
+
+            for(int i=0;i<placeArrayList.size();i++) {
+                if(sp.get(i)) {
+                    if(i != lastPoint) {
+                        gd.and(new LatLng(placeArrayList.get(i).getLatitude(), placeArrayList.get(i).getLongitude()));
                     }
                 }
+                Log.d(((Integer)i).toString(), ((Boolean)sp.get(i)).toString());
+            }
 
-                if(lastPoint != -1) {
-                    destination = new LatLng(placeArrayList.get(lastPoint).getLatitude(), placeArrayList.get(lastPoint).getLongitude());
-                }
+            gd.to(destination)
+                    .transportMode(TransportMode.WALKING)
+                    .execute(new DirectionCallback() {
+                        @Override
+                        public void onDirectionSuccess(Direction direction, String rawBody) {
+                            if(direction.isOK()) {
 
-                for(int i=0;i<placeArrayList.size();i++) {
-                    if(sp.get(i)) {
-                        if(i != lastPoint) {
-                            gd.and(new LatLng(placeArrayList.get(i).getLatitude(), placeArrayList.get(i).getLongitude()));
-                        }
-                    }
-                    Log.d(((Integer)i).toString(), ((Boolean)sp.get(i)).toString());
-                }
+                                Route route = direction.getRouteList().get(0);
+                                int legCount = route.getLegList().size();
+                                Log.d ("length", ((Integer)legCount).toString());
+                                for (int index = 0; index < legCount; index++) {
+                                    Leg leg = route.getLegList().get(index);
+                                    googleMap.addMarker(new MarkerOptions().position(leg.getStartLocation().getCoordination()));
+                                    if (index == legCount - 1) {
+                                        googleMap.addMarker(new MarkerOptions().position(leg.getEndLocation().getCoordination()));
+                                    }
+                                    List<Step> stepList = leg.getStepList();
+                                    ArrayList<PolylineOptions> polylineOptionList = DirectionConverter.createTransitPolyline(context, stepList, 5, Color.RED, 3, Color.BLUE);
 
-                gd.to(destination)
-                        .transportMode(TransportMode.WALKING)
-                        .execute(new DirectionCallback() {
-                            @Override
-                            public void onDirectionSuccess(Direction direction, String rawBody) {
-                                if(direction.isOK()) {
-
-                                    Route route = direction.getRouteList().get(0);
-                                    int legCount = route.getLegList().size();
-                                    Log.d ("length", ((Integer)legCount).toString());
-                                    for (int index = 0; index < legCount; index++) {
-                                        Leg leg = route.getLegList().get(index);
-                                        googleMap.addMarker(new MarkerOptions().position(leg.getStartLocation().getCoordination()));
-                                        if (index == legCount - 1) {
-                                            googleMap.addMarker(new MarkerOptions().position(leg.getEndLocation().getCoordination()));
-                                        }
-                                        List<Step> stepList = leg.getStepList();
-                                        ArrayList<PolylineOptions> polylineOptionList = DirectionConverter.createTransitPolyline(context, stepList, 5, Color.RED, 3, Color.BLUE);
-
-                                        for (PolylineOptions polylineOption : polylineOptionList) {
-                                            points.addAll(polylineOption.getPoints());
-                                            googleMap.addPolyline(polylineOption);
-                                        }
+                                    for (PolylineOptions polylineOption : polylineOptionList) {
+                                        points.addAll(polylineOption.getPoints());
+                                        googleMap.addPolyline(polylineOption);
                                     }
                                 }
                             }
+                        }
 
-                            @Override
-                            public void onDirectionFailure(Throwable t) {}
-                        });
-            }
+                        @Override
+                        public void onDirectionFailure(Throwable t) {}
+                    });
         });
 
         return builderSingle.create();
@@ -164,17 +148,17 @@ public class AlertDialogCreator {
         final View layout = inflater.inflate(R.layout.dialog_description, null);
 
         builder.setTitle(place.getName());
-        TextView descriptionText = (TextView) layout.findViewById(R.id.descriptionText);
+        TextView descriptionText = layout.findViewById(R.id.descriptionText);
         descriptionText.setText(place.getDescription());
         StorageReference mStorageRef = FirebaseStorage.getInstance().getReference();
         StorageReference child = mStorageRef.child("photos").child(place.getIdAsString() + "place_photo");
-        final ImageView imgView = (ImageView) layout.findViewById(R.id.description_picture);
+        final ImageView imgView = layout.findViewById(R.id.description_picture);
         child.getDownloadUrl().addOnSuccessListener(uri -> Picasso.with(context).load(uri)
                 .placeholder(android.R.drawable.btn_star_big_on)
                 .error(android.R.drawable.btn_star_big_on)
                 .into(imgView));
 
-        RatingBar rb = (RatingBar) layout.findViewById(R.id.total_rating);
+        RatingBar rb = layout.findViewById(R.id.total_rating);
         rb.setRating(place.getMark());
 
         builder.setPositiveButton("Go here!", (dialog, arg1) -> {
@@ -199,22 +183,9 @@ public class AlertDialogCreator {
         final View layout = inflater.inflate(R.layout.dialog_rate_place, null);
         final RatingBar rb = layout.findViewById(R.id.rate_place);
 
-        builder.setPositiveButton("Rate it!", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int arg1) {
-                DatabaseManager.updatePlaceRating(rb, place.getIdAsString());
-            }
-        });
-        builder.setNeutralButton("Add to favourite", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int id) {
-                DatabaseManager.addPlaceToFavourite(AuthorizationUtils.getLoggedInAsString(context), place.getIdAsString());
-
-            }
-        });
-        builder.setNegativeButton("Ok", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int arg1) {
-                dialog.cancel();
-            }
-        });
+        builder.setPositiveButton("Rate it!", (dialog, arg1) -> DatabaseManager.updatePlaceRating(rb, place.getIdAsString()));
+        builder.setNeutralButton("Add to favourite", (dialog, id) -> DatabaseManager.addPlaceToFavourite(AuthorizationUtils.getLoggedInAsString(context), place.getIdAsString()));
+        builder.setNegativeButton("Ok", (dialog, arg1) -> dialog.cancel());
         builder.setCancelable(true);
         builder.setView(layout);
         return builder.create();
