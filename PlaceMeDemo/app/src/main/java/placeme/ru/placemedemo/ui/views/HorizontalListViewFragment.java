@@ -1,7 +1,7 @@
 package placeme.ru.placemedemo.ui.views;
 
 /**
- * Created by ?????? on 20.12.2017.
+ * Created by Андрей on 20.12.2017.
  */
 
 import android.content.Context;
@@ -35,6 +35,7 @@ import java.util.ArrayList;
 
 import placeme.ru.placemedemo.R;
 import placeme.ru.placemedemo.core.chat.Chat;
+import placeme.ru.placemedemo.core.database.AbstractChildEventListener;
 import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
 import placeme.ru.placemedemo.core.utils.ChatUtils;
 import placeme.ru.placemedemo.core.utils.FriendsDataUtils;
@@ -60,9 +61,6 @@ public class HorizontalListViewFragment extends Fragment {
 
             item.setImageResourceId(android.R.drawable.star_big_on);
             item.setId(Integer.parseInt(friends[i]));
-            //TODO: ??
-            //item.setIsfav(1);
-            //item.setIsturned(1);
             listitems.add(item);
         }
     }
@@ -123,15 +121,10 @@ public class HorizontalListViewFragment extends Fragment {
             });
 
             StorageReference child = FirebaseStorage.getInstance().getReference().child("avatars").child(((Integer)list.get(position).getId()).toString() + "avatar");
-            child.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-                @Override
-                public void onSuccess(Uri uri) {
-                    Picasso.with(getActivity().getBaseContext()).load(uri)
-                            .placeholder(android.R.drawable.btn_star_big_on)
-                            .error(android.R.drawable.btn_star_big_on)
-                            .into(holder.coverImageView);
-                }
-            });
+            child.getDownloadUrl().addOnSuccessListener(uri -> Picasso.with(getActivity().getBaseContext()).load(uri)
+                    .placeholder(android.R.drawable.btn_star_big_on)
+                    .error(android.R.drawable.btn_star_big_on)
+                    .into(holder.coverImageView));
         }
 
         @Override
@@ -150,60 +143,42 @@ public class HorizontalListViewFragment extends Fragment {
 
         public MyViewHolder(View v) {
             super(v);
-            titleTextView = (TextView) v.findViewById(R.id.titleTextView);
-            coverImageView = (ImageView) v.findViewById(R.id.coverImageView);
-            likeImageView = (ImageView) v.findViewById(R.id.infoImageView);
-            shareImageView = (ImageView) v.findViewById(R.id.messageImageView);
-            likeImageView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    //Toast.makeText(getActivity(),"TODO: info about friend", Toast.LENGTH_LONG).show();
+            titleTextView = v.findViewById(R.id.titleTextView);
+            coverImageView = v.findViewById(R.id.coverImageView);
+            likeImageView = v.findViewById(R.id.infoImageView);
+            shareImageView = v.findViewById(R.id.messageImageView);
+            likeImageView.setOnClickListener(v1 -> {
 
-                    //TODO: illegal state exception, want alert dialog
-                    //createInfoDialog(pos);
+                //TODO: illegal state exception, want alert dialog
+                //createInfoDialog(pos);
 
-                    DatabaseReference mDatabaseReference = FirebaseDatabase.getInstance().getReference().child("users");
+                DatabaseReference mDatabaseReference = FirebaseDatabase.getInstance().getReference().child("users");
 
-                    ChildEventListener childEventListener = new ChildEventListener() {
-                        @Override
-                        public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                            User user = dataSnapshot.getValue(User.class);
-                            if(user == null) {
-                                return;
-                            }
-                            if(listitems.get(pos).getId() == user.getId()) {
-                                Toast.makeText(getActivity(),user.getName() + " " + user.getSurname() + "\n@" + user.getNickname(), Toast.LENGTH_LONG).show();
-                            }
+                ChildEventListener childEventListener = new AbstractChildEventListener() {
+                    @Override
+                    public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                        User user = dataSnapshot.getValue(User.class);
+                        if(user == null) {
+                            return;
                         }
-                        @Override
-                        public void onChildChanged(DataSnapshot dataSnapshot, String s) {}
-
-                        @Override
-                        public void onChildRemoved(DataSnapshot dataSnapshot) {}
-
-                        @Override
-                        public void onChildMoved(DataSnapshot dataSnapshot, String s) {}
-
-                        @Override
-                        public void onCancelled(DatabaseError databaseError) {}
-                    };
-                    mDatabaseReference.addChildEventListener(childEventListener);
-                }
+                        if(listitems.get(pos).getId() == user.getId()) {
+                            Toast.makeText(getActivity(),user.getName() + " " + user.getSurname() + "\n@" + user.getNickname(), Toast.LENGTH_LONG).show();
+                        }
+                    }
+                };
+                mDatabaseReference.addChildEventListener(childEventListener);
             });
 
-            shareImageView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    ChatUtils.setChatPair(getContext(), AuthorizationUtils.getLoggedInAsString(getContext()) + "," + ((Integer)listitems.get(pos).getId()).toString());
-                    startActivity(new Intent(getActivity().getBaseContext(), Chat.class));
-                }
+            shareImageView.setOnClickListener(v12 -> {
+                ChatUtils.setChatPair(getContext(), AuthorizationUtils.getLoggedInAsString(getContext()) + "," + ((Integer)listitems.get(pos).getId()).toString());
+                startActivity(new Intent(getActivity().getBaseContext(), Chat.class));
             });
         }
 
 
     }
 
-    private void createInfoDialog(final int pos) {
+    /*private void createInfoDialog(final int pos) {
         final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity().getBaseContext());
         LayoutInflater inflater = (LayoutInflater) getActivity().getBaseContext().getSystemService( Context.LAYOUT_INFLATER_SERVICE );
         final View layout = inflater.inflate(R.layout.dialog_description, null);
@@ -211,20 +186,14 @@ public class HorizontalListViewFragment extends Fragment {
         builder.setTitle("Info");
         StorageReference child = FirebaseStorage.getInstance().getReference().child("avatars").child(((Integer)listitems.get(pos).getId()).toString() + "avatar");
         final ImageView imgView = (ImageView) layout.findViewById(R.id.profile_imagef);
-        child.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-            @Override
-            public void onSuccess(Uri uri) {
-                Picasso.with(getActivity().getBaseContext()).load(uri)
-                        .placeholder(android.R.drawable.btn_star_big_on)
-                        .error(android.R.drawable.btn_star_big_on)
-                        .into(imgView);
-
-            }
-        });
+        child.getDownloadUrl().addOnSuccessListener(uri -> Picasso.with(getActivity().getBaseContext()).load(uri)
+                .placeholder(android.R.drawable.btn_star_big_on)
+                .error(android.R.drawable.btn_star_big_on)
+                .into(imgView));
 
         DatabaseReference mDatabaseReference = FirebaseDatabase.getInstance().getReference().child("users");
 
-        ChildEventListener childEventListener = new ChildEventListener() {
+        ChildEventListener childEventListener = new AbstractChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 User user = dataSnapshot.getValue(User.class);
@@ -241,24 +210,12 @@ public class HorizontalListViewFragment extends Fragment {
                     //TODO: move string constant to values/strings
                     TextView tvNickname = layout.findViewById(R.id.nicknamef);
                     tvNickname.setText("@" + user.getNickname());
-
                 }
             }
-            @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s) {}
-
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {}
-
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) {}
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {}
         };
         mDatabaseReference.addChildEventListener(childEventListener);
         builder.setCancelable(true);
         builder.setView(layout);
         builder.create().show();
-    }
+    }*/
 }

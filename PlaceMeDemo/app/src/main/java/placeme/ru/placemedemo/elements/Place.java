@@ -47,7 +47,8 @@ public class Place {
      * Method that allows to add tags to place
      * @param newTags tags that should be added
      */
-    public void AddTags(String newTags) {
+    @Deprecated
+    public void addTags(String newTags) {
         this.description = this.description + "," + newTags;
     }
 

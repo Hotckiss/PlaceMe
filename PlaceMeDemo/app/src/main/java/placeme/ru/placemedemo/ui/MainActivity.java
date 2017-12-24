@@ -48,6 +48,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.Task;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import geo.GeoObj;
 import gl.GL1Renderer;
@@ -60,6 +61,8 @@ import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
 import system.ArActivity;
 import system.MySetup;
 import worldData.World;
+
+import static com.google.android.gms.location.places.ui.PlaceAutocomplete.getPlace;
 
 /**
  * Main activity of the app
@@ -95,6 +98,7 @@ public class MainActivity extends AppCompatActivity
         checkLogin();
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+        //getSupportFragmentManager().findFragmentById()
         mapFragment.getMapAsync(this);
 
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -275,14 +279,84 @@ public class MainActivity extends AppCompatActivity
         if (requestCode == PLACE_PICKER_REQUEST) {
             if (resultCode == RESULT_OK) {
                 //TODO: ?
-                Place place = PlacePicker.getPlace(data, this);
+                Place place = getPlace(this, data);
+                placeme.ru.placemedemo.elements.Place toAdd = convertGooglePlaceToPlace(place);
+
+                DatabaseManager.saveConvertedPlace(null, toAdd);
+                //placeme.ru.placemedemo.elements.Place myPlace = convertGooglePlaceToPlace(place);
+                //Place place = PlacePicker.getPlace(data, this);
                 //place.getPlaceTypes()
-                String toastMsg = String.format("Place: %s", place.getName());
+                String toastMsg = String.format("Place: %s", getterTest(place));
                 Toast.makeText(this, toastMsg, Toast.LENGTH_LONG).show();
             }
         }
     }
 
+    private String getterTest(Place p) {
+        return p.getName().toString();
+    }
+
+    private placeme.ru.placemedemo.elements.Place convertGooglePlaceToPlace(Place place) {
+        placeme.ru.placemedemo.elements.Place result = new placeme.ru.placemedemo.elements.Place();
+        String name = "Some place";
+        String address = "";
+        String phone = "";
+        if(place.getName() != null) {
+            name = place.getName().toString();
+        }
+
+        if(place.getAddress() != null) {
+            address = place.getAddress().toString();
+        }
+
+        if(place.getPhoneNumber() != null) {
+            phone = place.getPhoneNumber().toString();
+        }
+
+        StringBuilder description = new StringBuilder();
+        description.append(name);
+
+        if (!address.equals("")) {
+            description.append('\n');
+            description.append(address);
+        }
+
+        if (!phone.equals("")) {
+            description.append('\n');
+            description.append(phone);
+        }
+
+
+        result.setName(place.getName().toString());
+        result.setDescription(description.toString());
+
+        result = addTags(result, place);
+
+        result.setLatitude(place.getLatLng().latitude);
+
+        result.setLongitude(place.getLatLng().longitude);
+        return result;
+    }
+
+    private placeme.ru.placemedemo.elements.Place addTags(placeme.ru.placemedemo.elements.Place destination, Place src) {
+        List<Integer> placeTags = src.getPlaceTypes();
+        StringBuilder tags = new StringBuilder();
+        tags.append(",");
+
+        for (Integer id : placeTags) {
+            if(id.equals(Place.TYPE_GROCERY_OR_SUPERMARKET)) {
+                tags.append("магазин,");
+                tags.append("супермаркет,");
+                tags.append("еда,");
+            }
+        }
+
+        tags.deleteCharAt(tags.lastIndexOf(","));
+
+        destination.setTags(tags.toString());
+
+        return destination;
+    }
 
     private void putLineToPoint(GL1Renderer renderer, final World world, GLFactory objectFactory, LatLng start, LatLng finish) {
         double maxx = Math.max(start.latitude, finish.latitude);

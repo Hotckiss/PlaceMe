@@ -82,23 +82,27 @@ public class AlertDialogCreator {
         });
 
         builderSingle.setPositiveButton("Make route", (dialog, which) -> {
-            SparseBooleanArray sp=lv.getCheckedItemPositions();
+            SparseBooleanArray sp = lv.getCheckedItemPositions();
 
             final LatLng origin = myPosition;
             LatLng destination = myPosition;
             DirectionDestinationRequest gd = GoogleDirection.withServerKey("AIzaSyD_WcUAMqVEVW0H84GsXLKBr0HokiO-v_4").from(origin);
+            ArrayList<LatLng> route = new ArrayList<>();
+            route.add(myPosition);
             int lastPoint = -1;
             for (int i = 0; i < placeArrayList.size(); i++) {
                 if(sp.get(i)) {
                     lastPoint = i;
+                    route.add(new LatLng(placeArrayList.get(i).getLatitude(), placeArrayList.get(i).getLongitude()));
                 }
             }
 
+            DatabaseManager.saveRoute(AuthorizationUtils.getLoggedInAsString(context), route);
             if(lastPoint != -1) {
                 destination = new LatLng(placeArrayList.get(lastPoint).getLatitude(), placeArrayList.get(lastPoint).getLongitude());
             }
 
-            for(int i=0;i<placeArrayList.size();i++) {
+            for(int i = 0; i < placeArrayList.size(); i++) {
                 if(sp.get(i)) {
                     if(i != lastPoint) {
                         gd.and(new LatLng(placeArrayList.get(i).getLatitude(), placeArrayList.get(i).getLongitude()));

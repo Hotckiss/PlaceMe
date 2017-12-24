@@ -30,6 +30,7 @@ import placeme.ru.placemedemo.R;
 import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
 import placeme.ru.placemedemo.core.utils.FriendsDataUtils;
 import placeme.ru.placemedemo.elements.*;
+import util.Log;
 
 /**
  * Created by Андрей on 21.12.2017.
@@ -373,6 +374,26 @@ public class DatabaseManager {
         });
     }
 
+    public static void saveConvertedPlace(final Uri uri, final Place place) {
+        mDatabaseReference = getDatabaseChild("maxidplaces");
+        mDatabaseReference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                final Integer id = dataSnapshot.getValue(Integer.class);
+                place.setId(id);
+
+                getDatabaseChild("places").child(id.toString()).setValue(place);
+                mDatabaseReference.setValue(id + 1);
+
+                StorageReference child = mStorageRef.child("photos").child(id.toString() + "place_photo");
+
+                if(uri != null) {
+                    child.putFile(uri);
+                }
+            }
+        });
+    }
+
     public static void runDescriptionDialog(final Context context, final Marker marker) {
         getDatabaseChild("places").addChildEventListener(new AbstractChildEventListener() {
 
@@ -386,6 +407,25 @@ public class DatabaseManager {
         });
     }
 
+    public static void saveRoute(final String userId, final ArrayList<LatLng> route) {
+        StringBuilder routeString = new StringBuilder();
+        for (LatLng ll : route) {
+            if (ll == null) {
+                Log.d("wtff", "null");
+                continue;
+            }
+            routeString.append(ll.latitude);
+            routeString.append(";");
+            routeString.append(ll.longitude);
+            routeString.append(":");
+        }
+
+        if (route.size() > 0) {
+            routeString.deleteCharAt(routeString.lastIndexOf(":"));
+        }
+
+        getDatabaseChild("routes").child(userId).push().setValue(routeString.toString());
+    }
     @Nullable
     private static DatabaseReference getDatabaseChild(String childName) {
         DatabaseReference databaseReference = getDatabaseReference();
