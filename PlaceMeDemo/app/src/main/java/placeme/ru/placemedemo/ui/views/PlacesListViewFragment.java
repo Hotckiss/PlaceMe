@@ -9,6 +9,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,19 +22,27 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.squareup.picasso.Picasso;
 
+import java.util.Arrays;
+
 import placeme.ru.placemedemo.R;
 import placeme.ru.placemedemo.core.database.DatabaseManager;
 import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
+import placeme.ru.placemedemo.core.utils.FavouritePlacesUtils;
 import placeme.ru.placemedemo.core.utils.RoutesUtils;
 
 //TODO:refactor
-public class RoutesListViewFragment extends Fragment {
+public class PlacesListViewFragment extends Fragment {
     RecyclerView MyRecyclerView;
-    int length;
+    String[] places;
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        length = RoutesUtils.getRoutesLength(getContext()).intValue();
+        places = FavouritePlacesUtils.getPlaces(getContext()).split(",");
+
+        if(places.length > 1) {
+            Arrays.sort(places, (a, b) -> (Integer.parseInt(a) - Integer.parseInt(b)));
+        }
+
     }
 
     @Override
@@ -47,7 +56,7 @@ public class RoutesListViewFragment extends Fragment {
         MyLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
 
         if (MyRecyclerView != null) {
-            MyRecyclerView.setAdapter(new MyAdapter());
+            MyRecyclerView.setAdapter(new MyAdapter(places));
         }
 
         MyRecyclerView.setLayoutManager(MyLayoutManager);
@@ -62,12 +71,14 @@ public class RoutesListViewFragment extends Fragment {
     }
 
     public class MyAdapter extends RecyclerView.Adapter<MyViewHolder> {
-        public MyAdapter() {
+        String[] data;
+        public MyAdapter(String[] places) {
+            data = places;
         }
 
         @Override
         public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.route_item, parent, false);
+            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.place_item, parent, false);
             MyViewHolder holder = new MyViewHolder(view);
             return holder;
         }
@@ -75,19 +86,19 @@ public class RoutesListViewFragment extends Fragment {
         @Override
         public void onBindViewHolder(final MyViewHolder holder, final int position) {
 
-            StorageReference child = FirebaseStorage.getInstance().getReference().child("routes").child(AuthorizationUtils.getLoggedInAsString(getContext()))
-                    .child(AuthorizationUtils.getLoggedInAsString(getContext()) + "_" + ((Integer)position).toString());
+            Log.d("ggggg", places[position]);
+            StorageReference child = FirebaseStorage.getInstance().getReference().child("photos").child(places[position]+"place_photo");
             child.getDownloadUrl().addOnSuccessListener(uri -> Picasso.with(getActivity().getBaseContext()).load(uri)
                     .placeholder(android.R.drawable.btn_star_big_on)
                     .error(android.R.drawable.btn_star_big_on)
                     .into(holder.iv));
 
-            DatabaseManager.fillDescription(holder.tv, position, AuthorizationUtils.getLoggedInAsString(getContext()));
+            DatabaseManager.fillDescriptionPlaces(holder.tv, places[position]);
         }
 
         @Override
         public int getItemCount() {
-            return length;
+            return places.length;
         }
     }
 
@@ -98,17 +109,17 @@ public class RoutesListViewFragment extends Fragment {
         public ImageButton b3;
         public MyViewHolder(View v) {
             super(v);
-            tv = v.findViewById(R.id.route_description);
+            tv = v.findViewById(R.id.place_description);
 
-            b2 = v.findViewById(R.id.routes2);
-            b2.setOnClickListener(v1 -> Toast.makeText(getContext(), "b2 pressed", Toast.LENGTH_LONG).show());
+            b2 = v.findViewById(R.id.place_button_share);
+            b2.setOnClickListener(v1 -> Toast.makeText(getContext(), "share pressed", Toast.LENGTH_LONG).show());
 
-            b3 = v.findViewById(R.id.routes3);
-            b3.setOnClickListener(v1 -> Toast.makeText(getContext(), "b3 pressed", Toast.LENGTH_LONG).show());
+            b3 = v.findViewById(R.id.place_button_close);
+            b3.setOnClickListener(v1 -> Toast.makeText(getContext(), "close pressed", Toast.LENGTH_LONG).show());
 
-            iv = v.findViewById(R.id.route_photo);
+            iv = v.findViewById(R.id.place_photo);
 
-            DatabaseManager.getUserRoutesLength2(AuthorizationUtils.getLoggedInAsString(getContext()), getContext());
+            //DatabaseManager.getUserRoutesLength(AuthorizationUtils.getLoggedInAsString(getContext()), getContext());
         }
     }
 }

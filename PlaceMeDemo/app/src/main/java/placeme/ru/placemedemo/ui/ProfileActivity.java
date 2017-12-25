@@ -1,9 +1,13 @@
 package placeme.ru.placemedemo.ui;
 
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -21,9 +25,11 @@ import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
 public class ProfileActivity extends AppCompatActivity {
 
     private StorageReference mStorageRef;
-
+    private static final int GALLERY_INTENT = 2;
     private static final int PROFILE_CHANGED_CODE = 1;
 
+    private CircleImageView civ;
+    private Uri uri;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -43,16 +49,50 @@ public class ProfileActivity extends AppCompatActivity {
         if(requestCode == PROFILE_CHANGED_CODE) {
             loadUserProfile();
         }
+        if(requestCode == GALLERY_INTENT && resultCode == RESULT_OK) {
+            uri = data.getData();
+            civ.setImageURI(uri);
+            mStorageRef.child("avatars").child(AuthorizationUtils.getLoggedInAsString(ProfileActivity.this) + "avatar").putFile(uri);
+        }
     }
 
     private void loadProfileImage() {
         mStorageRef = FirebaseStorage.getInstance().getReference();
-        final CircleImageView civ = findViewById(R.id.profile_image);
+        civ = findViewById(R.id.profile_image);
         StorageReference child = mStorageRef.child("avatars").child(AuthorizationUtils.getLoggedInAsString(ProfileActivity.this) + "avatar");
         child.getDownloadUrl().addOnSuccessListener(uri -> Picasso.with(ProfileActivity.this).load(uri)
                 .placeholder(android.R.drawable.btn_star_big_on)
                 .error(android.R.drawable.btn_star_big_on)
                 .into(civ));
+        civ.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                final AlertDialog.Builder builder = new AlertDialog.Builder(ProfileActivity.this);
+                builder.setTitle("Changing avatar");
+                builder.setMessage("Do you want to change avatar?\n(Gallery will be opened)");
+
+                builder.setPositiveButton(R.string.answer_yes, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Intent intent = new Intent(Intent.ACTION_PICK);
+
+                        intent.setType("image/*");
+                        startActivityForResult(intent, GALLERY_INTENT);
+                    }
+                });
+
+                builder.setNegativeButton(R.string.answer_no, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+
+                builder.setCancelable(true);
+                builder.create().show();
+                return false;
+            }
+        });
     }
 
     private void setEditButton() {

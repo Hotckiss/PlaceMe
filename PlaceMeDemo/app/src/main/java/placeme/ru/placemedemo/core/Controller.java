@@ -50,7 +50,7 @@ public class Controller {
                             null);
 
                     Uri attachment = Uri.fromFile(outputFile);
-                    DatabaseManager.getUserRoutesLength(AuthorizationUtils.getLoggedInAsString(instance.getBaseContext()), instance.getBaseContext());
+                    DatabaseManager.getUserRoutesLength2(AuthorizationUtils.getLoggedInAsString(instance.getBaseContext()), instance.getBaseContext());
                     DatabaseManager.saveRoute(attachment, AuthorizationUtils.getLoggedInAsString(instance.getBaseContext()), instance.getBaseContext());
                 } catch (IOException e) {
                     e.printStackTrace();

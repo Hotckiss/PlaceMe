@@ -3,6 +3,7 @@ package placeme.ru.placemedemo.core.database;
 import android.content.Context;
 import android.net.Uri;
 import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
@@ -19,18 +20,23 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
+import de.hdodenhof.circleimageview.CircleImageView;
+import placeme.ru.placemedemo.core.utils.FavouritePlacesUtils;
 import placeme.ru.placemedemo.core.utils.RoutesUtils;
+import placeme.ru.placemedemo.ui.FavouritePlacesActivity;
 import placeme.ru.placemedemo.ui.dialogs.AlertDialogCreator;
 import placeme.ru.placemedemo.ui.views.HorizontalListViewFragment;
 import placeme.ru.placemedemo.R;
 import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
 import placeme.ru.placemedemo.core.utils.FriendsDataUtils;
 import placeme.ru.placemedemo.elements.*;
+import placeme.ru.placemedemo.ui.views.RoutesListViewFragment;
 import util.Log;
 
 /**
@@ -291,6 +297,7 @@ public class DatabaseManager {
      * @param userId user id
      * @param adapter adapter to put places
      */
+    @Deprecated
     public static void loadUserFavouritePlacesList(final String userId, ArrayAdapter<String> adapter) {
         mDatabaseReference = getDatabaseChild("users").child(userId).child("favouritePlaces");
         mDatabaseReference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
@@ -312,6 +319,18 @@ public class DatabaseManager {
                         }
                     }
                 });
+            }
+        });
+    }
+
+    public static void loadUserFavouritePlacesListNew(final String userId, final Context context, final FragmentManager fragmentManager, final Fragment fragment) {
+        mDatabaseReference = getDatabaseChild("users").child(userId).child("favouritePlaces");
+        mDatabaseReference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                String idArray = dataSnapshot.getValue().toString();
+                FavouritePlacesUtils.setPlaces(context, idArray);
+                fragmentManager.beginTransaction().add(R.id.places_fragment, fragment).commit();
             }
         });
     }
@@ -385,13 +404,25 @@ public class DatabaseManager {
         getDatabaseChild("users").child(userId).child("routesLength").setValue(length + 1);
     }
 
-    public static void getUserRoutesLength(final String userId, final Context context) {
+    public static void getUserRoutesLength(final String userId, final Context context, final FragmentManager fragmentManager, final Fragment fragment) {
+        getDatabaseChild("users").child(userId).child("routesLength").addListenerForSingleValueEvent(new AbstractValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Long length = (Long) dataSnapshot.getValue();
+                android.util.Log.d("bbbbbb", RoutesUtils.getRoutesLength(context).toString());
+                RoutesUtils.setRoutesLength(context, length);
+                fragmentManager.beginTransaction().add(R.id.fragmentContainer2, fragment).commit();
+            }
+
+        });
+    }
+
+    public static void getUserRoutesLength2(final String userId, final Context context) {
         getDatabaseChild("users").child(userId).child("routesLength").addListenerForSingleValueEvent(new AbstractValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 Long length = (Long) dataSnapshot.getValue();
                 RoutesUtils.setRoutesLength(context, length);
-                //Log.d("fffffffff", length.toString());
             }
 
         });
@@ -468,6 +499,41 @@ public class DatabaseManager {
                 tv.setText(description);
             }
         });
+    }
+
+    public static void fillDescriptionPlaces(final TextView tv, final String id) {
+        final StringBuilder stringBuilder = new StringBuilder();
+        getDatabaseChild("places").child(id).child("name").addListenerForSingleValueEvent(new AbstractValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+
+                if (dataSnapshot != null) {
+                    stringBuilder.append((String) dataSnapshot.getValue());
+                    stringBuilder.append('\n');
+                }
+            }
+        });
+        getDatabaseChild("places").child(id).child("description").addListenerForSingleValueEvent(new AbstractValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+
+                if (dataSnapshot != null) {
+                    stringBuilder.append((String) dataSnapshot.getValue());
+                }
+                tv.setText(stringBuilder.toString());
+            }
+        });
+
+
+    }
+
+    public static void loadAvatar(CircleImageView circleImageView, final Context context) {
+        mStorageRef.child("avatars").child(AuthorizationUtils.getLoggedInAsString(context) + "avatar")
+                .getDownloadUrl().addOnSuccessListener(uri -> Picasso.with(context).load(uri)
+                .placeholder(android.R.drawable.btn_star_big_on)
+                .error(android.R.drawable.btn_star_big_on)
+
+                .into(circleImageView));
     }
 
     @Nullable

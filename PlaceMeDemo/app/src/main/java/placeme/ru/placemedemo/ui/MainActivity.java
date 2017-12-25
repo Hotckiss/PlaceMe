@@ -58,6 +58,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import de.hdodenhof.circleimageview.CircleImageView;
 import geo.GeoObj;
 import gl.GL1Renderer;
 import gl.GLFactory;
@@ -138,6 +139,8 @@ public class MainActivity extends AppCompatActivity
         toggle.syncState();
 
         NavigationView navigationView = findViewById(R.id.nav_view);
+        View hView =  navigationView.getHeaderView(0);
+        loadProfileAvatar(hView);
         navigationView.setNavigationItemSelectedListener(this);
 
         initializeInputWindow();
@@ -154,14 +157,22 @@ public class MainActivity extends AppCompatActivity
         FloatingActionButton actionButton = findViewById(R.id.fab);
 
         actionButton.setOnClickListener(v -> {
-            DatabaseManager.getUserRoutesLength(AuthorizationUtils.getLoggedInAsString(MainActivity.this), MainActivity.this);
+            DatabaseManager.getUserRoutesLength2(AuthorizationUtils.getLoggedInAsString(MainActivity.this), MainActivity.this);
             saveRoute().show();
 
-
-            //Toast.makeText(MainActivity.this, "Route was saved!", Toast.LENGTH_LONG).show();
         });
+
+
     }
 
+    private void loadProfileAvatar(View view) {
+        CircleImageView circleImageView = view.findViewById(R.id.profile_image);
+        if (circleImageView != null) {
+            DatabaseManager.loadAvatar(circleImageView, MainActivity.this);
+        } else {
+            Log.d("ssssss", "dddddddd");
+        }
+    }
     private void initGooglePlacesButton() {
         FloatingActionButton floatingActionButton = findViewById(R.id.google_places_button);
 
