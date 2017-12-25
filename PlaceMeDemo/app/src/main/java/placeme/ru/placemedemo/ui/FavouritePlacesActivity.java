@@ -40,8 +40,8 @@ public class FavouritePlacesActivity extends AppCompatActivity {
                     Toast.LENGTH_SHORT).show();
         });
 
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        //Toolbar toolbar = findViewById(R.id.toolbar);
+        //setSupportActionBar(toolbar);
 
     }
 

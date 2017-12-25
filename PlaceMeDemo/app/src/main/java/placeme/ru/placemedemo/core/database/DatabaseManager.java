@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
+import placeme.ru.placemedemo.core.utils.RoutesUtils;
 import placeme.ru.placemedemo.ui.dialogs.AlertDialogCreator;
 import placeme.ru.placemedemo.ui.views.HorizontalListViewFragment;
 import placeme.ru.placemedemo.R;
@@ -374,6 +375,28 @@ public class DatabaseManager {
         });
     }
 
+    public static void saveRoute(final Uri uri, final String userId, final Context context) {
+        if(uri != null) {
+            mStorageRef.child("routes").child(userId).child(userId + "_" + RoutesUtils.getRoutesLength(context)).putFile(uri);
+        }
+    }
+
+    public static void updateRoutesLength(final String userId, final long length) {
+        getDatabaseChild("users").child(userId).child("routesLength").setValue(length + 1);
+    }
+
+    public static void getUserRoutesLength(final String userId, final Context context) {
+        getDatabaseChild("users").child(userId).child("routesLength").addListenerForSingleValueEvent(new AbstractValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Long length = (Long) dataSnapshot.getValue();
+                RoutesUtils.setRoutesLength(context, length);
+                //Log.d("fffffffff", length.toString());
+            }
+
+        });
+    }
+
     public static void saveConvertedPlace(final Uri uri, final Place place) {
         mDatabaseReference = getDatabaseChild("maxidplaces");
         mDatabaseReference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
@@ -407,6 +430,7 @@ public class DatabaseManager {
         });
     }
 
+
     public static void saveRoute(final String userId, final ArrayList<LatLng> route) {
         StringBuilder routeString = new StringBuilder();
         for (LatLng ll : route) {
@@ -426,6 +450,26 @@ public class DatabaseManager {
 
         getDatabaseChild("routes").child(userId).push().setValue(routeString.toString());
     }
+
+    public static void saveRouteInfo(final String userId, final Long descriptionId, final String description) {
+        getDatabaseChild("routes_descriptions").child(userId).child(descriptionId.toString()).setValue(description);
+    }
+
+    public static void fillDescription(final TextView tv, final Integer id, final String userId) {
+        getDatabaseChild("routes_descriptions").child(userId).child(id.toString()).addListenerForSingleValueEvent(new AbstractValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                String description = "No description given.";
+
+                if (dataSnapshot != null) {
+                    description = (String) dataSnapshot.getValue();
+                }
+
+                tv.setText(description);
+            }
+        });
+    }
+
     @Nullable
     private static DatabaseReference getDatabaseChild(String childName) {
         DatabaseReference databaseReference = getDatabaseReference();

@@ -1,14 +1,13 @@
 package placeme.ru.placemedemo.ui.dialogs;
 
+import android.app.Activity;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.graphics.Color;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -25,6 +24,7 @@ import com.akexorcist.googledirection.model.Route;
 import com.akexorcist.googledirection.model.Step;
 import com.akexorcist.googledirection.request.DirectionDestinationRequest;
 import com.akexorcist.googledirection.util.DirectionConverter;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import placeme.ru.placemedemo.R;
+import placeme.ru.placemedemo.core.Controller;
 import placeme.ru.placemedemo.core.database.DatabaseManager;
 import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
 import placeme.ru.placemedemo.elements.Place;
@@ -53,7 +54,7 @@ public class AlertDialogCreator {
         return points;
     }
 
-    public static AlertDialog createAlertDialogFinded (final Context context, final String toFind, final GoogleMap googleMap, final LatLng myPosition) {
+    public static AlertDialog createAlertDialogFinded (final Context context, final String toFind, final GoogleMap googleMap, final LatLng myPosition, final Activity activity) {
         AlertDialog.Builder builderSingle = new AlertDialog.Builder(context);
         LayoutInflater inflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
         final View layout = inflater.inflate(R.layout.list, null);
@@ -141,10 +142,15 @@ public class AlertDialogCreator {
                         @Override
                         public void onDirectionFailure(Throwable t) {}
                     });
-        });
+
+
+            dialog.dismiss();
+            googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(destination, 15.0f));
+            //Controller.sendRoute(googleMap, "tmp", activity);
+    });
 
         return builderSingle.create();
-    }
+}
 
     public static AlertDialog createAlertDescriptionDialog(final Context context, final Place place) {
         final AlertDialog.Builder builder = new AlertDialog.Builder(context);

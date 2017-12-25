@@ -14,6 +14,7 @@ public class User {
     private String nickname;
     private String favouritePlaces = "";
     private String friends = "";
+    private int routesLength;
 
     /**
      * Default constructor that must be implemented for using class in firebase database
@@ -169,5 +170,13 @@ public class User {
         } else {
             return friends.split(",").length;
         }
+    }
+
+    public int getRoutesLength() {
+        return routesLength;
+    }
+
+    public void setRoutesLength(int newLength) {
+        routesLength = newLength;
     }
 }

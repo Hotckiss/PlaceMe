@@ -5,10 +5,13 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.location.Location;
+import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 import android.support.design.widget.FloatingActionButton;
@@ -39,6 +42,7 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.Places;
 import com.google.android.gms.location.places.ui.PlacePicker;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
@@ -47,12 +51,18 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.Task;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import geo.GeoObj;
 import gl.GL1Renderer;
 import gl.GLFactory;
+import placeme.ru.placemedemo.core.Controller;
+import placeme.ru.placemedemo.core.utils.RoutesUtils;
 import placeme.ru.placemedemo.ui.dialogs.AlertDialogCreator;
 import placeme.ru.placemedemo.R;
 import placeme.ru.placemedemo.core.database.DatabaseManager;
@@ -90,12 +100,28 @@ public class MainActivity extends AppCompatActivity
     private static ArrayList<LatLng> points = new ArrayList<>();
 
     private static final int PLACE_PICKER_REQUEST = 1;
+
+    private static final int REQUEST_EXTERNAL_STORAGE = 1;
+    private static String[] PERMISSIONS_STORAGE = {
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+    };
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         checkLogin();
+
+        int permission = ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+
+        if (permission != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(
+                    MainActivity.this,
+                    PERMISSIONS_STORAGE,
+                    REQUEST_EXTERNAL_STORAGE
+            );
+        }
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         //getSupportFragmentManager().findFragmentById()
@@ -124,6 +150,16 @@ public class MainActivity extends AppCompatActivity
         }
 
         initGooglePlacesButton();
+
+        FloatingActionButton actionButton = findViewById(R.id.fab);
+
+        actionButton.setOnClickListener(v -> {
+            DatabaseManager.getUserRoutesLength(AuthorizationUtils.getLoggedInAsString(MainActivity.this), MainActivity.this);
+            saveRoute().show();
+
+
+            //Toast.makeText(MainActivity.this, "Route was saved!", Toast.LENGTH_LONG).show();
+        });
     }
 
     private void initGooglePlacesButton() {
@@ -433,7 +469,8 @@ public class MainActivity extends AppCompatActivity
             }
             final String query = edSearch.getText().toString();
             MapManager.addFoundedMarkers(googleMap, query);
-            AlertDialogCreator.createAlertDialogFinded(MainActivity.this, query, googleMap, myPosition).show();
+            AlertDialogCreator.createAlertDialogFinded(MainActivity.this, query, googleMap, myPosition, this).show();
+
             return false;
         });
     }
@@ -468,6 +505,27 @@ public class MainActivity extends AppCompatActivity
         return builder.create();
     }
 
+    private AlertDialog saveRoute() {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+        LayoutInflater inflater = (LayoutInflater) MainActivity.this.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
+        final View layout = inflater.inflate(R.layout.save_route, null);
+
+        builder.setPositiveButton(R.string.answer_finish, (dialog, id) -> {
+            EditText editTextDescription = layout.findViewById(R.id.route_description);
+            String description = editTextDescription.getText().toString();
+            if(description == null || description.length() == 0) {
+                description = "No description given.";
+            }
+            DatabaseManager.saveRouteInfo(AuthorizationUtils.getLoggedInAsString(MainActivity.this), RoutesUtils.getRoutesLength(MainActivity.this), description);
+            Controller.sendRoute(googleMap, "tmp", MainActivity.this);
+            DatabaseManager.updateRoutesLength(AuthorizationUtils.getLoggedInAsString(MainActivity.this), RoutesUtils.getRoutesLength(MainActivity.this));
+        }).setNegativeButton(R.string.answer_back, (dialog, arg1) -> {});
+
+        builder.setCancelable(true);
+        builder.setView(layout);
+        return builder.create();
+    }
+
     private AlertDialog createNewPlace(final LatLng latLng) {
         final AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
         LayoutInflater inflater = (LayoutInflater) MainActivity.this.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
@@ -482,7 +540,7 @@ public class MainActivity extends AppCompatActivity
         });
 
         builder.setPositiveButton(R.string.answer_finish, (dialog, id) -> {
-            String[] placeInfo = gerPlaceInfo(layout);
+            String[] placeInfo = getPlaceInfo(layout);
             DatabaseManager.saveCreatedPlace(uri, placeInfo, latLng);
         }).setNegativeButton(R.string.answer_back, (dialog, arg1) -> {});
 
@@ -491,7 +549,7 @@ public class MainActivity extends AppCompatActivity
         return builder.create();
     }
 
-    private String[] gerPlaceInfo(final View layout) {
+    private String[] getPlaceInfo(final View layout) {
         EditText edName = layout.findViewById(R.id.place_name);
         EditText edDescription = layout.findViewById(R.id.place_description);
         EditText edTags = layout.findViewById(R.id.place_tags);
