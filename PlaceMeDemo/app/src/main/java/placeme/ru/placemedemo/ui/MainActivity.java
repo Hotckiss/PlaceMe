@@ -503,7 +503,7 @@ public class MainActivity extends AppCompatActivity
             }
             final String query = edSearch.getText().toString();
             MapManager.addFoundedMarkers(googleMap, query);
-            AlertDialogCreator.createAlertDialogFinded(MainActivity.this, query, googleMap, myPosition, this).show();
+            AlertDialogCreator.createAlertDialogFounded(MainActivity.this, query, googleMap, myPosition).show();
 
             return false;
         });
@@ -597,7 +597,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void showDescriptionDialog(final Marker marker) {
-        DatabaseManager.runDescriptionDialog(MainActivity.this, marker);
+        DatabaseManager.runDescriptionDialog(MainActivity.this, marker, myPosition, googleMap);
     }
 
     @Override

@@ -1,11 +1,7 @@
 package placeme.ru.placemedemo.ui.dialogs;
 
-import android.app.Activity;
 import android.content.Context;
-import android.graphics.Color;
 import android.support.v7.app.AlertDialog;
-import android.util.Log;
-import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -13,32 +9,15 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.RatingBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.akexorcist.googledirection.DirectionCallback;
-import com.akexorcist.googledirection.GoogleDirection;
-import com.akexorcist.googledirection.constant.TransportMode;
-import com.akexorcist.googledirection.model.Direction;
-import com.akexorcist.googledirection.model.Leg;
-import com.akexorcist.googledirection.model.Route;
-import com.akexorcist.googledirection.model.Step;
-import com.akexorcist.googledirection.request.DirectionDestinationRequest;
-import com.akexorcist.googledirection.util.DirectionConverter;
-import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.PolylineOptions;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
-import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import placeme.ru.placemedemo.R;
-import placeme.ru.placemedemo.core.Controller;
 import placeme.ru.placemedemo.core.database.DatabaseManager;
+import placeme.ru.placemedemo.core.map.MapManager;
 import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
 import placeme.ru.placemedemo.elements.Place;
 
@@ -46,21 +25,40 @@ import placeme.ru.placemedemo.elements.Place;
  * Created by Андрей on 21.11.2017.
  */
 
-//TODO: refactor
+/**
+ * Class that contains methods to create most of the dialogs
+ * between user and application
+ */
 public class AlertDialogCreator {
     private static ArrayList<LatLng> points = new ArrayList<>();
 
+    /**
+     * Helper method that returns last created route
+     * It helps augmented reality part to build augmented reality
+     * route between places
+     * @return array of points that represents way through the places
+     */
     public static ArrayList<LatLng> getPoints() {
         return points;
     }
 
-    public static AlertDialog createAlertDialogFinded (final Context context, final String toFind, final GoogleMap googleMap, final LatLng myPosition, final Activity activity) {
-        AlertDialog.Builder builderSingle = new AlertDialog.Builder(context);
+    /**
+     * Method that creates alert dialog with the results of user query
+     * @param context current context
+     * @param toFind user query
+     * @param googleMap map where route will be possibly build
+     * @param myPosition current user position
+     * @return returns created alert dialog
+     */
+    public static AlertDialog createAlertDialogFounded(final Context context, final String toFind, final GoogleMap googleMap, final LatLng myPosition) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
         LayoutInflater inflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
         final View layout = inflater.inflate(R.layout.list, null);
-        builderSingle.setView(layout);
-        builderSingle.setIcon(R.drawable.icon);
-        builderSingle.setTitle("Results of query");
+
+        builder.setView(layout);
+        builder.setIcon(R.drawable.icon);
+        builder.setTitle(R.string.query_result);
+
         final ListView lv = layout.findViewById(R.id.lv);
         lv.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
 
@@ -69,90 +67,34 @@ public class AlertDialogCreator {
 
         DatabaseManager.findPlacesByString(arrayAdapter, placeArrayList, toFind);
 
-        builderSingle.setNegativeButton("cancel", (dialog, which) -> dialog.dismiss());
+        builder.setNegativeButton(R.string.answer_cancel, (dialog, which) -> dialog.dismiss());
 
         lv.setAdapter(arrayAdapter);
 
         lv.setOnItemLongClickListener((parent, view, position, id) -> {
-            AlertDialog.Builder builderInner = new AlertDialog.Builder(context);
-            builderInner.setMessage(placeArrayList.get(position).getDescription());
-            builderInner.setTitle(placeArrayList.get(position).getName());
-            builderInner.setPositiveButton("Ok", (dialog, which) -> dialog.dismiss());
-            builderInner.show();
+            AlertDialog alertDialog = createInnerDescriptionDialog(position, context, placeArrayList);
+            alertDialog.show();
             return false;
         });
 
-        builderSingle.setPositiveButton("Make route", (dialog, which) -> {
-            SparseBooleanArray sp = lv.getCheckedItemPositions();
-
-            final LatLng origin = myPosition;
-            LatLng destination = myPosition;
-            DirectionDestinationRequest gd = GoogleDirection.withServerKey("AIzaSyD_WcUAMqVEVW0H84GsXLKBr0HokiO-v_4").from(origin);
-            ArrayList<LatLng> route = new ArrayList<>();
-            route.add(myPosition);
-            int lastPoint = -1;
-            for (int i = 0; i < placeArrayList.size(); i++) {
-                if(sp.get(i)) {
-                    lastPoint = i;
-                    route.add(new LatLng(placeArrayList.get(i).getLatitude(), placeArrayList.get(i).getLongitude()));
-                }
-            }
-
-            DatabaseManager.saveRoute(AuthorizationUtils.getLoggedInAsString(context), route);
-            if(lastPoint != -1) {
-                destination = new LatLng(placeArrayList.get(lastPoint).getLatitude(), placeArrayList.get(lastPoint).getLongitude());
-            }
-
-            for(int i = 0; i < placeArrayList.size(); i++) {
-                if(sp.get(i)) {
-                    if(i != lastPoint) {
-                        gd.and(new LatLng(placeArrayList.get(i).getLatitude(), placeArrayList.get(i).getLongitude()));
-                    }
-                }
-                Log.d(((Integer)i).toString(), ((Boolean)sp.get(i)).toString());
-            }
-
-            gd.to(destination)
-                    .transportMode(TransportMode.WALKING)
-                    .execute(new DirectionCallback() {
-                        @Override
-                        public void onDirectionSuccess(Direction direction, String rawBody) {
-                            if(direction.isOK()) {
-
-                                Route route = direction.getRouteList().get(0);
-                                int legCount = route.getLegList().size();
-                                Log.d ("length", ((Integer)legCount).toString());
-                                for (int index = 0; index < legCount; index++) {
-                                    Leg leg = route.getLegList().get(index);
-                                    googleMap.addMarker(new MarkerOptions().position(leg.getStartLocation().getCoordination()));
-                                    if (index == legCount - 1) {
-                                        googleMap.addMarker(new MarkerOptions().position(leg.getEndLocation().getCoordination()));
-                                    }
-                                    List<Step> stepList = leg.getStepList();
-                                    ArrayList<PolylineOptions> polylineOptionList = DirectionConverter.createTransitPolyline(context, stepList, 5, Color.RED, 3, Color.BLUE);
-
-                                    for (PolylineOptions polylineOption : polylineOptionList) {
-                                        points.addAll(polylineOption.getPoints());
-                                        googleMap.addPolyline(polylineOption);
-                                    }
-                                }
-                            }
-                        }
-
-                        @Override
-                        public void onDirectionFailure(Throwable t) {}
-                    });
-
-
+        builder.setPositiveButton(R.string.answer_make_route, (dialog, which) -> {
+            MapManager.makeRoute(lv, myPosition, placeArrayList, context, googleMap, points);
             dialog.dismiss();
-            googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(destination, 15.0f));
-            //Controller.sendRoute(googleMap, "tmp", activity);
-    });
+        });
 
-        return builderSingle.create();
-}
+        return builder.create();
+    }
 
-    public static AlertDialog createAlertDescriptionDialog(final Context context, final Place place) {
+    /**
+     * Method that creates alert dialog with the description of the place
+     * and it's photo
+     * @param context current context
+     * @param place place that needs description
+     * @param myPosition current user position
+     * @param googleMap map where route will be possibly build
+     * @return created alert dialog
+     */
+    public static AlertDialog createAlertDescriptionDialog(final Context context, final Place place, final LatLng myPosition, final GoogleMap googleMap) {
         final AlertDialog.Builder builder = new AlertDialog.Builder(context);
         LayoutInflater inflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
         final View layout = inflater.inflate(R.layout.dialog_description, null);
@@ -160,26 +102,21 @@ public class AlertDialogCreator {
         builder.setTitle(place.getName());
         TextView descriptionText = layout.findViewById(R.id.descriptionText);
         descriptionText.setText(place.getDescription());
-        StorageReference mStorageRef = FirebaseStorage.getInstance().getReference();
-        StorageReference child = mStorageRef.child("photos").child(place.getIdAsString() + "place_photo");
-        final ImageView imgView = layout.findViewById(R.id.description_picture);
-        child.getDownloadUrl().addOnSuccessListener(uri -> Picasso.with(context).load(uri)
-                .placeholder(android.R.drawable.btn_star_big_on)
-                .error(android.R.drawable.btn_star_big_on)
-                .into(imgView));
 
-        RatingBar rb = layout.findViewById(R.id.total_rating);
-        rb.setRating(place.getMark());
+        final ImageView imageView = layout.findViewById(R.id.description_picture);
+        DatabaseManager.loadDescriptionImage(imageView, place, context);
 
-        builder.setPositiveButton("Go here!", (dialog, arg1) -> {
-            //TODO: build root
-            Toast.makeText(context, "TODO: build root", Toast.LENGTH_LONG).show();
-        }).setNeutralButton("Rate place!",
+        RatingBar ratingBar = layout.findViewById(R.id.total_rating);
+        ratingBar.setRating(place.getMark());
+
+        builder.setPositiveButton(R.string.answer_go_here, (dialog, arg1) -> {
+            MapManager.makeSingleRoute(myPosition, new LatLng(place.getLatitude(), place.getLongitude()), context, googleMap, points);
+        }).setNeutralButton(R.string.answer_rate_place,
                 (dialog, id) -> {
                     AlertDialog alert = AlertDialogCreator.createAlertRateDialog(place,context);
                     alert.show();
 
-                }).setNegativeButton("Ok", (dialog, arg1) -> dialog.cancel());
+                }).setNegativeButton(R.string.answer_ok, (dialog, arg1) -> dialog.cancel());
 
         builder.setCancelable(true);
         builder.setView(layout);
@@ -187,17 +124,31 @@ public class AlertDialogCreator {
 
     }
 
+    /**
+     * Method that creates subdialog where user can rate any place with the mark between 0 and 5
+     * @param place place to be rated
+     * @param context current context
+     * @return returns alert dialog with offer to rate place or add it to favourite
+     */
     public static AlertDialog createAlertRateDialog(final Place place, final Context context) {
         final AlertDialog.Builder builder = new AlertDialog.Builder(context);
         LayoutInflater inflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
         final View layout = inflater.inflate(R.layout.dialog_rate_place, null);
         final RatingBar rb = layout.findViewById(R.id.rate_place);
 
-        builder.setPositiveButton("Rate it!", (dialog, arg1) -> DatabaseManager.updatePlaceRating(rb, place.getIdAsString()));
-        builder.setNeutralButton("Add to favourite", (dialog, id) -> DatabaseManager.addPlaceToFavourite(AuthorizationUtils.getLoggedInAsString(context), place.getIdAsString()));
-        builder.setNegativeButton("Ok", (dialog, arg1) -> dialog.cancel());
+        builder.setPositiveButton(R.string.answer_rate, (dialog, arg1) -> DatabaseManager.updatePlaceRating(rb, place.getIdAsString()));
+        builder.setNeutralButton(R.string.answer_add, (dialog, id) -> DatabaseManager.addPlaceToFavourite(AuthorizationUtils.getLoggedInAsString(context), place.getIdAsString()));
+        builder.setNegativeButton(R.string.answer_ok, (dialog, arg1) -> dialog.cancel());
         builder.setCancelable(true);
         builder.setView(layout);
         return builder.create();
+    }
+
+    private static AlertDialog createInnerDescriptionDialog(final int position, final Context context, final ArrayList<Place> placeArrayList) {
+        AlertDialog.Builder builderInner = new AlertDialog.Builder(context);
+        builderInner.setMessage(placeArrayList.get(position).getDescription());
+        builderInner.setTitle(placeArrayList.get(position).getName());
+        builderInner.setPositiveButton(R.string.answer_ok, (dialog, which) -> dialog.dismiss());
+        return builderInner.create();
     }
 }

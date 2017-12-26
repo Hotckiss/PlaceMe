@@ -172,10 +172,18 @@ public class User {
         }
     }
 
+    /**
+     * Method that returns current number of user routes
+     * @return number of users routes
+     */
     public int getRoutesLength() {
         return routesLength;
     }
 
+    /**
+     * Method that changes number of users routes
+     * @param newLength new number of users routes
+     */
     public void setRoutesLength(int newLength) {
         routesLength = newLength;
     }

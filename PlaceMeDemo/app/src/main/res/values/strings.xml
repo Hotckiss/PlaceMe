@@ -115,7 +115,19 @@
     <string name="answer_no">No</string>
     <string name="answer_finish">Finish</string>
     <string name="answer_back">Back</string>
+    <string name="answer_cancel">Cancel</string>
+    <string name="answer_make_route">Make route</string>
+    <string name="answer_ok">Ok</string>
+    <string name="answer_rate">Rate it!</string>
+    <string name="answer_add">Add to favourite</string>
+    <string name="answer_go_here">Go here!</string>
+    <string name="answer_rate_place">Rate place</string>
+
+
     <!--- Places -->
     <string name="places_creating">Creating place</string>
     <string name="places_creating_question">Create new place here?</string>
+    <!--- Dialogs -->
+    <string name="query_result">Results of query</string>
+
 </resources>

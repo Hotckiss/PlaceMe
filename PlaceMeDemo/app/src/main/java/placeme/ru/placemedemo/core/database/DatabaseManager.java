@@ -7,6 +7,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.RatingBar;
 import android.widget.TextView;
 
@@ -507,14 +508,14 @@ public class DatabaseManager {
      * @param context current context
      * @param marker place position
      */
-    public static void runDescriptionDialog(final Context context, final Marker marker) {
+    public static void runDescriptionDialog(final Context context, final Marker marker, final LatLng myPosition, final GoogleMap googleMap) {
         getDatabaseChild(PLACES_KEY).addChildEventListener(new AbstractChildEventListener() {
 
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 Place place = dataSnapshot.getValue(Place.class);
                 if ((place.getLatitude() == marker.getPosition().latitude) && (place.getLongitude() == marker.getPosition().longitude)) {
-                    AlertDialogCreator.createAlertDescriptionDialog(context, place).show();
+                    AlertDialogCreator.createAlertDescriptionDialog(context, place, myPosition, googleMap).show();
                 }
             }
         });
@@ -618,6 +619,13 @@ public class DatabaseManager {
                 .into(circleImageView));
     }
 
+    public static void loadDescriptionImage(final ImageView imageView, final Place place, final Context context) {
+        mStorageRef.child("photos").child(place.getIdAsString() + "place_photo")
+                .getDownloadUrl().addOnSuccessListener(uri -> Picasso.with(context).load(uri)
+                .placeholder(android.R.drawable.btn_star_big_on)
+                .error(android.R.drawable.btn_star_big_on)
+                .into(imageView));
+    }
     @Nullable
     private static DatabaseReference getDatabaseChild(String childName) {
         DatabaseReference databaseReference = getDatabaseReference();
