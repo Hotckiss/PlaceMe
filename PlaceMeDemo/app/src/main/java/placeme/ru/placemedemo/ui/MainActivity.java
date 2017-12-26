@@ -5,13 +5,10 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
 import android.location.Location;
-import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 import android.support.design.widget.FloatingActionButton;
@@ -40,9 +37,7 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.Place;
-import com.google.android.gms.location.places.Places;
 import com.google.android.gms.location.places.ui.PlacePicker;
-import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
@@ -51,10 +46,6 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.Task;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -62,13 +53,13 @@ import de.hdodenhof.circleimageview.CircleImageView;
 import geo.GeoObj;
 import gl.GL1Renderer;
 import gl.GLFactory;
-import placeme.ru.placemedemo.core.Controller;
-import placeme.ru.placemedemo.core.utils.RoutesUtils;
-import placeme.ru.placemedemo.ui.dialogs.AlertDialogCreator;
 import placeme.ru.placemedemo.R;
+import placeme.ru.placemedemo.core.Controller;
 import placeme.ru.placemedemo.core.database.DatabaseManager;
 import placeme.ru.placemedemo.core.map.MapManager;
 import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
+import placeme.ru.placemedemo.core.utils.RoutesUtils;
+import placeme.ru.placemedemo.ui.dialogs.AlertDialogCreator;
 import system.ArActivity;
 import system.MySetup;
 import worldData.World;
@@ -163,6 +154,8 @@ public class MainActivity extends AppCompatActivity
         });
 
 
+
+
     }
 
     private void loadProfileAvatar(View view) {
@@ -177,6 +170,36 @@ public class MainActivity extends AppCompatActivity
         FloatingActionButton floatingActionButton = findViewById(R.id.google_places_button);
 
         floatingActionButton.setOnClickListener(v -> alertDialogAskGooglePlacesUsage(MainActivity.this).show());
+    }
+
+    public AlertDialog alertDialogPlan(final Context context) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+
+        builder.setTitle("Search in Google Places");
+        builder.setMessage("Do you want to search place in google places?\n(Google places widget will be opened)");
+
+        builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                //Toast.makeText(context, "TODO:open GP", Toast.LENGTH_SHORT).show();
+
+                PlacePicker.IntentBuilder builder = new PlacePicker.IntentBuilder();
+
+                try {
+                    startActivityForResult(builder.build(MainActivity.this), PLACE_PICKER_REQUEST);
+                } catch (GooglePlayServicesRepairableException e) {
+                    e.printStackTrace();
+                } catch (GooglePlayServicesNotAvailableException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        builder.setNegativeButton("No", (dialog, which) -> dialog.cancel());
+
+        builder.setCancelable(true);
+
+        return builder.create();
     }
 
     public AlertDialog alertDialogAskGooglePlacesUsage(final Context context) {
