@@ -34,15 +34,20 @@ import placeme.ru.placemedemo.core.utils.RoutesUtils;
 public class PlacesListViewFragment extends Fragment {
     RecyclerView MyRecyclerView;
     String[] places;
+    boolean isNullLength = false;
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        places = FavouritePlacesUtils.getPlaces(getContext()).split(",");
+        String list = FavouritePlacesUtils.getPlaces(getContext());
+        if (list.length() == 0) {
+            isNullLength = true;
+        } else {
+            places = FavouritePlacesUtils.getPlaces(getContext()).split(",");
 
-        if(places.length > 1) {
-            Arrays.sort(places, (a, b) -> (Integer.parseInt(a) - Integer.parseInt(b)));
+            if (places.length > 1) {
+                Arrays.sort(places, (a, b) -> (Integer.parseInt(a) - Integer.parseInt(b)));
+            }
         }
-
     }
 
     @Override
@@ -85,8 +90,6 @@ public class PlacesListViewFragment extends Fragment {
 
         @Override
         public void onBindViewHolder(final MyViewHolder holder, final int position) {
-
-            Log.d("ggggg", places[position]);
             StorageReference child = FirebaseStorage.getInstance().getReference().child("photos").child(places[position]+"place_photo");
             child.getDownloadUrl().addOnSuccessListener(uri -> Picasso.with(getActivity().getBaseContext()).load(uri)
                     .placeholder(android.R.drawable.btn_star_big_on)
@@ -98,6 +101,9 @@ public class PlacesListViewFragment extends Fragment {
 
         @Override
         public int getItemCount() {
+            if (isNullLength) {
+                return 0;
+            }
             return places.length;
         }
     }

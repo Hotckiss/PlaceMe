@@ -106,9 +106,16 @@
     <!--- Register activity -->
     <string name="register_login">Login:</string>
     <string name="register_password">Password:</string>
+    <string name="register_confirm_password">Confirm password:</string>
     <string name="register_name">Name:</string>
     <string name="register_surname">Surname:</string>
     <string name="register_nickname">Nickname:</string>
+    <string name="register_problems">Problems with registration</string>
+    <string name="register_login_dog">Login must contains \'\@\'!</string>
+    <string name="register_digits">Password must contains at least 3 digits!</string>
+    <string name="register_letters">Password must contains at least 5 letters!</string>
+    <string name="register_big_letter">Password must contains at least one big letter!</string>
+    <string name="register_equals">Passwords are nor equal!</string>
 
     <!--- User answers -->
     <string name="answer_yes">Yes!</string>

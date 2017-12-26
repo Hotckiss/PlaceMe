@@ -192,17 +192,21 @@ public class DatabaseManager {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 String places = dataSnapshot.getValue().toString();
-                boolean wasAlreadyAddedToFavourite = false;
-                for (String str : places.split(",")) {
-                    if (str.equals(placeId)) {
-                        wasAlreadyAddedToFavourite = true;
+                if(places == null || places.equals("")) {
+                    mDatabaseReference.setValue(placeId);
+                } else {
+                    boolean wasAlreadyAddedToFavourite = false;
+                    for (String str : places.split(",")) {
+                        if (str.equals(placeId)) {
+                            wasAlreadyAddedToFavourite = true;
+                        }
                     }
-                }
 
-                if (!wasAlreadyAddedToFavourite) {
-                    String newFavouritePlacesList = places + "," + placeId;
-                    mDatabaseReference.setValue(newFavouritePlacesList);
+                    if (!wasAlreadyAddedToFavourite) {
+                        String newFavouritePlacesList = places + "," + placeId;
+                        mDatabaseReference.setValue(newFavouritePlacesList);
 
+                    }
                 }
             }
         });
