@@ -22,7 +22,7 @@ import placeme.ru.placemedemo.ui.views.HorizontalListViewFragment;
 import placeme.ru.placemedemo.ui.views.RoutesListViewFragment;
 
 /**
- * Best users roots activity
+ * Best routes activity that represents all routes of the user
  */
 public class RoutesActivity extends AppCompatActivity {
 
@@ -30,10 +30,7 @@ public class RoutesActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_routes);
-        //setTitle("My Routes");
 
-        //DatabaseManager.getUserRoutesLength(AuthorizationUtils.getLoggedInAsString(RoutesActivity.this), RoutesActivity.this);
-        //Log.d("bbbbbb", RoutesUtils.getRoutesLength(this).toString());
         FragmentManager fragmentManager = getSupportFragmentManager();
         android.support.v4.app.Fragment fragment = fragmentManager.findFragmentById(R.id.fragmentContainer2);
 
@@ -41,8 +38,6 @@ public class RoutesActivity extends AppCompatActivity {
         if (fragment == null) {
             fragment = new RoutesListViewFragment();
             DatabaseManager.getUserRoutesLength(AuthorizationUtils.getLoggedInAsString(RoutesActivity.this), RoutesActivity.this, fragmentManager, fragment);
-
-            //fragmentManager.beginTransaction().add(R.id.fragmentContainer2, fragment).commit();
         }
     }
 

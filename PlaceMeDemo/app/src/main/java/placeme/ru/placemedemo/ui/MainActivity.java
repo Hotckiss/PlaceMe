@@ -170,36 +170,6 @@ public class MainActivity extends AppCompatActivity
         floatingActionButton.setOnClickListener(v -> alertDialogAskGooglePlacesUsage(MainActivity.this).show());
     }
 
-    public AlertDialog alertDialogPlan(final Context context) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
-
-        builder.setTitle("Search in Google Places");
-        builder.setMessage("Do you want to search place in google places?\n(Google places widget will be opened)");
-
-        builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                //Toast.makeText(context, "TODO:open GP", Toast.LENGTH_SHORT).show();
-
-                PlacePicker.IntentBuilder builder = new PlacePicker.IntentBuilder();
-
-                try {
-                    startActivityForResult(builder.build(MainActivity.this), PLACE_PICKER_REQUEST);
-                } catch (GooglePlayServicesRepairableException e) {
-                    e.printStackTrace();
-                } catch (GooglePlayServicesNotAvailableException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-
-        builder.setNegativeButton("No", (dialog, which) -> dialog.cancel());
-
-        builder.setCancelable(true);
-
-        return builder.create();
-    }
-
     public AlertDialog alertDialogAskGooglePlacesUsage(final Context context) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
 
@@ -209,7 +179,6 @@ public class MainActivity extends AppCompatActivity
         builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                //Toast.makeText(context, "TODO:open GP", Toast.LENGTH_SHORT).show();
 
                 PlacePicker.IntentBuilder builder = new PlacePicker.IntentBuilder();
 
