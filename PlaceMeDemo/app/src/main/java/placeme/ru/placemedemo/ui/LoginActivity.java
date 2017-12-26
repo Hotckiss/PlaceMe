@@ -281,7 +281,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
         private final String mEmail;
         private final String mPassword;
-        private int stage = -3;
         UserLoginTask(String email, String password) {
             mEmail = email;
             mPassword = password;
@@ -298,7 +297,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 return false;
             }
 
-            if(AuthorizationUtils.getLoggedIn(LoginActivity.this) == -1) {
+            if (AuthorizationUtils.getLoggedIn(LoginActivity.this) == -1) {
                 return false;
             } else {
                 return true;

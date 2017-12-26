@@ -2,7 +2,6 @@ package placeme.ru.placemedemo.ui;
 
 import android.Manifest;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -73,31 +72,31 @@ public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback,
         GoogleMap.OnMapLongClickListener, GoogleMap.OnMarkerClickListener, GoogleApiClient.OnConnectionFailedListener {
 
-    private GoogleMap googleMap;
-    private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
-
-    //location
-    private FusedLocationProviderClient mFusedLocationProviderClient;
-    private Location mLastKnownLocation;
-    private LatLng myPosition;
-
-    private EditText edSearch;
-
-    //image
     private static final int GALLERY_INTENT = 2;
-    private static ImageView imageView;
-    private Uri uri;
-
-    //AR
-    private static ArrayList<LatLng> points = new ArrayList<>();
-
+    private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     private static final int PLACE_PICKER_REQUEST = 1;
+    private static final String MY_PLACE = "My place";
 
     private static final int REQUEST_EXTERNAL_STORAGE = 1;
     private static String[] PERMISSIONS_STORAGE = {
             Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.WRITE_EXTERNAL_STORAGE
     };
+
+    private GoogleMap mGoogleMap;
+
+    private FusedLocationProviderClient mFusedLocationProviderClient;
+    private Location mLastKnownLocation;
+    private LatLng myPosition;
+
+    private EditText mSearch;
+
+    private static ImageView mImageView;
+    private Uri mUri;
+
+    //AR
+    private static ArrayList<LatLng> points = new ArrayList<>();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -116,7 +115,6 @@ public class MainActivity extends AppCompatActivity
         }
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
-        //getSupportFragmentManager().findFragmentById()
         mapFragment.getMapAsync(this);
 
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -125,12 +123,12 @@ public class MainActivity extends AppCompatActivity
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
 
-        //TODO: remove IDEA auto-generated call
-        drawer.setDrawerListener(toggle);
+        drawer.addDrawerListener(toggle);
         toggle.syncState();
 
         NavigationView navigationView = findViewById(R.id.nav_view);
         View hView =  navigationView.getHeaderView(0);
+
         loadProfileAvatar(hView);
         navigationView.setNavigationItemSelectedListener(this);
 
@@ -150,12 +148,7 @@ public class MainActivity extends AppCompatActivity
         actionButton.setOnClickListener(v -> {
             DatabaseManager.getUserRoutesLength2(AuthorizationUtils.getLoggedInAsString(MainActivity.this), MainActivity.this);
             saveRoute().show();
-
         });
-
-
-
-
     }
 
     private void loadProfileAvatar(View view) {
@@ -164,36 +157,33 @@ public class MainActivity extends AppCompatActivity
             DatabaseManager.loadAvatar(circleImageView, MainActivity.this, AuthorizationUtils.getLoggedInAsString(MainActivity.this));
         }
     }
+
     private void initGooglePlacesButton() {
         FloatingActionButton floatingActionButton = findViewById(R.id.google_places_button);
 
         floatingActionButton.setOnClickListener(v -> alertDialogAskGooglePlacesUsage(MainActivity.this).show());
     }
 
-    public AlertDialog alertDialogAskGooglePlacesUsage(final Context context) {
+    private AlertDialog alertDialogAskGooglePlacesUsage(final Context context) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
 
-        builder.setTitle("Search in Google Places");
-        builder.setMessage("Do you want to search place in google places?\n(Google places widget will be opened)");
+        builder.setTitle(R.string.places_question_gp);
+        builder.setMessage(R.string.places_question_gp_message);
 
-        builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
+        builder.setPositiveButton(R.string.answer_yes, (dialog, which) -> {
 
-                PlacePicker.IntentBuilder builder = new PlacePicker.IntentBuilder();
+            PlacePicker.IntentBuilder builder1 = new PlacePicker.IntentBuilder();
 
-                try {
-                    startActivityForResult(builder.build(MainActivity.this), PLACE_PICKER_REQUEST);
-                } catch (GooglePlayServicesRepairableException e) {
-                    e.printStackTrace();
-                } catch (GooglePlayServicesNotAvailableException e) {
-                    e.printStackTrace();
-                }
+            try {
+                startActivityForResult(builder1.build(MainActivity.this), PLACE_PICKER_REQUEST);
+            } catch (GooglePlayServicesRepairableException e) {
+                e.printStackTrace();
+            } catch (GooglePlayServicesNotAvailableException e) {
+                e.printStackTrace();
             }
         });
 
-        builder.setNegativeButton("No", (dialog, which) -> dialog.cancel());
-
+        builder.setNegativeButton(R.string.answer_no, (dialog, which) -> dialog.cancel());
         builder.setCancelable(true);
 
         return builder.create();
@@ -201,29 +191,29 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onMapLongClick(LatLng point) {
-        googleMap.addMarker(new MarkerOptions().position(point).title("My Place"));
+        mGoogleMap.addMarker(new MarkerOptions().position(point).title(MY_PLACE));
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public void onMapReady(GoogleMap map) {
-        googleMap = map;
-        googleMap.setOnMapLongClickListener(this);
-        googleMap.setOnMarkerClickListener(this);
-        googleMap.getUiSettings().setMapToolbarEnabled(false);
-        googleMap.getUiSettings().setCompassEnabled(false);
+        mGoogleMap = map;
+        mGoogleMap.setOnMapLongClickListener(this);
+        mGoogleMap.setOnMarkerClickListener(this);
+        mGoogleMap.getUiSettings().setMapToolbarEnabled(false);
+        mGoogleMap.getUiSettings().setCompassEnabled(false);
 
         requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
-        MapManager.addAllMarkers(googleMap);
+        MapManager.addAllMarkers(mGoogleMap);
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        if(requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
+        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
             initializeCamera();
         }
         try {
-            googleMap.setMyLocationEnabled(true);
+            mGoogleMap.setMyLocationEnabled(true);
         } catch (SecurityException se) {
             se.printStackTrace();
         }
@@ -231,14 +221,14 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public boolean onMarkerClick(final Marker marker) {
-        if(marker.getTitle() == null) {
+        if (marker.getTitle() == null) {
             return false;
         }
-        if(marker.getTitle().equals("My Place")) {
+        if (marker.getTitle().equals(MY_PLACE)) {
             AlertDialog alert = createAlertDialogNewPlace(marker.getPosition());
             alert.show();
 
-            MapManager.refreshMarkers(googleMap);
+            MapManager.refreshMarkers(mGoogleMap);
         }
         else {
             showDescriptionDialog(marker);
@@ -257,7 +247,6 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         int id = item.getItemId();
@@ -290,10 +279,11 @@ public class MainActivity extends AppCompatActivity
         //TODO:PICTURE
         Intent sendIntent = new Intent();
         sendIntent.setAction(Intent.ACTION_SEND);
-        sendIntent.putExtra(Intent.EXTRA_TEXT, "Я пользуюсь приложением PlaceMe! Присоединяйся и ты: placeme.com :)");
+        sendIntent.putExtra(Intent.EXTRA_TEXT, R.string.share_message);
         sendIntent.setType("text/plain");
         startActivity(Intent.createChooser(sendIntent, "Share using..."));
     }
+    
     @Override
     public void onStop () {
         super.onStop();
@@ -308,9 +298,9 @@ public class MainActivity extends AppCompatActivity
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if(requestCode == GALLERY_INTENT && resultCode == RESULT_OK) {
-            uri = data.getData();
-            imageView.setImageURI(uri);
+        if (requestCode == GALLERY_INTENT && resultCode == RESULT_OK) {
+            mUri = data.getData();
+            mImageView.setImageURI(mUri);
         }
 
         if (requestCode == PLACE_PICKER_REQUEST) {
@@ -320,17 +310,10 @@ public class MainActivity extends AppCompatActivity
                 placeme.ru.placemedemo.elements.Place toAdd = convertGooglePlaceToPlace(place);
 
                 DatabaseManager.saveConvertedPlace(null, toAdd);
-                //placeme.ru.placemedemo.elements.Place myPlace = convertGooglePlaceToPlace(place);
-                //Place place = PlacePicker.getPlace(data, this);
-                //place.getPlaceTypes()
-                String toastMsg = String.format("Place: %s", getterTest(place));
+                String toastMsg = String.format("Place: %s", place.getName().toString());
                 Toast.makeText(this, toastMsg, Toast.LENGTH_LONG).show();
             }
         }
-    }
-
-    private String getterTest(Place p) {
-        return p.getName().toString();
     }
 
     private placeme.ru.placemedemo.elements.Place convertGooglePlaceToPlace(Place place) {
@@ -338,15 +321,15 @@ public class MainActivity extends AppCompatActivity
         String name = "Some place";
         String address = "";
         String phone = "";
-        if(place.getName() != null) {
+        if (place.getName() != null) {
             name = place.getName().toString();
         }
 
-        if(place.getAddress() != null) {
+        if (place.getAddress() != null) {
             address = place.getAddress().toString();
         }
 
-        if(place.getPhoneNumber() != null) {
+        if (place.getPhoneNumber() != null) {
             phone = place.getPhoneNumber().toString();
         }
 
@@ -362,8 +345,7 @@ public class MainActivity extends AppCompatActivity
             description.append('\n');
             description.append(phone);
         }
-
-
+        
         result.setName(place.getName().toString());
         result.setDescription(description.toString());
 
@@ -381,7 +363,7 @@ public class MainActivity extends AppCompatActivity
         tags.append(",");
 
         for (Integer id : placeTags) {
-            if(id.equals(Place.TYPE_GROCERY_OR_SUPERMARKET)) {
+            if (id.equals(Place.TYPE_GROCERY_OR_SUPERMARKET)) {
                 tags.append("магазин,");
                 tags.append("супермаркет,");
                 tags.append("еда,");
@@ -403,7 +385,7 @@ public class MainActivity extends AppCompatActivity
         double dx = maxx - minx;
         double dy = maxy - miny;
         int iter = (int)(100 * Math.max(dx, dy)) + 3;
-        if(dx * dx + dy * dy < 1e-14) {
+        if (dx * dx + dy * dy < 1e-14) {
             iter = 1;
         }
         for (int i = 0; i <= iter; i++) {
@@ -424,7 +406,7 @@ public class MainActivity extends AppCompatActivity
             public void addObjectsTo(GL1Renderer renderer, final World world, GLFactory objectFactory) {
 
                 points = AlertDialogCreator.getPoints();
-                if(points == null) {
+                if (points == null) {
                 }
                 else {
                     if (points.size() == 0) {
@@ -463,14 +445,14 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void initializeInputWindow() {
-        edSearch = findViewById(R.id.search);
-        edSearch.setOnEditorActionListener((v, actionId, event) -> {
-            if(googleMap != null) {
-                googleMap.clear();
+        mSearch = findViewById(R.id.search);
+        mSearch.setOnEditorActionListener((v, actionId, event) -> {
+            if (mGoogleMap != null) {
+                mGoogleMap.clear();
             }
-            final String query = edSearch.getText().toString();
-            MapManager.addFoundedMarkers(googleMap, query);
-            AlertDialogCreator.createAlertDialogFounded(MainActivity.this, query, googleMap, myPosition).show();
+            final String query = mSearch.getText().toString();
+            MapManager.addFoundedMarkers(mGoogleMap, query);
+            AlertDialogCreator.createAlertDialogFounded(MainActivity.this, query, mGoogleMap, myPosition).show();
 
             return false;
         });
@@ -479,7 +461,6 @@ public class MainActivity extends AppCompatActivity
     private void checkLogin() {
         if (AuthorizationUtils.getLoggedIn(this) == -1) {
             login();
-            return;
         }
     }
 
@@ -514,11 +495,11 @@ public class MainActivity extends AppCompatActivity
         builder.setPositiveButton(R.string.answer_finish, (dialog, id) -> {
             EditText editTextDescription = layout.findViewById(R.id.route_description);
             String description = editTextDescription.getText().toString();
-            if(description == null || description.length() == 0) {
+            if (description == null || description.length() == 0) {
                 description = "No description given.";
             }
             DatabaseManager.saveRouteInfo(AuthorizationUtils.getLoggedInAsString(MainActivity.this), RoutesUtils.getRoutesLength(MainActivity.this), description);
-            Controller.sendRoute(googleMap, "tmp", MainActivity.this);
+            Controller.sendRoute(mGoogleMap, "tmp", MainActivity.this);
             DatabaseManager.updateRoutesLength(AuthorizationUtils.getLoggedInAsString(MainActivity.this), RoutesUtils.getRoutesLength(MainActivity.this));
         }).setNegativeButton(R.string.answer_back, (dialog, arg1) -> {});
 
@@ -532,8 +513,8 @@ public class MainActivity extends AppCompatActivity
         LayoutInflater inflater = (LayoutInflater) MainActivity.this.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
         final View layout = inflater.inflate(R.layout.dialog_new_place, null);
 
-        imageView = layout.findViewById(R.id.new_place_image);
-        imageView.setOnClickListener(v -> {
+        mImageView = layout.findViewById(R.id.new_place_image);
+        mImageView.setOnClickListener(v -> {
             Intent intent = new Intent(Intent.ACTION_PICK);
 
             intent.setType("image/*");
@@ -542,7 +523,7 @@ public class MainActivity extends AppCompatActivity
 
         builder.setPositiveButton(R.string.answer_finish, (dialog, id) -> {
             String[] placeInfo = getPlaceInfo(layout);
-            DatabaseManager.saveCreatedPlace(uri, placeInfo, latLng);
+            DatabaseManager.saveCreatedPlace(mUri, placeInfo, latLng);
         }).setNegativeButton(R.string.answer_back, (dialog, arg1) -> {});
 
         builder.setCancelable(true);
@@ -564,11 +545,9 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void showDescriptionDialog(final Marker marker) {
-        DatabaseManager.runDescriptionDialog(MainActivity.this, marker, myPosition, googleMap);
+        DatabaseManager.runDescriptionDialog(MainActivity.this, marker, myPosition, mGoogleMap);
     }
 
     @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-
-    }
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {}
 }

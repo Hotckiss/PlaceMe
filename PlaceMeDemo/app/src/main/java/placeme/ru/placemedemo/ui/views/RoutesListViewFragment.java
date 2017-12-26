@@ -26,10 +26,13 @@ import placeme.ru.placemedemo.core.database.DatabaseManager;
 import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
 import placeme.ru.placemedemo.core.utils.RoutesUtils;
 
-//TODO:refactor
+/**
+ * Fragment that represents information about routes
+ */
 public class RoutesListViewFragment extends Fragment {
-    RecyclerView MyRecyclerView;
+    RecyclerView mRecyclerView;
     int length;
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -40,17 +43,17 @@ public class RoutesListViewFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         View view = inflater.inflate(R.layout.fragment_horizontal_list_view, container, false);
-        MyRecyclerView = view.findViewById(R.id.cardView);
-        MyRecyclerView.setHasFixedSize(false);
+        mRecyclerView = view.findViewById(R.id.cardView);
+        mRecyclerView.setHasFixedSize(false);
 
         LinearLayoutManager MyLayoutManager = new LinearLayoutManager(getActivity());
         MyLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
 
-        if (MyRecyclerView != null) {
-            MyRecyclerView.setAdapter(new MyAdapter());
+        if (mRecyclerView != null) {
+            mRecyclerView.setAdapter(new MyAdapter());
         }
 
-        MyRecyclerView.setLayoutManager(MyLayoutManager);
+        mRecyclerView.setLayoutManager(MyLayoutManager);
 
         return view;
     }

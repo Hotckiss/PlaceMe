@@ -3,7 +3,6 @@ package placeme.ru.placemedemo.ui;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -17,12 +16,12 @@ import placeme.ru.placemedemo.core.database.DatabaseManager;
 public class RegisterActivity extends AppCompatActivity {
     private static final String DOG_CHARACTER = "@";
 
-    private EditText teLogin;
-    private EditText tePassword;
-    private EditText teConfirmPassword;
-    private EditText teName;
-    private EditText teSurname;
-    private EditText teNickname;
+    private EditText mLogin;
+    private EditText mPassword;
+    private EditText mConfirmPassword;
+    private EditText mName;
+    private EditText mSurname;
+    private EditText mNickname;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,7 +47,7 @@ public class RegisterActivity extends AppCompatActivity {
     private AlertDialog createAlertDialogProblems() {
         final AlertDialog.Builder builder = new AlertDialog.Builder(RegisterActivity.this);
         builder.setTitle(R.string.register_problems);
-        String password = tePassword.getText().toString();
+        String password = mPassword.getText().toString();
         if (!checkLogin()) {
             builder.setMessage(R.string.register_login_dog);
         } else if (!hasThreeDigits(password)) {
@@ -69,22 +68,22 @@ public class RegisterActivity extends AppCompatActivity {
     }
     private String[] generateNewUserData() {
         String[] result = new String[5];
-        result[0] = teLogin.getText().toString();
-        result[1] = tePassword.getText().toString();
-        result[2] = teName.getText().toString();
-        result[3] = teSurname.getText().toString();
-        result[4] = teNickname.getText().toString();
+        result[0] = mLogin.getText().toString();
+        result[1] = mPassword.getText().toString();
+        result[2] = mName.getText().toString();
+        result[3] = mSurname.getText().toString();
+        result[4] = mNickname.getText().toString();
 
         return result;
     }
 
     private boolean checkLogin() {
-        String login = teLogin.getText().toString();
+        String login = mLogin.getText().toString();
         return login.contains(DOG_CHARACTER);
     }
 
     private boolean checkPassword() {
-        String password = tePassword.getText().toString();
+        String password = mPassword.getText().toString();
 
         return hasBigLetter(password) && hasFiveLetters(password) && hasThreeDigits(password) && confirm(password);
     }
@@ -101,7 +100,7 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private boolean confirm(final String password) {
-        return password.equals(teConfirmPassword.getText().toString());
+        return password.equals(mConfirmPassword.getText().toString());
     }
 
     private boolean hasFiveLetters(final String password) {
@@ -147,16 +146,16 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private void initializeEditTextFields() {
-        teLogin = findViewById(R.id.teLogin);
+        mLogin = findViewById(R.id.teLogin);
 
-        tePassword = findViewById(R.id.tePassword);
+        mPassword = findViewById(R.id.tePassword);
 
-        teConfirmPassword = findViewById(R.id.teConfirmPassword);
+        mConfirmPassword = findViewById(R.id.teConfirmPassword);
 
-        teName = findViewById(R.id.teName);
+        mName = findViewById(R.id.teName);
 
-        teSurname = findViewById(R.id.teSurname);
+        mSurname = findViewById(R.id.teSurname);
 
-        teNickname = findViewById(R.id.teNickname);
+        mNickname = findViewById(R.id.teNickname);
     }
 }

@@ -4,13 +4,10 @@ package placeme.ru.placemedemo.ui.views;
  * Created by Андрей on 20.12.2017.
  */
 
-import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -20,7 +17,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -39,14 +35,16 @@ import placeme.ru.placemedemo.core.database.AbstractChildEventListener;
 import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
 import placeme.ru.placemedemo.core.utils.ChatUtils;
 import placeme.ru.placemedemo.core.utils.FriendsDataUtils;
-import placeme.ru.placemedemo.elements.cards.FriendCard;
 import placeme.ru.placemedemo.elements.User;
+import placeme.ru.placemedemo.elements.cards.FriendCard;
 
-//TODO:refactor
+/**
+ * Fragment that represents information about friends
+ */
 public class HorizontalListViewFragment extends Fragment {
 
     ArrayList<FriendCard> listitems = new ArrayList<>();
-    RecyclerView MyRecyclerView;
+    RecyclerView mRecyclerView;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -57,9 +55,9 @@ public class HorizontalListViewFragment extends Fragment {
         for(int i = 0; i < finish; i++){
             FriendCard item = new FriendCard();
             //TODO: delete string
-            item.setCardName("friend " + (i + 1));
+            item.setmCardName("friend " + (i + 1));
 
-            item.setImageResourceId(android.R.drawable.star_big_on);
+            item.setmImageResourceId(android.R.drawable.star_big_on);
             item.setId(Integer.parseInt(friends[i]));
             listitems.add(item);
         }
@@ -69,14 +67,14 @@ public class HorizontalListViewFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         View view = inflater.inflate(R.layout.fragment_horizontal_list_view, container, false);
-        MyRecyclerView = (RecyclerView) view.findViewById(R.id.cardView);
-        MyRecyclerView.setHasFixedSize(true);
+        mRecyclerView = view.findViewById(R.id.cardView);
+        mRecyclerView.setHasFixedSize(true);
         LinearLayoutManager MyLayoutManager = new LinearLayoutManager(getActivity());
         MyLayoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
-        if (listitems.size() > 0 & MyRecyclerView != null) {
-            MyRecyclerView.setAdapter(new MyAdapter(listitems));
+        if (listitems.size() > 0 & mRecyclerView != null) {
+            mRecyclerView.setAdapter(new MyAdapter(listitems));
         }
-        MyRecyclerView.setLayoutManager(MyLayoutManager);
+        mRecyclerView.setLayoutManager(MyLayoutManager);
 
         return view;
     }
@@ -158,10 +156,10 @@ public class HorizontalListViewFragment extends Fragment {
                     @Override
                     public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                         User user = dataSnapshot.getValue(User.class);
-                        if(user == null) {
+                        if (user == null) {
                             return;
                         }
-                        if(listitems.get(pos).getId() == user.getId()) {
+                        if (listitems.get(pos).getId() == user.getId()) {
                             Toast.makeText(getActivity(),user.getName() + " " + user.getSurname() + "\n@" + user.getNickname(), Toast.LENGTH_LONG).show();
                         }
                     }
@@ -175,47 +173,5 @@ public class HorizontalListViewFragment extends Fragment {
             });
         }
 
-
     }
-
-    /*private void createInfoDialog(final int pos) {
-        final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity().getBaseContext());
-        LayoutInflater inflater = (LayoutInflater) getActivity().getBaseContext().getSystemService( Context.LAYOUT_INFLATER_SERVICE );
-        final View layout = inflater.inflate(R.layout.dialog_description, null);
-
-        builder.setTitle("Info");
-        StorageReference child = FirebaseStorage.getInstance().getReference().child("avatars").child(((Integer)listitems.get(pos).getId()).toString() + "avatar");
-        final ImageView imgView = (ImageView) layout.findViewById(R.id.profile_imagef);
-        child.getDownloadUrl().addOnSuccessListener(uri -> Picasso.with(getActivity().getBaseContext()).load(uri)
-                .placeholder(android.R.drawable.btn_star_big_on)
-                .error(android.R.drawable.btn_star_big_on)
-                .into(imgView));
-
-        DatabaseReference mDatabaseReference = FirebaseDatabase.getInstance().getReference().child("users");
-
-        ChildEventListener childEventListener = new AbstractChildEventListener() {
-            @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                User user = dataSnapshot.getValue(User.class);
-                if(user == null) {
-                    return;
-                }
-                if(listitems.get(pos).getId() == user.getId()) {
-                    TextView tvName = layout.findViewById(R.id.namef);
-                    tvName.setText(user.getName());
-
-                    TextView tvSurname = layout.findViewById(R.id.surnamef);
-                    tvSurname.setText(user.getSurname());
-
-                    //TODO: move string constant to values/strings
-                    TextView tvNickname = layout.findViewById(R.id.nicknamef);
-                    tvNickname.setText("@" + user.getNickname());
-                }
-            }
-        };
-        mDatabaseReference.addChildEventListener(childEventListener);
-        builder.setCancelable(true);
-        builder.setView(layout);
-        builder.create().show();
-    }*/
 }

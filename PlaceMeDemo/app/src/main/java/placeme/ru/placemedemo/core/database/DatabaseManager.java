@@ -38,7 +38,6 @@ import placeme.ru.placemedemo.elements.Place;
 import placeme.ru.placemedemo.elements.User;
 import placeme.ru.placemedemo.ui.dialogs.AlertDialogCreator;
 import placeme.ru.placemedemo.ui.views.HorizontalListViewFragment;
-import util.Log;
 
 /**
  * Created by Андрей on 21.12.2017.
@@ -61,7 +60,7 @@ public class DatabaseManager {
     
     private static FirebaseDatabase mBase;
     private static DatabaseReference mDatabaseReference;
-    private static ChildEventListener childEventListener;
+    private static ChildEventListener mChildEventListener;
 
     private static StorageReference mStorageRef;
 
@@ -80,7 +79,7 @@ public class DatabaseManager {
         mDatabaseReference = getDatabaseChild(AUTH_DATA_KEY);
 
         AuthorizationUtils.setLoggedIn(context, -1);
-        childEventListener = new AbstractChildEventListener() {
+        mChildEventListener = new AbstractChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 AuthData authData = dataSnapshot.getValue(AuthData.class);
@@ -93,7 +92,7 @@ public class DatabaseManager {
                 }
             }
         };
-        mDatabaseReference.addChildEventListener(childEventListener);
+        mDatabaseReference.addChildEventListener(mChildEventListener);
     }
 
     /**
@@ -129,7 +128,7 @@ public class DatabaseManager {
     public static void findPlacesByString(final ArrayAdapter<String> arrayAdapter, final ArrayList<Place> places, final String toFind) {
         mDatabaseReference = getDatabaseChild(PLACES_KEY);
 
-        childEventListener = new AbstractChildEventListener() {
+        mChildEventListener = new AbstractChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 Place place = dataSnapshot.getValue(Place.class);
@@ -148,7 +147,7 @@ public class DatabaseManager {
                 }
             }
         };
-        mDatabaseReference.addChildEventListener(childEventListener);
+        mDatabaseReference.addChildEventListener(mChildEventListener);
     }
 
     /**
@@ -192,7 +191,7 @@ public class DatabaseManager {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 String places = dataSnapshot.getValue().toString();
-                if(places == null || places.equals("")) {
+                if (places == null || places.equals("")) {
                     mDatabaseReference.setValue(placeId);
                 } else {
                     boolean wasAlreadyAddedToFavourite = false;

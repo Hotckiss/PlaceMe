@@ -55,7 +55,7 @@ public class MapManager {
      * @param googleMap markers destination map
      */
     public static void refreshMarkers(final GoogleMap googleMap) {
-        if(googleMap != null) {
+        if (googleMap != null) {
             googleMap.clear();
             DatabaseManager.loadMarkersToMap(googleMap);
         }
@@ -90,20 +90,20 @@ public class MapManager {
         route.add(myPosition);
         int lastPoint = -1;
         for (int i = 0; i < placeArrayList.size(); i++) {
-            if(sp.get(i)) {
+            if (sp.get(i)) {
                 lastPoint = i;
                 route.add(new LatLng(placeArrayList.get(i).getLatitude(), placeArrayList.get(i).getLongitude()));
             }
         }
 
         DatabaseManager.saveRoute(AuthorizationUtils.getLoggedInAsString(context), route);
-        if(lastPoint != -1) {
+        if (lastPoint != -1) {
             destination = new LatLng(placeArrayList.get(lastPoint).getLatitude(), placeArrayList.get(lastPoint).getLongitude());
         }
 
         for(int i = 0; i < placeArrayList.size(); i++) {
-            if(sp.get(i)) {
-                if(i != lastPoint) {
+            if (sp.get(i)) {
+                if (i != lastPoint) {
                     gd.and(new LatLng(placeArrayList.get(i).getLatitude(), placeArrayList.get(i).getLongitude()));
                 }
             }
@@ -115,7 +115,7 @@ public class MapManager {
                 .execute(new DirectionCallback() {
                     @Override
                     public void onDirectionSuccess(Direction direction, String rawBody) {
-                        if(direction.isOK()) {
+                        if (direction.isOK()) {
 
                             Route route = direction.getRouteList().get(0);
                             int legCount = route.getLegList().size();
@@ -165,7 +165,7 @@ public class MapManager {
                 .execute(new DirectionCallback() {
                     @Override
                     public void onDirectionSuccess(Direction direction, String rawBody) {
-                        if(direction.isOK()) {
+                        if (direction.isOK()) {
 
                             Route route = direction.getRouteList().get(0);
                             int legCount = route.getLegList().size();

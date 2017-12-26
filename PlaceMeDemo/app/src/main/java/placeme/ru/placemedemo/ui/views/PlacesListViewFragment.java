@@ -9,7 +9,6 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,15 +25,16 @@ import java.util.Arrays;
 
 import placeme.ru.placemedemo.R;
 import placeme.ru.placemedemo.core.database.DatabaseManager;
-import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
 import placeme.ru.placemedemo.core.utils.FavouritePlacesUtils;
-import placeme.ru.placemedemo.core.utils.RoutesUtils;
 
-//TODO:refactor
+/**
+ * Fragment that represents information about favourite places
+ */
 public class PlacesListViewFragment extends Fragment {
-    RecyclerView MyRecyclerView;
+    RecyclerView mRecyclerView;
     String[] places;
     boolean isNullLength = false;
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,17 +54,17 @@ public class PlacesListViewFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         View view = inflater.inflate(R.layout.fragment_horizontal_list_view, container, false);
-        MyRecyclerView = view.findViewById(R.id.cardView);
-        MyRecyclerView.setHasFixedSize(false);
+        mRecyclerView = view.findViewById(R.id.cardView);
+        mRecyclerView.setHasFixedSize(false);
 
         LinearLayoutManager MyLayoutManager = new LinearLayoutManager(getActivity());
         MyLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
 
-        if (MyRecyclerView != null) {
-            MyRecyclerView.setAdapter(new MyAdapter(places));
+        if (mRecyclerView != null) {
+            mRecyclerView.setAdapter(new MyAdapter(places));
         }
 
-        MyRecyclerView.setLayoutManager(MyLayoutManager);
+        mRecyclerView.setLayoutManager(MyLayoutManager);
 
         return view;
     }
@@ -125,7 +125,6 @@ public class PlacesListViewFragment extends Fragment {
 
             iv = v.findViewById(R.id.place_photo);
 
-            //DatabaseManager.getUserRoutesLength(AuthorizationUtils.getLoggedInAsString(getContext()), getContext());
         }
     }
 }

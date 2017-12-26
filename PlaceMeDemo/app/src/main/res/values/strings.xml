@@ -130,10 +130,11 @@
     <string name="answer_go_here">Go here!</string>
     <string name="answer_rate_place">Rate place</string>
 
-
     <!--- Places -->
     <string name="places_creating">Creating place</string>
     <string name="places_creating_question">Create new place here?</string>
+    <string name="places_question_gp">Search in Google Places</string>
+    <string name="places_question_gp_message">Do you want to search place in google places?</string>
     <!--- Dialogs -->
     <string name="query_result">Results of query</string>
 
@@ -141,5 +142,7 @@
     <string name="profile_changing_avatar">Changing avatar</string>
     <string name="profile_changing_avatar_message">Do you want to change avatar?</string>
 
+    <!--- Sharing -->
+    <string name="share_message">Я пользуюсь приложением PlaceMe! Присоединяйся и ты: placeme.com :)</string>
 
 </resources>

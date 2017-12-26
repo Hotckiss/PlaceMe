@@ -41,10 +41,10 @@ public class ProfileActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if(requestCode == PROFILE_CHANGED_CODE) {
+        if (requestCode == PROFILE_CHANGED_CODE) {
             loadUserProfile();
         }
-        if(requestCode == GALLERY_INTENT && resultCode == RESULT_OK) {
+        if (requestCode == GALLERY_INTENT && resultCode == RESULT_OK) {
             Uri uri = data.getData();
             mCircleImageView.setImageURI(uri);
 
