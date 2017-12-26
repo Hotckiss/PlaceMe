@@ -80,6 +80,10 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ) {
+            checkPermission();
+        }
+
         checkLogin();
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
@@ -99,6 +103,7 @@ public class MainActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
 
         initializeInputWindow();
+        initializeSearchParameters();
         initializeGeolocation();
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
@@ -133,6 +138,17 @@ public class MainActivity extends AppCompatActivity
             googleMap.setMyLocationEnabled(true);
         } catch (SecurityException se) {
             se.printStackTrace();
+        }
+    }
+
+    public void checkPermission(){
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
+                ContextCompat.checkSelfPermission(this,Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                ){//Can add more as per requirement
+
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.ACCESS_COARSE_LOCATION},
+                    123);
         }
     }
 
@@ -304,6 +320,14 @@ public class MainActivity extends AppCompatActivity
             login();
             return;
         }
+    }
+
+    private void initializeSearchParameters() {
+        Button searchParamButton  = findViewById(R.id.button_search_parameters);
+        searchParamButton.setOnClickListener(v -> {
+            AlertDialog alert = AlertDialogCreator.createSearchParametersDialog(MainActivity.this);
+            alert.show();
+        });
     }
 
     private void login() {

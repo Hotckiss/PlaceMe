@@ -3,6 +3,7 @@ package placeme.ru.placemedemo.ui.dialogs;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Color;
+import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.util.SparseBooleanArray;
@@ -13,6 +14,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.RatingBar;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -215,6 +217,76 @@ public class AlertDialogCreator {
                 dialog.cancel();
             }
         });
+        builder.setCancelable(true);
+        builder.setView(layout);
+        return builder.create();
+    }
+
+    public static AlertDialog createSearchParametersDialog(final Context context) {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        LayoutInflater inflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
+        final View layout = inflater.inflate(R.layout.dialog_search_parameters, null);
+
+        builder.setNegativeButton("Ok", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int arg1) {
+                dialog.cancel();
+            }
+        });
+
+        ((TextView)layout.findViewById(R.id.distance_param)).setText("0");
+        ((TextView)layout.findViewById(R.id.rating_param)).setText("0.0");
+
+        final SeekBar seekBarDistance = (SeekBar)layout.findViewById(R.id.seek_bar_distance);
+        seekBarDistance.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            private final TextView mTextView = (TextView)layout.findViewById(R.id.distance_param);
+
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                Integer dist =  progress;
+                mTextView.setText("< " + dist.toString() + " km");
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+
+        final SeekBar seekBarRating = (SeekBar)layout.findViewById(R.id.seek_bar_rating);
+        seekBarRating.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            private final TextView mTextView = (TextView)layout.findViewById(R.id.rating_param);
+
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                String intNumber = null;
+                Character afterDotNumber = null;
+                Double rating = null;
+
+                if (progress == 0) {
+                    intNumber = "0";
+                    afterDotNumber = '0';
+                } else {
+                    rating = (double) progress / 20.0;
+                    intNumber = rating.toString().split("\\.")[0];
+                    afterDotNumber = rating.toString().split("\\.")[1].charAt(0);
+                }
+                mTextView.setText("> " + intNumber + "." + afterDotNumber + " stars");
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+
         builder.setCancelable(true);
         builder.setView(layout);
         return builder.create();

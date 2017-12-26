@@ -49,10 +49,21 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="32dp"
         android:text="AR route"
+        android:background="@drawable/button_color"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/search" />
+
+    <Button
+        android:id="@+id/button_search_parameters"
+        android:layout_width="206dp"
+        android:layout_height="56dp"
+        android:text="Search parameters"
+        android:background="@drawable/button_color"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/search"/>
 
 
 </android.support.constraint.ConstraintLayout>
