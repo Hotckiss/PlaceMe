@@ -27,16 +27,16 @@ import java.util.Arrays;
 import java.util.HashMap;
 
 import de.hdodenhof.circleimageview.CircleImageView;
-import placeme.ru.placemedemo.core.utils.FavouritePlacesUtils;
-import placeme.ru.placemedemo.core.utils.RoutesUtils;
-import placeme.ru.placemedemo.ui.FavouritePlacesActivity;
-import placeme.ru.placemedemo.ui.dialogs.AlertDialogCreator;
-import placeme.ru.placemedemo.ui.views.HorizontalListViewFragment;
 import placeme.ru.placemedemo.R;
 import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
+import placeme.ru.placemedemo.core.utils.FavouritePlacesUtils;
 import placeme.ru.placemedemo.core.utils.FriendsDataUtils;
-import placeme.ru.placemedemo.elements.*;
-import placeme.ru.placemedemo.ui.views.RoutesListViewFragment;
+import placeme.ru.placemedemo.core.utils.RoutesUtils;
+import placeme.ru.placemedemo.elements.AuthData;
+import placeme.ru.placemedemo.elements.Place;
+import placeme.ru.placemedemo.elements.User;
+import placeme.ru.placemedemo.ui.dialogs.AlertDialogCreator;
+import placeme.ru.placemedemo.ui.views.HorizontalListViewFragment;
 import util.Log;
 
 /**
@@ -47,7 +47,16 @@ import util.Log;
  * Class that have all methods connected with working with the database
  */
 public class DatabaseManager {
-
+    private static final String USERS_KEY = "users";
+    private static final String AUTH_DATA_KEY = "authdata";
+    private static final String MAX_ID = "maxid";
+    private static final String PLACES_KEY = "places";
+    private static final String USER_NAME_KEY = "name";
+    private static final String USER_SURNAME_KEY = "surname";
+    private static final String USER_NICKNAME_KEY = "nickname";
+    private static final String USER_LOGIN_KEY = "login";
+    private static final String USER_PASSWORD_KEY = "password";
+    
     private static FirebaseDatabase mBase;
     private static DatabaseReference mDatabaseReference;
     private static ChildEventListener childEventListener;
@@ -66,16 +75,18 @@ public class DatabaseManager {
      * @param password user password
      */
     public static void findUserAndCheckPassword(final Context context, final String email, final String password) {
-        mDatabaseReference = getDatabaseChild("authdata");
+        mDatabaseReference = getDatabaseChild(AUTH_DATA_KEY);
 
         AuthorizationUtils.setLoggedIn(context, -1);
         childEventListener = new AbstractChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 AuthData authData = dataSnapshot.getValue(AuthData.class);
-                if(authData.getLogin().equals(email)) {
-                    if(authData.getPassword().equals(password)) {
-                        AuthorizationUtils.setLoggedIn(context, authData.getId());
+                if (authData != null) {
+                    if (authData.getLogin().equals(email)) {
+                        if (authData.getPassword().equals(password)) {
+                            AuthorizationUtils.setLoggedIn(context, authData.getId());
+                        }
                     }
                 }
             }
@@ -89,18 +100,20 @@ public class DatabaseManager {
      * @param information information that user input during registration
      */
     public static void registerUser(final Context context, final String[] information) {
-        mDatabaseReference = getDatabaseChild("maxid");
+        mDatabaseReference = getDatabaseChild(MAX_ID);
 
         mDatabaseReference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 Integer id = dataSnapshot.getValue(Integer.class);
-                AuthData newAuthData = new AuthData(id, information[0], information[1]);
-                User newUser = new User(id, information[2], information[3], information[4]);
+                if (id != null) {
+                    AuthData newAuthData = new AuthData(id, information[0], information[1]);
+                    User newUser = new User(id, information[2], information[3], information[4]);
 
-                getDatabaseChild("users").child(id.toString()).setValue(newUser);
-                getDatabaseChild("authdata").child(id.toString()).setValue(newAuthData);
-                mDatabaseReference.setValue(id + 1);
+                    getDatabaseChild(USERS_KEY).child(id.toString()).setValue(newUser);
+                    getDatabaseChild(AUTH_DATA_KEY).child(id.toString()).setValue(newAuthData);
+                    mDatabaseReference.setValue(id + 1);
+                }
             }
         });
     }
@@ -112,7 +125,7 @@ public class DatabaseManager {
      * @param toFind string which contains user query to search
      */
     public static void findPlacesByString(final ArrayAdapter<String> arrayAdapter, final ArrayList<Place> places, final String toFind) {
-        mDatabaseReference = getDatabaseChild("places");
+        mDatabaseReference = getDatabaseChild(PLACES_KEY);
 
         childEventListener = new AbstractChildEventListener() {
             @Override
@@ -143,7 +156,7 @@ public class DatabaseManager {
      * @param placeId place that user have rated
      */
     public static void updatePlaceRating(final RatingBar ratingBar, final String placeId) {
-        mDatabaseReference = getDatabaseChild("places").child(placeId);
+        mDatabaseReference = getDatabaseChild(PLACES_KEY).child(placeId);
 
         mDatabaseReference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
             @Override
@@ -172,19 +185,19 @@ public class DatabaseManager {
      * @param placeId id of place that should be added
      */
     public static void addPlaceToFavourite(final String userId, final String placeId) {
-        mDatabaseReference = getDatabaseChild("users").child(userId).child("favouritePlaces");
+        mDatabaseReference = getDatabaseChild(USERS_KEY).child(userId).child("favouritePlaces");
         mDatabaseReference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 String places = dataSnapshot.getValue().toString();
                 boolean wasAlreadyAddedToFavourite = false;
-                for(String str : places.split(",")) {
-                    if(str.equals(placeId)) {
+                for (String str : places.split(",")) {
+                    if (str.equals(placeId)) {
                         wasAlreadyAddedToFavourite = true;
                     }
                 }
 
-                if(!wasAlreadyAddedToFavourite) {
+                if (!wasAlreadyAddedToFavourite) {
                     String newFavouritePlacesList = places + "," + placeId;
                     mDatabaseReference.setValue(newFavouritePlacesList);
 
@@ -198,7 +211,7 @@ public class DatabaseManager {
      * @param googleMap markers destination map
      */
     public static void loadMarkersToMap(final GoogleMap googleMap) {
-        mDatabaseReference = getDatabaseChild("places");
+        mDatabaseReference = getDatabaseChild(PLACES_KEY);
         mDatabaseReference.addChildEventListener(new AbstractChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
@@ -217,7 +230,7 @@ public class DatabaseManager {
      * @param query user search query
      */
     public static void addMarkersByQuery(final GoogleMap googleMap, final String query) {
-        mDatabaseReference = getDatabaseChild("places");
+        mDatabaseReference = getDatabaseChild(PLACES_KEY);
         mDatabaseReference.addChildEventListener(new AbstractChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
@@ -246,28 +259,28 @@ public class DatabaseManager {
      * @param userId user id to search in database
      */
     public static void loadUserDataForEdit(final EditText[] toLoad, String userId) {
-        mDatabaseReference = getDatabaseChild("users").child(userId);
+        mDatabaseReference = getDatabaseChild(USERS_KEY).child(userId);
 
         mDatabaseReference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 HashMap<String, String> currentUser = (HashMap<String, String>) dataSnapshot.getValue();
 
-                toLoad[2].setText(currentUser.get("name"));
-                toLoad[3].setText(currentUser.get("surname"));
-                toLoad[4].setText(currentUser.get("nickname"));
+                toLoad[2].setText(currentUser.get(USER_NAME_KEY));
+                toLoad[3].setText(currentUser.get(USER_SURNAME_KEY));
+                toLoad[4].setText(currentUser.get(USER_NICKNAME_KEY));
             }
         });
 
-        DatabaseReference mDatabaseReferenceAuth = getDatabaseChild("authdata").child(userId);
+        DatabaseReference mDatabaseReferenceAuth = getDatabaseChild(AUTH_DATA_KEY).child(userId);
 
         mDatabaseReferenceAuth.addListenerForSingleValueEvent(new AbstractValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 HashMap<String, String> currentUser = (HashMap<String, String>) dataSnapshot.getValue();
 
-                toLoad[0].setText(currentUser.get("login"));
-                toLoad[1].setText(currentUser.get("password"));
+                toLoad[0].setText(currentUser.get(USER_LOGIN_KEY));
+                toLoad[1].setText(currentUser.get(USER_PASSWORD_KEY));
             }
         });
     }
@@ -278,16 +291,16 @@ public class DatabaseManager {
      * @param information new user information
      */
     public static void saveProfileChanges(final String userId, final String[] information) {
-        mDatabaseReference = getDatabaseChild("users").child(userId);
+        mDatabaseReference = getDatabaseChild(USERS_KEY).child(userId);
 
         mDatabaseReference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                getDatabaseChild("authdata").child(userId).child("login").setValue(information[0]);
-                getDatabaseChild("authdata").child(userId).child("password").setValue(information[1]);
-                getDatabaseChild("users").child(userId).child("name").setValue(information[2]);
-                getDatabaseChild("users").child(userId).child("surname").setValue(information[3]);
-                getDatabaseChild("users").child(userId).child("nickname").setValue(information[4]);
+                getDatabaseChild(AUTH_DATA_KEY).child(userId).child(USER_LOGIN_KEY).setValue(information[0]);
+                getDatabaseChild(AUTH_DATA_KEY).child(userId).child(USER_PASSWORD_KEY).setValue(information[1]);
+                getDatabaseChild(USERS_KEY).child(userId).child(USER_NAME_KEY).setValue(information[2]);
+                getDatabaseChild(USERS_KEY).child(userId).child(USER_SURNAME_KEY).setValue(information[3]);
+                getDatabaseChild(USERS_KEY).child(userId).child(USER_NICKNAME_KEY).setValue(information[4]);
             }
         });
     }
@@ -299,14 +312,14 @@ public class DatabaseManager {
      */
     @Deprecated
     public static void loadUserFavouritePlacesList(final String userId, ArrayAdapter<String> adapter) {
-        mDatabaseReference = getDatabaseChild("users").child(userId).child("favouritePlaces");
+        mDatabaseReference = getDatabaseChild(USERS_KEY).child(userId).child("favouritePlaces");
         mDatabaseReference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 String[] idArray = dataSnapshot.getValue().toString().split(",");
 
                 Arrays.sort(idArray, (a, b) -> (Integer.parseInt(a) - Integer.parseInt(b)));
-                DatabaseReference mDatabaseReferencePlaces= getDatabaseChild("places");
+                DatabaseReference mDatabaseReferencePlaces= getDatabaseChild(PLACES_KEY);
                 mDatabaseReferencePlaces.addChildEventListener(new AbstractChildEventListener() {
                     int position = 0;
                     @Override
@@ -323,8 +336,15 @@ public class DatabaseManager {
         });
     }
 
+    /**
+     * Method that allows to load user favorite places from database to fragment
+     * @param userId user id
+     * @param context current context
+     * @param fragmentManager fragment managet for transaction
+     * @param fragment output fragment
+     */
     public static void loadUserFavouritePlacesListNew(final String userId, final Context context, final FragmentManager fragmentManager, final Fragment fragment) {
-        mDatabaseReference = getDatabaseChild("users").child(userId).child("favouritePlaces");
+        mDatabaseReference = getDatabaseChild(USERS_KEY).child(userId).child("favouritePlaces");
         mDatabaseReference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -343,17 +363,17 @@ public class DatabaseManager {
      * @param fragmentManager fragment manager to load friends list
      */
     public static void loadUserProfile(final Context context, final int userId, final TextView[] userProfileInfo, final FragmentManager fragmentManager) {
-        mDatabaseReference = getDatabaseChild("users");
+        mDatabaseReference = getDatabaseChild(USERS_KEY);
 
         mDatabaseReference.addChildEventListener(new AbstractChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 User user = dataSnapshot.getValue(User.class);
-                if(user == null) {
+                if (user == null) {
                     return;
                 }
 
-                if(userId == user.getId()) {
+                if (userId == user.getId()) {
                     userProfileInfo[0].setText(user.getName());
                     userProfileInfo[1].setText(user.getSurname());
                     //TODO: move string constant to values/strings
@@ -373,6 +393,12 @@ public class DatabaseManager {
         });
     }
 
+    /**
+     * Method that allows to save created place in database
+     * @param uri picture uri
+     * @param placeInfo text description of the place
+     * @param position place coordinates
+     */
     public static void saveCreatedPlace(final Uri uri, final String[] placeInfo, final LatLng position) {
         mDatabaseReference = getDatabaseChild("maxidplaces");
         mDatabaseReference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
@@ -382,34 +408,51 @@ public class DatabaseManager {
 
                 Place newPlace = new Place(id, placeInfo[0], placeInfo[1], placeInfo[2], position.latitude, position.longitude);
 
-                getDatabaseChild("places").child(id.toString()).setValue(newPlace);
+                getDatabaseChild(PLACES_KEY).child(id.toString()).setValue(newPlace);
                 mDatabaseReference.setValue(id + 1);
 
                 StorageReference child = mStorageRef.child("photos").child(id.toString() + "place_photo");
 
-                if(uri != null) {
+                if (uri != null) {
                     child.putFile(uri);
                 }
             }
         });
     }
 
+    /**
+     * Method that saves map screenshot with route to database
+     * @param uri screenshot uri
+     * @param userId user ID
+     * @param context current context
+     */
     public static void saveRoute(final Uri uri, final String userId, final Context context) {
-        if(uri != null) {
+        if (uri != null) {
             mStorageRef.child("routes").child(userId).child(userId + "_" + RoutesUtils.getRoutesLength(context)).putFile(uri);
         }
     }
 
+    /**
+     * Method that called after adding new route, that means that ID of next route will be other
+     * @param userId user ID
+     * @param length current last added route ID
+     */
     public static void updateRoutesLength(final String userId, final long length) {
-        getDatabaseChild("users").child(userId).child("routesLength").setValue(length + 1);
+        getDatabaseChild(USERS_KEY).child(userId).child("routesLength").setValue(length + 1);
     }
 
+    /**
+     * Method gets current number of user routes and adds than to some fragment
+     * @param userId used ID
+     * @param context current context
+     * @param fragmentManager fragment manager for transaction
+     * @param fragment output fragment
+     */
     public static void getUserRoutesLength(final String userId, final Context context, final FragmentManager fragmentManager, final Fragment fragment) {
-        getDatabaseChild("users").child(userId).child("routesLength").addListenerForSingleValueEvent(new AbstractValueEventListener() {
+        getDatabaseChild(USERS_KEY).child(userId).child("routesLength").addListenerForSingleValueEvent(new AbstractValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 Long length = (Long) dataSnapshot.getValue();
-                android.util.Log.d("bbbbbb", RoutesUtils.getRoutesLength(context).toString());
                 RoutesUtils.setRoutesLength(context, length);
                 fragmentManager.beginTransaction().add(R.id.fragmentContainer2, fragment).commit();
             }
@@ -417,8 +460,13 @@ public class DatabaseManager {
         });
     }
 
+    /**
+     * Method gets current number of user routes without adding them to the fragment
+     * @param userId used ID
+     * @param context current context
+     */
     public static void getUserRoutesLength2(final String userId, final Context context) {
-        getDatabaseChild("users").child(userId).child("routesLength").addListenerForSingleValueEvent(new AbstractValueEventListener() {
+        getDatabaseChild(USERS_KEY).child(userId).child("routesLength").addListenerForSingleValueEvent(new AbstractValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 Long length = (Long) dataSnapshot.getValue();
@@ -428,6 +476,11 @@ public class DatabaseManager {
         });
     }
 
+    /**
+     * Method that loads place that was converted from Google Places to database
+     * @param uri picture uri
+     * @param place place to save
+     */
     public static void saveConvertedPlace(final Uri uri, final Place place) {
         mDatabaseReference = getDatabaseChild("maxidplaces");
         mDatabaseReference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
@@ -436,20 +489,26 @@ public class DatabaseManager {
                 final Integer id = dataSnapshot.getValue(Integer.class);
                 place.setId(id);
 
-                getDatabaseChild("places").child(id.toString()).setValue(place);
+                getDatabaseChild(PLACES_KEY).child(id.toString()).setValue(place);
                 mDatabaseReference.setValue(id + 1);
 
                 StorageReference child = mStorageRef.child("photos").child(id.toString() + "place_photo");
 
-                if(uri != null) {
+                if (uri != null) {
                     child.putFile(uri);
                 }
             }
         });
     }
 
+    /**
+     * Method that runs alert dialog with full place description
+     * Place loaded from database
+     * @param context current context
+     * @param marker place position
+     */
     public static void runDescriptionDialog(final Context context, final Marker marker) {
-        getDatabaseChild("places").addChildEventListener(new AbstractChildEventListener() {
+        getDatabaseChild(PLACES_KEY).addChildEventListener(new AbstractChildEventListener() {
 
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
@@ -462,11 +521,15 @@ public class DatabaseManager {
     }
 
 
+    /**
+     * Method that loads route to database as sequence of points
+     * @param userId user ID who owns this route
+     * @param route route to save
+     */
     public static void saveRoute(final String userId, final ArrayList<LatLng> route) {
         StringBuilder routeString = new StringBuilder();
         for (LatLng ll : route) {
             if (ll == null) {
-                Log.d("wtff", "null");
                 continue;
             }
             routeString.append(ll.latitude);
@@ -482,11 +545,23 @@ public class DatabaseManager {
         getDatabaseChild("routes").child(userId).push().setValue(routeString.toString());
     }
 
+    /**
+     * Method that saves route description to database
+     * @param userId user Id who owns this route
+     * @param descriptionId ID of route that has this description
+     * @param description string that contains all description
+     */
     public static void saveRouteInfo(final String userId, final Long descriptionId, final String description) {
         getDatabaseChild("routes_descriptions").child(userId).child(descriptionId.toString()).setValue(description);
     }
 
-    public static void fillDescription(final TextView tv, final Integer id, final String userId) {
+    /**
+     * Method that loads route description from database
+     * @param textView text view that should be filled with description
+     * @param id route ID
+     * @param userId user ID
+     */
+    public static void fillDescription(final TextView textView, final Integer id, final String userId) {
         getDatabaseChild("routes_descriptions").child(userId).child(id.toString()).addListenerForSingleValueEvent(new AbstractValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -496,14 +571,19 @@ public class DatabaseManager {
                     description = (String) dataSnapshot.getValue();
                 }
 
-                tv.setText(description);
+                textView.setText(description);
             }
         });
     }
 
-    public static void fillDescriptionPlaces(final TextView tv, final String id) {
+    /**
+     * Method that loads place description from database
+     * @param textView text view that should be filled with description
+     * @param id place ID
+     */
+    public static void fillDescriptionPlaces(final TextView textView, final String id) {
         final StringBuilder stringBuilder = new StringBuilder();
-        getDatabaseChild("places").child(id).child("name").addListenerForSingleValueEvent(new AbstractValueEventListener() {
+        getDatabaseChild(PLACES_KEY).child(id).child(USER_NAME_KEY).addListenerForSingleValueEvent(new AbstractValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
 
@@ -513,33 +593,35 @@ public class DatabaseManager {
                 }
             }
         });
-        getDatabaseChild("places").child(id).child("description").addListenerForSingleValueEvent(new AbstractValueEventListener() {
+        getDatabaseChild(PLACES_KEY).child(id).child("description").addListenerForSingleValueEvent(new AbstractValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
 
                 if (dataSnapshot != null) {
                     stringBuilder.append((String) dataSnapshot.getValue());
                 }
-                tv.setText(stringBuilder.toString());
+                textView.setText(stringBuilder.toString());
             }
         });
-
-
     }
 
+    /**
+     * Method that loads avatar to the field with picture of user
+     * @param circleImageView image view to load avatar
+     * @param context current context
+     */
     public static void loadAvatar(CircleImageView circleImageView, final Context context) {
         mStorageRef.child("avatars").child(AuthorizationUtils.getLoggedInAsString(context) + "avatar")
                 .getDownloadUrl().addOnSuccessListener(uri -> Picasso.with(context).load(uri)
                 .placeholder(android.R.drawable.btn_star_big_on)
                 .error(android.R.drawable.btn_star_big_on)
-
                 .into(circleImageView));
     }
 
     @Nullable
     private static DatabaseReference getDatabaseChild(String childName) {
         DatabaseReference databaseReference = getDatabaseReference();
-        if(databaseReference != null) {
+        if (databaseReference != null) {
             return databaseReference.child(childName);
         }
 
@@ -548,7 +630,7 @@ public class DatabaseManager {
 
     @Nullable
     private static DatabaseReference getDatabaseReference() {
-        if(mBase != null) {
+        if (mBase != null) {
             return mBase.getReference();
         }
 
