@@ -24,6 +24,7 @@ import com.squareup.picasso.Picasso;
 import java.util.Arrays;
 
 import placeme.ru.placemedemo.R;
+import placeme.ru.placemedemo.core.Controller;
 import placeme.ru.placemedemo.core.database.DatabaseManager;
 import placeme.ru.placemedemo.core.utils.FavouritePlacesUtils;
 
@@ -38,11 +39,11 @@ public class PlacesListViewFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        String list = FavouritePlacesUtils.getPlaces(getContext());
+        String list = Controller.getPlaces(getContext());
         if (list.length() == 0) {
             isNullLength = true;
         } else {
-            places = FavouritePlacesUtils.getPlaces(getContext()).split(",");
+            places = Controller.getPlaces(getContext()).split(",");
 
             if (places.length > 1) {
                 Arrays.sort(places, (a, b) -> (Integer.parseInt(a) - Integer.parseInt(b)));
@@ -96,7 +97,7 @@ public class PlacesListViewFragment extends Fragment {
                     .error(android.R.drawable.btn_star_big_on)
                     .into(holder.iv));
 
-            DatabaseManager.fillDescriptionPlaces(holder.tv, places[position]);
+            Controller.fillDescriptionPlaces(holder.tv, places[position]);
         }
 
         @Override

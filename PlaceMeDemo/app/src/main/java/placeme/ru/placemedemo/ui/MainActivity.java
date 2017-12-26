@@ -54,10 +54,6 @@ import gl.GL1Renderer;
 import gl.GLFactory;
 import placeme.ru.placemedemo.R;
 import placeme.ru.placemedemo.core.Controller;
-import placeme.ru.placemedemo.core.database.DatabaseManager;
-import placeme.ru.placemedemo.core.map.MapManager;
-import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
-import placeme.ru.placemedemo.core.utils.RoutesUtils;
 import placeme.ru.placemedemo.ui.dialogs.AlertDialogCreator;
 import system.ArActivity;
 import system.MySetup;
@@ -146,7 +142,7 @@ public class MainActivity extends AppCompatActivity
         FloatingActionButton actionButton = findViewById(R.id.fab);
 
         actionButton.setOnClickListener(v -> {
-            DatabaseManager.getUserRoutesLength2(AuthorizationUtils.getLoggedInAsString(MainActivity.this), MainActivity.this);
+            Controller.getUserRoutesLength2(Controller.getLoggedInAsString(MainActivity.this), MainActivity.this);
             saveRoute().show();
         });
     }
@@ -154,7 +150,7 @@ public class MainActivity extends AppCompatActivity
     private void loadProfileAvatar(View view) {
         CircleImageView circleImageView = view.findViewById(R.id.profile_image);
         if (circleImageView != null) {
-            DatabaseManager.loadAvatar(circleImageView, MainActivity.this, AuthorizationUtils.getLoggedInAsString(MainActivity.this));
+            Controller.loadAvatar(circleImageView, MainActivity.this, Controller.getLoggedInAsString(MainActivity.this));
         }
     }
 
@@ -204,7 +200,7 @@ public class MainActivity extends AppCompatActivity
         mGoogleMap.getUiSettings().setCompassEnabled(false);
 
         requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
-        MapManager.addAllMarkers(mGoogleMap);
+        Controller.addAllMarkers(mGoogleMap);
     }
 
     @Override
@@ -228,7 +224,7 @@ public class MainActivity extends AppCompatActivity
             AlertDialog alert = createAlertDialogNewPlace(marker.getPosition());
             alert.show();
 
-            MapManager.refreshMarkers(mGoogleMap);
+            Controller.refreshMarkers(mGoogleMap);
         }
         else {
             showDescriptionDialog(marker);
@@ -266,7 +262,7 @@ public class MainActivity extends AppCompatActivity
         } else if (id == R.id.nav_share) {
             shareApplication();
         } else if (id == R.id.nav_exit) {
-            AuthorizationUtils.setLoggedOut(MainActivity.this);
+            Controller.setLoggedOut(MainActivity.this);
             login();
         }
 
@@ -309,7 +305,7 @@ public class MainActivity extends AppCompatActivity
                 Place place = getPlace(this, data);
                 placeme.ru.placemedemo.elements.Place toAdd = convertGooglePlaceToPlace(place);
 
-                DatabaseManager.saveConvertedPlace(null, toAdd);
+                Controller.saveConvertedPlace(null, toAdd);
                 String toastMsg = String.format("Place: %s", place.getName().toString());
                 Toast.makeText(this, toastMsg, Toast.LENGTH_LONG).show();
             }
@@ -451,7 +447,7 @@ public class MainActivity extends AppCompatActivity
                 mGoogleMap.clear();
             }
             final String query = mSearch.getText().toString();
-            MapManager.addFoundedMarkers(mGoogleMap, query);
+            Controller.addFoundedMarkers(mGoogleMap, query);
             AlertDialogCreator.createAlertDialogFounded(MainActivity.this, query, mGoogleMap, myPosition).show();
 
             return false;
@@ -459,7 +455,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void checkLogin() {
-        if (AuthorizationUtils.getLoggedIn(this) == -1) {
+        if (Controller.getLoggedIn(this) == -1) {
             login();
         }
     }
@@ -498,9 +494,9 @@ public class MainActivity extends AppCompatActivity
             if (description == null || description.length() == 0) {
                 description = "No description given.";
             }
-            DatabaseManager.saveRouteInfo(AuthorizationUtils.getLoggedInAsString(MainActivity.this), RoutesUtils.getRoutesLength(MainActivity.this), description);
+            Controller.saveRouteInfo(Controller.getLoggedInAsString(MainActivity.this), Controller.getRoutesLength(MainActivity.this), description);
             Controller.sendRoute(mGoogleMap, "tmp", MainActivity.this);
-            DatabaseManager.updateRoutesLength(AuthorizationUtils.getLoggedInAsString(MainActivity.this), RoutesUtils.getRoutesLength(MainActivity.this));
+            Controller.updateRoutesLength(Controller.getLoggedInAsString(MainActivity.this), Controller.getRoutesLength(MainActivity.this));
         }).setNegativeButton(R.string.answer_back, (dialog, arg1) -> {});
 
         builder.setCancelable(true);
@@ -523,7 +519,7 @@ public class MainActivity extends AppCompatActivity
 
         builder.setPositiveButton(R.string.answer_finish, (dialog, id) -> {
             String[] placeInfo = getPlaceInfo(layout);
-            DatabaseManager.saveCreatedPlace(mUri, placeInfo, latLng);
+            Controller.saveCreatedPlace(mUri, placeInfo, latLng);
         }).setNegativeButton(R.string.answer_back, (dialog, arg1) -> {});
 
         builder.setCancelable(true);
@@ -545,7 +541,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void showDescriptionDialog(final Marker marker) {
-        DatabaseManager.runDescriptionDialog(MainActivity.this, marker, myPosition, mGoogleMap);
+        Controller.runDescriptionDialog(MainActivity.this, marker, myPosition, mGoogleMap);
     }
 
     @Override

@@ -22,6 +22,7 @@ import com.google.firebase.storage.StorageReference;
 import com.squareup.picasso.Picasso;
 
 import placeme.ru.placemedemo.R;
+import placeme.ru.placemedemo.core.Controller;
 import placeme.ru.placemedemo.core.database.DatabaseManager;
 import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
 import placeme.ru.placemedemo.core.utils.RoutesUtils;
@@ -36,7 +37,7 @@ public class RoutesListViewFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        length = RoutesUtils.getRoutesLength(getContext()).intValue();
+        length = Controller.getRoutesLength(getContext()).intValue();
     }
 
     @Override
@@ -78,14 +79,14 @@ public class RoutesListViewFragment extends Fragment {
         @Override
         public void onBindViewHolder(final MyViewHolder holder, final int position) {
 
-            StorageReference child = FirebaseStorage.getInstance().getReference().child("routes").child(AuthorizationUtils.getLoggedInAsString(getContext()))
-                    .child(AuthorizationUtils.getLoggedInAsString(getContext()) + "_" + ((Integer)position).toString());
+            StorageReference child = FirebaseStorage.getInstance().getReference().child("routes").child(Controller.getLoggedInAsString(getContext()))
+                    .child(Controller.getLoggedInAsString(getContext()) + "_" + ((Integer)position).toString());
             child.getDownloadUrl().addOnSuccessListener(uri -> Picasso.with(getActivity().getBaseContext()).load(uri)
                     .placeholder(android.R.drawable.btn_star_big_on)
                     .error(android.R.drawable.btn_star_big_on)
                     .into(holder.iv));
 
-            DatabaseManager.fillDescription(holder.tv, position, AuthorizationUtils.getLoggedInAsString(getContext()));
+            Controller.fillDescription(holder.tv, position, Controller.getLoggedInAsString(getContext()));
         }
 
         @Override
@@ -111,7 +112,7 @@ public class RoutesListViewFragment extends Fragment {
 
             iv = v.findViewById(R.id.route_photo);
 
-            DatabaseManager.getUserRoutesLength2(AuthorizationUtils.getLoggedInAsString(getContext()), getContext());
+            Controller.getUserRoutesLength2(Controller.getLoggedInAsString(getContext()), getContext());
         }
     }
 }

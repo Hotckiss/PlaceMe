@@ -14,6 +14,7 @@ import android.widget.Toast;
 import java.util.ArrayList;
 
 import placeme.ru.placemedemo.R;
+import placeme.ru.placemedemo.core.Controller;
 import placeme.ru.placemedemo.core.database.DatabaseManager;
 import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
 import placeme.ru.placemedemo.core.utils.FavouritePlacesUtils;
@@ -37,7 +38,7 @@ public class FavouritePlacesActivity extends AppCompatActivity {
 
         if (fragment == null) {
             fragment = new PlacesListViewFragment();
-            DatabaseManager.loadUserFavouritePlacesListNew(AuthorizationUtils.getLoggedInAsString(FavouritePlacesActivity.this), FavouritePlacesActivity.this, fragmentManager, fragment);
+            Controller.loadUserFavouritePlacesListNew(Controller.getLoggedInAsString(FavouritePlacesActivity.this), FavouritePlacesActivity.this, fragmentManager, fragment);
         }
 
     }

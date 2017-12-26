@@ -30,6 +30,7 @@ import com.squareup.picasso.Picasso;
 import java.util.ArrayList;
 
 import placeme.ru.placemedemo.R;
+import placeme.ru.placemedemo.core.Controller;
 import placeme.ru.placemedemo.core.chat.Chat;
 import placeme.ru.placemedemo.core.database.AbstractChildEventListener;
 import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
@@ -50,8 +51,8 @@ public class HorizontalListViewFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         listitems.clear();
-        Integer finish = FriendsDataUtils.getFriendsLength(getActivity().getBaseContext());
-        String[] friends = FriendsDataUtils.getFriends(getActivity().getBaseContext()).split(",");
+        Integer finish = Controller.getFriendsLength(getActivity().getBaseContext());
+        String[] friends = Controller.getFriends(getActivity().getBaseContext()).split(",");
         for(int i = 0; i < finish; i++){
             FriendCard item = new FriendCard();
             //TODO: delete string
@@ -168,7 +169,7 @@ public class HorizontalListViewFragment extends Fragment {
             });
 
             shareImageView.setOnClickListener(v12 -> {
-                ChatUtils.setChatPair(getContext(), AuthorizationUtils.getLoggedInAsString(getContext()) + "," + ((Integer)listitems.get(pos).getId()).toString());
+                Controller.setChatPair(getContext(), Controller.getLoggedInAsString(getContext()) + "," + ((Integer)listitems.get(pos).getId()).toString());
                 startActivity(new Intent(getActivity().getBaseContext(), Chat.class));
             });
         }

@@ -29,6 +29,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import java.util.ArrayList;
 import java.util.List;
 
+import placeme.ru.placemedemo.core.Controller;
 import placeme.ru.placemedemo.core.database.DatabaseManager;
 import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
 import placeme.ru.placemedemo.elements.Place;
@@ -42,12 +43,13 @@ import placeme.ru.placemedemo.elements.Place;
  */
 public class MapManager {
     private static final String MAPS_API_KEY = "AIzaSyD_WcUAMqVEVW0H84GsXLKBr0HokiO-v_4";
+
     /**
      * Method that loads all markers from to the map
      * @param googleMap markers destination map
      */
     public static void addAllMarkers(final GoogleMap googleMap) {
-        DatabaseManager.loadMarkersToMap(googleMap);
+        Controller.loadMarkersToMap(googleMap);
     }
 
     /**
@@ -57,7 +59,7 @@ public class MapManager {
     public static void refreshMarkers(final GoogleMap googleMap) {
         if (googleMap != null) {
             googleMap.clear();
-            DatabaseManager.loadMarkersToMap(googleMap);
+            Controller.loadMarkersToMap(googleMap);
         }
     }
 
@@ -67,7 +69,7 @@ public class MapManager {
      * @param toFind user search query
      */
     public static void addFoundedMarkers(final GoogleMap googleMap, final String toFind) {
-        DatabaseManager.addMarkersByQuery(googleMap, toFind);
+        Controller.addMarkersByQuery(googleMap, toFind);
     }
 
     /**
@@ -78,7 +80,7 @@ public class MapManager {
      * @param placeArrayList arrau list with descriptions of places
      * @param context current context
      * @param googleMap map where route will be possibly build
-     * @param points storage of route points which is important for roite in augmented reality
+     * @param points storage of route points which is important for route in augmented reality
      */
     public static void makeRoute(final ListView listView, final LatLng myPosition, final ArrayList<Place> placeArrayList, final Context context, final GoogleMap googleMap, final ArrayList<LatLng> points) {
         SparseBooleanArray sp = listView.getCheckedItemPositions();
@@ -96,7 +98,7 @@ public class MapManager {
             }
         }
 
-        DatabaseManager.saveRoute(AuthorizationUtils.getLoggedInAsString(context), route);
+        Controller.saveRoute(Controller.getLoggedInAsString(context), route);
         if (lastPoint != -1) {
             destination = new LatLng(placeArrayList.get(lastPoint).getLatitude(), placeArrayList.get(lastPoint).getLongitude());
         }
@@ -148,7 +150,7 @@ public class MapManager {
      * @param destination destination point of route
      * @param context current context
      * @param googleMap map where route should be build
-     * @param points storage of route points which is important for roite in augmented reality
+     * @param points storage of route points which is important for route in augmented reality
      */
     public static void makeSingleRoute(final LatLng myPosition, final LatLng destination, final Context context, final GoogleMap googleMap, final ArrayList<LatLng> points) {
 
@@ -158,7 +160,7 @@ public class MapManager {
         route.add(myPosition);
         route.add(destination);
 
-        DatabaseManager.saveRoute(AuthorizationUtils.getLoggedInAsString(context), route);
+        Controller.saveRoute(Controller.getLoggedInAsString(context), route);
 
         gd.to(destination)
                 .transportMode(TransportMode.WALKING)

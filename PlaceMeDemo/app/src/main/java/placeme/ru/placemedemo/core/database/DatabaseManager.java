@@ -29,6 +29,7 @@ import java.util.HashMap;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 import placeme.ru.placemedemo.R;
+import placeme.ru.placemedemo.core.Controller;
 import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
 import placeme.ru.placemedemo.core.utils.FavouritePlacesUtils;
 import placeme.ru.placemedemo.core.utils.FriendsDataUtils;
@@ -78,7 +79,7 @@ public class DatabaseManager {
     public static void findUserAndCheckPassword(final Context context, final String email, final String password) {
         mDatabaseReference = getDatabaseChild(AUTH_DATA_KEY);
 
-        AuthorizationUtils.setLoggedIn(context, -1);
+        Controller.setLoggedIn(context, -1);
         mChildEventListener = new AbstractChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
@@ -86,7 +87,7 @@ public class DatabaseManager {
                 if (authData != null) {
                     if (authData.getLogin().equals(email)) {
                         if (authData.getPassword().equals(password)) {
-                            AuthorizationUtils.setLoggedIn(context, authData.getId());
+                            Controller.setLoggedIn(context, authData.getId());
                         }
                     }
                 }
@@ -354,7 +355,7 @@ public class DatabaseManager {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 String idArray = dataSnapshot.getValue().toString();
-                FavouritePlacesUtils.setPlaces(context, idArray);
+                Controller.setPlaces(context, idArray);
                 fragmentManager.beginTransaction().add(R.id.places_fragment, fragment).commit();
             }
         });
@@ -385,8 +386,8 @@ public class DatabaseManager {
                     userProfileInfo[2].setText("@" + user.getNickname());
 
                     //TODO: add friends list
-                    FriendsDataUtils.setFriendsLength(context, user.getFriendsLength());
-                    FriendsDataUtils.setFriends(context, user.getFriends());
+                    Controller.setFriendsLength(context, user.getFriendsLength());
+                    Controller.setFriends(context, user.getFriends());
                     android.support.v4.app.Fragment fragment = fragmentManager.findFragmentById(R.id.fragmentContainer);
 
                     if (fragment == null) {
@@ -433,7 +434,7 @@ public class DatabaseManager {
      */
     public static void saveRoute(final Uri uri, final String userId, final Context context) {
         if (uri != null) {
-            mStorageRef.child("routes").child(userId).child(userId + "_" + RoutesUtils.getRoutesLength(context)).putFile(uri);
+            mStorageRef.child("routes").child(userId).child(userId + "_" + Controller.getRoutesLength(context)).putFile(uri);
         }
     }
 
@@ -458,7 +459,7 @@ public class DatabaseManager {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 Long length = (Long) dataSnapshot.getValue();
-                RoutesUtils.setRoutesLength(context, length);
+                Controller.setRoutesLength(context, length);
                 fragmentManager.beginTransaction().add(R.id.fragmentContainer2, fragment).commit();
             }
 
@@ -475,7 +476,7 @@ public class DatabaseManager {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 Long length = (Long) dataSnapshot.getValue();
-                RoutesUtils.setRoutesLength(context, length);
+                Controller.setRoutesLength(context, length);
             }
 
         });

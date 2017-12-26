@@ -16,6 +16,7 @@ import com.google.android.gms.maps.model.LatLng;
 import java.util.ArrayList;
 
 import placeme.ru.placemedemo.R;
+import placeme.ru.placemedemo.core.Controller;
 import placeme.ru.placemedemo.core.database.DatabaseManager;
 import placeme.ru.placemedemo.core.map.MapManager;
 import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
@@ -65,7 +66,7 @@ public class AlertDialogCreator {
         final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(context, android.R.layout.select_dialog_multichoice);
         final ArrayList<Place> placeArrayList = new ArrayList<>();
 
-        DatabaseManager.findPlacesByString(arrayAdapter, placeArrayList, toFind);
+        Controller.findPlacesByString(arrayAdapter, placeArrayList, toFind);
 
         builder.setNegativeButton(R.string.answer_cancel, (dialog, which) -> dialog.dismiss());
 
@@ -78,7 +79,7 @@ public class AlertDialogCreator {
         });
 
         builder.setPositiveButton(R.string.answer_make_route, (dialog, which) -> {
-            MapManager.makeRoute(lv, myPosition, placeArrayList, context, googleMap, points);
+            Controller.makeRoute(lv, myPosition, placeArrayList, context, googleMap, points);
             dialog.dismiss();
         });
 
@@ -104,13 +105,13 @@ public class AlertDialogCreator {
         descriptionText.setText(place.getDescription());
 
         final ImageView imageView = layout.findViewById(R.id.description_picture);
-        DatabaseManager.loadDescriptionImage(imageView, place, context);
+        Controller.loadDescriptionImage(imageView, place, context);
 
         RatingBar ratingBar = layout.findViewById(R.id.total_rating);
         ratingBar.setRating(place.getMark());
 
         builder.setPositiveButton(R.string.answer_go_here, (dialog, arg1) -> {
-            MapManager.makeSingleRoute(myPosition, new LatLng(place.getLatitude(), place.getLongitude()), context, googleMap, points);
+            Controller.makeSingleRoute(myPosition, new LatLng(place.getLatitude(), place.getLongitude()), context, googleMap, points);
         }).setNeutralButton(R.string.answer_rate_place,
                 (dialog, id) -> {
                     AlertDialog alert = AlertDialogCreator.createAlertRateDialog(place,context);
@@ -136,8 +137,8 @@ public class AlertDialogCreator {
         final View layout = inflater.inflate(R.layout.dialog_rate_place, null);
         final RatingBar rb = layout.findViewById(R.id.rate_place);
 
-        builder.setPositiveButton(R.string.answer_rate, (dialog, arg1) -> DatabaseManager.updatePlaceRating(rb, place.getIdAsString()));
-        builder.setNeutralButton(R.string.answer_add, (dialog, id) -> DatabaseManager.addPlaceToFavourite(AuthorizationUtils.getLoggedInAsString(context), place.getIdAsString()));
+        builder.setPositiveButton(R.string.answer_rate, (dialog, arg1) -> Controller.updatePlaceRating(rb, place.getIdAsString()));
+        builder.setNeutralButton(R.string.answer_add, (dialog, id) -> Controller.addPlaceToFavourite(Controller.getLoggedInAsString(context), place.getIdAsString()));
         builder.setNegativeButton(R.string.answer_ok, (dialog, arg1) -> dialog.cancel());
         builder.setCancelable(true);
         builder.setView(layout);

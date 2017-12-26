@@ -8,6 +8,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import placeme.ru.placemedemo.R;
+import placeme.ru.placemedemo.core.Controller;
 import placeme.ru.placemedemo.core.database.DatabaseManager;
 
 /**
@@ -36,7 +37,7 @@ public class RegisterActivity extends AppCompatActivity {
 
         submit.setOnClickListener(v -> {
             if (checkLogin() && checkPassword()) {
-                DatabaseManager.registerUser(RegisterActivity.this, generateNewUserData());
+                Controller.registerUser(RegisterActivity.this, generateNewUserData());
                 finish();
             } else {
                 createAlertDialogProblems().show();

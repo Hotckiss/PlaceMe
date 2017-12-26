@@ -11,6 +11,7 @@ import android.widget.TextView;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 import placeme.ru.placemedemo.R;
+import placeme.ru.placemedemo.core.Controller;
 import placeme.ru.placemedemo.core.database.DatabaseManager;
 import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
 
@@ -48,7 +49,7 @@ public class ProfileActivity extends AppCompatActivity {
             Uri uri = data.getData();
             mCircleImageView.setImageURI(uri);
 
-            DatabaseManager.setNewAvatar(AuthorizationUtils.getLoggedInAsString(ProfileActivity.this), uri);
+            Controller.setNewAvatar(Controller.getLoggedInAsString(ProfileActivity.this), uri);
         }
     }
 
@@ -56,7 +57,7 @@ public class ProfileActivity extends AppCompatActivity {
 
         mCircleImageView = findViewById(R.id.profile_image);
 
-        DatabaseManager.loadAvatar(mCircleImageView, ProfileActivity.this, AuthorizationUtils.getLoggedInAsString(ProfileActivity.this));
+        Controller.loadAvatar(mCircleImageView, ProfileActivity.this, Controller.getLoggedInAsString(ProfileActivity.this));
 
         mCircleImageView.setOnLongClickListener(v -> {
             createAlertDialogChangeAvatar().show();
@@ -92,7 +93,7 @@ public class ProfileActivity extends AppCompatActivity {
     private void loadUserProfile() {
         TextView[] userProfileFields = profileInfoFields();
         FragmentManager fm = getSupportFragmentManager();
-        DatabaseManager.loadUserProfile(ProfileActivity.this, AuthorizationUtils.getLoggedIn(ProfileActivity.this), userProfileFields, fm);
+        Controller.loadUserProfile(ProfileActivity.this, Controller.getLoggedIn(ProfileActivity.this), userProfileFields, fm);
     }
 
     private TextView[] profileInfoFields() {

@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import placeme.ru.placemedemo.R;
+import placeme.ru.placemedemo.core.Controller;
 import placeme.ru.placemedemo.core.database.AbstractClientChildEventListener;
 import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
 import placeme.ru.placemedemo.core.utils.ChatUtils;
@@ -50,7 +51,7 @@ public class Chat extends AppCompatActivity {
         initializeViews();
 
         Firebase.setAndroidContext(this);
-        final String[] chatPair = ChatUtils.getChatPair(Chat.this).split(PAIR_DELIMITER);
+        final String[] chatPair = Controller.getChatPair(Chat.this).split(PAIR_DELIMITER);
 
         if (chatPair.length < 2) {
             finish();
@@ -82,7 +83,7 @@ public class Chat extends AppCompatActivity {
                 String message = map.get(MESSAGE_KEY).toString();
                 String userName = map.get(USER_KEY).toString();
 
-                if (userName.equals(AuthorizationUtils.getLoggedInAsString(Chat.this))){
+                if (userName.equals(Controller.getLoggedInAsString(Chat.this))){
                     addMessageBox(message, USER_MESSAGE);
                 } else {
                     addMessageBox(message, FRIEND_MESSAGE);

@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import placeme.ru.placemedemo.R;
+import placeme.ru.placemedemo.core.Controller;
 import placeme.ru.placemedemo.core.database.DatabaseManager;
 import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
 
@@ -288,7 +289,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
         @Override
         protected Boolean doInBackground(Void... params) {
-            DatabaseManager.findUserAndCheckPassword(LoginActivity.this, mEmail, mPassword);
+            Controller.findUserAndCheckPassword(LoginActivity.this, mEmail, mPassword);
 
             // TODO: listener runs other thread
             try {
@@ -297,7 +298,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 return false;
             }
 
-            if (AuthorizationUtils.getLoggedIn(LoginActivity.this) == -1) {
+            if (Controller.getLoggedIn(LoginActivity.this) == -1) {
                 return false;
             } else {
                 return true;
