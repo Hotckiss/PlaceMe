@@ -256,6 +256,7 @@ public class AlertDialogCreator {
             }
         });
 
+        //TODO: New method
         final SeekBar seekBarRating = (SeekBar)layout.findViewById(R.id.seek_bar_rating);
         seekBarRating.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             private final TextView mTextView = (TextView)layout.findViewById(R.id.rating_param);

@@ -80,9 +80,11 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        //TODO
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ) {
             checkPermission();
         }
+        //
 
         checkLogin();
 
@@ -141,6 +143,7 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    //TODO
     public void checkPermission(){
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
                 ContextCompat.checkSelfPermission(this,Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
@@ -322,6 +325,7 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    //TODO: New method
     private void initializeSearchParameters() {
         Button searchParamButton  = findViewById(R.id.button_search_parameters);
         searchParamButton.setOnClickListener(v -> {
