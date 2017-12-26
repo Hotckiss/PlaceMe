@@ -1,19 +1,13 @@
 package placeme.ru.placemedemo.ui;
 
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
-import com.squareup.picasso.Picasso;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 import placeme.ru.placemedemo.R;
@@ -21,15 +15,16 @@ import placeme.ru.placemedemo.core.database.DatabaseManager;
 import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
 
 
-//TODO: exclude storage
+/**
+ * A class that represents a profile of user and his friends
+ */
 public class ProfileActivity extends AppCompatActivity {
-
-    private StorageReference mStorageRef;
-    private static final int GALLERY_INTENT = 2;
     private static final int PROFILE_CHANGED_CODE = 1;
+    private static final int GALLERY_INTENT = 2;
+    private static final String IMAGE_INTENT = "image/*";
 
-    private CircleImageView civ;
-    private Uri uri;
+    private CircleImageView mCircleImageView;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -50,51 +45,42 @@ public class ProfileActivity extends AppCompatActivity {
             loadUserProfile();
         }
         if(requestCode == GALLERY_INTENT && resultCode == RESULT_OK) {
-            uri = data.getData();
-            civ.setImageURI(uri);
-            mStorageRef.child("avatars").child(AuthorizationUtils.getLoggedInAsString(ProfileActivity.this) + "avatar").putFile(uri);
+            Uri uri = data.getData();
+            mCircleImageView.setImageURI(uri);
+
+            DatabaseManager.setNewAvatar(AuthorizationUtils.getLoggedInAsString(ProfileActivity.this), uri);
         }
     }
 
     private void loadProfileImage() {
-        mStorageRef = FirebaseStorage.getInstance().getReference();
-        civ = findViewById(R.id.profile_image);
-        StorageReference child = mStorageRef.child("avatars").child(AuthorizationUtils.getLoggedInAsString(ProfileActivity.this) + "avatar");
-        child.getDownloadUrl().addOnSuccessListener(uri -> Picasso.with(ProfileActivity.this).load(uri)
-                .placeholder(android.R.drawable.btn_star_big_on)
-                .error(android.R.drawable.btn_star_big_on)
-                .into(civ));
-        civ.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                final AlertDialog.Builder builder = new AlertDialog.Builder(ProfileActivity.this);
-                builder.setTitle("Changing avatar");
-                builder.setMessage("Do you want to change avatar?\n(Gallery will be opened)");
 
-                builder.setPositiveButton(R.string.answer_yes, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        Intent intent = new Intent(Intent.ACTION_PICK);
+        mCircleImageView = findViewById(R.id.profile_image);
 
-                        intent.setType("image/*");
-                        startActivityForResult(intent, GALLERY_INTENT);
-                    }
-                });
+        DatabaseManager.loadAvatar(mCircleImageView, ProfileActivity.this, AuthorizationUtils.getLoggedInAsString(ProfileActivity.this));
 
-                builder.setNegativeButton(R.string.answer_no, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                    }
-                });
-
-                builder.setCancelable(true);
-                builder.create().show();
-                return false;
-            }
+        mCircleImageView.setOnLongClickListener(v -> {
+            createAlertDialogChangeAvatar().show();
+            return false;
         });
     }
 
+    private AlertDialog createAlertDialogChangeAvatar() {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(ProfileActivity.this);
+        builder.setTitle(R.string.profile_changing_avatar);
+        builder.setMessage(R.string.profile_changing_avatar_message);
+
+        builder.setPositiveButton(R.string.answer_yes, (dialog, which) -> {
+            Intent intent = new Intent(Intent.ACTION_PICK);
+
+            intent.setType(IMAGE_INTENT);
+            startActivityForResult(intent, GALLERY_INTENT);
+        });
+
+        builder.setNegativeButton(R.string.answer_no, (dialog, which) -> dialog.dismiss());
+
+        builder.setCancelable(true);
+        return builder.create();
+    }
     private void setEditButton() {
         Button editButton  = findViewById(R.id.button_edit);
         editButton.setOnClickListener(v -> {

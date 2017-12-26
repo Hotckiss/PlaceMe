@@ -161,9 +161,7 @@ public class MainActivity extends AppCompatActivity
     private void loadProfileAvatar(View view) {
         CircleImageView circleImageView = view.findViewById(R.id.profile_image);
         if (circleImageView != null) {
-            DatabaseManager.loadAvatar(circleImageView, MainActivity.this);
-        } else {
-            Log.d("ssssss", "dddddddd");
+            DatabaseManager.loadAvatar(circleImageView, MainActivity.this, AuthorizationUtils.getLoggedInAsString(MainActivity.this));
         }
     }
     private void initGooglePlacesButton() {

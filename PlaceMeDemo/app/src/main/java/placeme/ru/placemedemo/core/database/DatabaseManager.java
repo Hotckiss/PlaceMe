@@ -57,6 +57,7 @@ public class DatabaseManager {
     private static final String USER_NICKNAME_KEY = "nickname";
     private static final String USER_LOGIN_KEY = "login";
     private static final String USER_PASSWORD_KEY = "password";
+    private static final String USER_AVATAR_KEY = "avatars";
     
     private static FirebaseDatabase mBase;
     private static DatabaseReference mDatabaseReference;
@@ -610,9 +611,10 @@ public class DatabaseManager {
      * Method that loads avatar to the field with picture of user
      * @param circleImageView image view to load avatar
      * @param context current context
+     * @param userId id of the user
      */
-    public static void loadAvatar(CircleImageView circleImageView, final Context context) {
-        mStorageRef.child("avatars").child(AuthorizationUtils.getLoggedInAsString(context) + "avatar")
+    public static void loadAvatar(CircleImageView circleImageView, final Context context, final String userId) {
+        mStorageRef.child(USER_AVATAR_KEY).child(userId + "avatar")
                 .getDownloadUrl().addOnSuccessListener(uri -> Picasso.with(context).load(uri)
                 .placeholder(android.R.drawable.btn_star_big_on)
                 .error(android.R.drawable.btn_star_big_on)
@@ -632,6 +634,16 @@ public class DatabaseManager {
                 .error(android.R.drawable.btn_star_big_on)
                 .into(imageView));
     }
+
+    /**
+     * Method that loads new avatar of user instead of old one
+     * @param userId user id who changes avatar
+     * @param uri uri of new avatar image
+     */
+    public static void setNewAvatar(final String userId, final Uri uri) {
+        mStorageRef.child(USER_AVATAR_KEY).child(userId + "avatar").putFile(uri);
+    }
+
     @Nullable
     private static DatabaseReference getDatabaseChild(String childName) {
         DatabaseReference databaseReference = getDatabaseReference();

@@ -130,4 +130,9 @@
     <!--- Dialogs -->
     <string name="query_result">Results of query</string>
 
+    <!--- Profile activity -->
+    <string name="profile_changing_avatar">Changing avatar</string>
+    <string name="profile_changing_avatar_message">Do you want to change avatar?</string>
+
+
 </resources>
