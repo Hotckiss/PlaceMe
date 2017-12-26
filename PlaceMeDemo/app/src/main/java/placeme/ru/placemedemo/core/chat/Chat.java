@@ -8,100 +8,85 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
-import com.firebase.client.ChildEventListener;
 import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
-import com.firebase.client.FirebaseError;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import placeme.ru.placemedemo.R;
+import placeme.ru.placemedemo.core.database.AbstractClientChildEventListener;
 import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
 import placeme.ru.placemedemo.core.utils.ChatUtils;
 
-//TODO: refactor
+
+/**
+ * A class that represents chat dialog between two users in the application
+ */
 public class Chat extends AppCompatActivity {
-    LinearLayout layout;
-    RelativeLayout layout_2;
-    ImageView sendButton;
-    EditText messageArea;
-    ScrollView scrollView;
-    Firebase reference1, reference2;
+    private static final String MESSAGES_LOCATION = "https://placemedemo-676f5.firebaseio.com/messages/";
+    private static final String DELIMITER = "_";
+    private static final String PAIR_DELIMITER = ",";
+    private static final String MESSAGE_KEY = "message";
+    private static final String USER_KEY = "user";
+    private static final String EMPTY_MESSAGE = "";
+    private static final int USER_MESSAGE = 1;
+    private static final int FRIEND_MESSAGE = 2;
+
+    private LinearLayout mLinearLayout;
+    private ImageView mSendButton;
+    private EditText mMessageArea;
+    private ScrollView mScrollView;
+    private Firebase mUserMessagesReference, mFriendMessagesReference;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
 
-        layout = findViewById(R.id.layout1);
-        layout_2 = findViewById(R.id.layout2);
-        sendButton = findViewById(R.id.sendButton);
-        messageArea = findViewById(R.id.messageArea);
-        scrollView = findViewById(R.id.scrollView);
+        initializeViews();
 
         Firebase.setAndroidContext(this);
-        final String[] chatPair = ChatUtils.getChatPair(Chat.this).split(",");
+        final String[] chatPair = ChatUtils.getChatPair(Chat.this).split(PAIR_DELIMITER);
+
         if (chatPair.length < 2) {
             finish();
         }
 
-        reference1 = new Firebase("https://placemedemo-676f5.firebaseio.com/messages/" + chatPair[0] + "_" + chatPair[1]);
-        reference2 = new Firebase("https://placemedemo-676f5.firebaseio.com/messages/" + chatPair[1] + "_" + chatPair[0]);
+        mUserMessagesReference = new Firebase(MESSAGES_LOCATION + chatPair[0] + DELIMITER + chatPair[1]);
+        mFriendMessagesReference = new Firebase(MESSAGES_LOCATION + chatPair[1] + DELIMITER + chatPair[0]);
 
-        sendButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String messageText = messageArea.getText().toString();
+        mSendButton.setOnClickListener(v -> {
+            String messageText = mMessageArea.getText().toString();
 
-                if(!messageText.equals("")){
-                    Map<String, String> map = new HashMap<String, String>();
-                    map.put("message", messageText);
-                    map.put("user", chatPair[0]);
-                    reference1.push().setValue(map);
-                    reference2.push().setValue(map);
-                    messageArea.setText("");
-                }
+            if (checkMessage(messageText)){
+                Map<String, String> map = new HashMap<>();
+                map.put(MESSAGE_KEY, messageText);
+                map.put(USER_KEY, chatPair[0]);
+
+                mUserMessagesReference.push().setValue(map);
+                mFriendMessagesReference.push().setValue(map);
+
+                mMessageArea.setText(EMPTY_MESSAGE);
             }
         });
 
-        reference1.addChildEventListener(new ChildEventListener() {
+        mUserMessagesReference.addChildEventListener(new AbstractClientChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 Map map = dataSnapshot.getValue(Map.class);
-                String message = map.get("message").toString();
-                String userName = map.get("user").toString();
 
-                if(userName.equals(AuthorizationUtils.getLoggedInAsString(Chat.this))){
-                    addMessageBox(message, 1);
+                String message = map.get(MESSAGE_KEY).toString();
+                String userName = map.get(USER_KEY).toString();
+
+                if (userName.equals(AuthorizationUtils.getLoggedInAsString(Chat.this))){
+                    addMessageBox(message, USER_MESSAGE);
+                } else {
+                    addMessageBox(message, FRIEND_MESSAGE);
                 }
-                else{
-                    addMessageBox(message, 2);
-                }
-            }
-
-            @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-
-            }
-
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
-
-            }
-
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
-            }
-
-            @Override
-            public void onCancelled(FirebaseError firebaseError) {
-
             }
         });
     }
@@ -110,19 +95,40 @@ public class Chat extends AppCompatActivity {
         TextView textView = new TextView(Chat.this);
         textView.setText(message);
 
-        LinearLayout.LayoutParams lp2 = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        lp2.weight = 1.0f;
+        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        layoutParams.weight = 1f;
 
-        if(type == 1) {
-            lp2.gravity = Gravity.RIGHT;
+        if (type == USER_MESSAGE) {
+            layoutParams.gravity = Gravity.RIGHT;
             textView.setBackgroundResource(R.drawable.bubble_in);
-        }
-        else{
-            lp2.gravity = Gravity.LEFT;
+        } else {
+            layoutParams.gravity = Gravity.LEFT;
             textView.setBackgroundResource(R.drawable.bubble_out);
         }
-        textView.setLayoutParams(lp2);
-        layout.addView(textView);
-        scrollView.fullScroll(View.FOCUS_DOWN);
+
+        textView.setLayoutParams(layoutParams);
+        mLinearLayout.addView(textView);
+        mScrollView.fullScroll(View.FOCUS_DOWN);
+    }
+
+    private void initializeViews() {
+        mLinearLayout = findViewById(R.id.layout1);
+        mSendButton = findViewById(R.id.sendButton);
+        mMessageArea = findViewById(R.id.messageArea);
+        mScrollView = findViewById(R.id.scrollView);
+    }
+
+    private boolean checkMessage(final String message) {
+        if (message.length() == 0) {
+            return false;
+        }
+
+        for (int i = 0; i < message.length(); i++) {
+            if ((message.charAt(i) != ' ') && (message.charAt(i) != '\n')) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

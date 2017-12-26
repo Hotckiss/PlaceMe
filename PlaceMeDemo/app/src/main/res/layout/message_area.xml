@@ -23,4 +23,3 @@
         android:src="@android:drawable/ic_menu_send"
         android:id="@+id/sendButton"/>
 </LinearLayout>
-    <!---android:background="@color/colorPrimaryDark"-->
