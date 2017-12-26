@@ -142,6 +142,14 @@ public class MapManager {
         googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(destination, 15.0f));
     }
 
+    /**
+     * Method that builds single route between two places
+     * @param myPosition current user position
+     * @param destination destination point of route
+     * @param context current context
+     * @param googleMap map where route should be build
+     * @param points storage of route points which is important for roite in augmented reality
+     */
     public static void makeSingleRoute(final LatLng myPosition, final LatLng destination, final Context context, final GoogleMap googleMap, final ArrayList<LatLng> points) {
 
         final LatLng origin = myPosition;

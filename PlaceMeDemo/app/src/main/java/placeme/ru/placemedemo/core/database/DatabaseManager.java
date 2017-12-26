@@ -619,6 +619,12 @@ public class DatabaseManager {
                 .into(circleImageView));
     }
 
+    /**
+     * Method that loads picture of a place
+     * @param imageView view where picture should be placed
+     * @param place place with all necessary information
+     * @param context current context
+     */
     public static void loadDescriptionImage(final ImageView imageView, final Place place, final Context context) {
         mStorageRef.child("photos").child(place.getIdAsString() + "place_photo")
                 .getDownloadUrl().addOnSuccessListener(uri -> Picasso.with(context).load(uri)
