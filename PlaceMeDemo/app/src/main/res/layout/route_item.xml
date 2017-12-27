@@ -33,7 +33,7 @@
                 android:orientation="horizontal">
 
                 <ImageButton
-                    android:id="@+id/routes2"
+                    android:id="@+id/routes_button2"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
@@ -42,7 +42,7 @@
                     card_view:srcCompat="@drawable/ic_menu_share" />
 
                 <ImageButton
-                    android:id="@+id/routes3"
+                    android:id="@+id/routes_button3"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
