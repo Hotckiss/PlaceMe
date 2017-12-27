@@ -107,7 +107,7 @@ public class RoutesListViewFragment extends Fragment {
         }
     }
 
-    public Uri getLocalBitmapUri(ImageView imageView) throws IOException {
+    private Uri getLocalBitmapUri(ImageView imageView) throws IOException {
         // Extract Bitmap from ImageView drawable
         Drawable drawable = imageView.getDrawable();
         Bitmap bmp = null;
@@ -133,7 +133,7 @@ public class RoutesListViewFragment extends Fragment {
             e.printStackTrace();
         }
             return bmpUri;
-        }
+    }
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
         public ImageView iv;
