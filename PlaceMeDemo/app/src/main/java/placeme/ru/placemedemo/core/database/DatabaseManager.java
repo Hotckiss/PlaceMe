@@ -73,7 +73,8 @@ public class DatabaseManager {
      * @param email user email
      * @param password user password
      */
-    public static void findUserAndCheckPassword(final Context context, final String email, final String password) {
+    public static void findUserAndCheckPassword(final Context context, final String email,
+                                                final String password) {
         mDatabaseReference = getDatabaseChild(AUTH_DATA_KEY);
 
         Controller.setLoggedIn(context, -1);
@@ -100,7 +101,8 @@ public class DatabaseManager {
     public static void registerUser(final String[] information) {
         mDatabaseReference = getDatabaseChild(MAX_ID);
 
-        mDatabaseReference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
+        mDatabaseReference.addListenerForSingleValueEvent(
+                new AbstractValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 Integer id = dataSnapshot.getValue(Integer.class);
@@ -129,7 +131,9 @@ public class DatabaseManager {
      * @param myPosition current user positions
      * @param context current context
      */
-    public static void findPlacesByString(final ArrayAdapter<String> arrayAdapter, final ArrayList<Place> places, final String toFind, final LatLng myPosition, final Context context) {
+    public static void findPlacesByString(final ArrayAdapter<String> arrayAdapter,
+                                          final ArrayList<Place> places, final String toFind,
+                                          final LatLng myPosition, final Context context) {
         mDatabaseReference = getDatabaseChild(PLACES_KEY);
 
         mChildEventListener = new AbstractChildEventListener() {
@@ -138,9 +142,12 @@ public class DatabaseManager {
                 Place place = dataSnapshot.getValue(Place.class);
                 if (place != null) {
                     boolean distanceEnabled = SearchUtils.getDistanceSearchStatus(context);
-                    boolean distanceAccess = (!distanceEnabled) || (Controller.getKilometers(myPosition, new LatLng(place.getLatitude(), place.getLongitude())) <= SearchUtils.getDistanceSearchValue(context));
+                    boolean distanceAccess = (!distanceEnabled) || (Controller.getKilometers
+                            (myPosition, new LatLng(place.getLatitude(), place.getLongitude())) <=
+                            SearchUtils.getDistanceSearchValue(context));
                     boolean ratingEnabled = SearchUtils.getRatingSearchStatus(context);
-                    boolean ratingAccess = (!ratingEnabled) || (place.getMark() > (SearchUtils.getRatingSearchValue(context) / 20.0));
+                    boolean ratingAccess = (!ratingEnabled) || (place.getMark() >
+                            (SearchUtils.getRatingSearchValue(context) / 20.0));
 
                     if (distanceAccess && ratingAccess) {
                         if (place.getName().toLowerCase().contains(toFind.toLowerCase())) {
@@ -169,7 +176,8 @@ public class DatabaseManager {
      * @param users array with founded users
      * @param toFind string which contains user query to search
      */
-    public static void findUsersByString(final ArrayAdapter<String> arrayAdapter, final ArrayList<User> users, final String toFind) {
+    public static void findUsersByString(final ArrayAdapter<String> arrayAdapter,
+                                         final ArrayList<User> users, final String toFind) {
         mDatabaseReference = getDatabaseChild(USERS_KEY);
 
         mChildEventListener = new AbstractChildEventListener() {
@@ -200,19 +208,23 @@ public class DatabaseManager {
             mDatabaseReference = mDatabaseReference.child(placeId);
         }
 
-        mDatabaseReference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
+        mDatabaseReference.addListenerForSingleValueEvent(
+                new AbstractValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                HashMap<String, Object> currentPlace = (HashMap<String, Object>) dataSnapshot.getValue();
+                HashMap<String, Object> currentPlace =
+                        (HashMap<String, Object>) dataSnapshot.getValue();
                 if (currentPlace != null) {
                     float mark = ratingBar.getRating();
                     float curSum = Float.parseFloat(currentPlace.get("sumOfMarks").toString());
-                    long curNumberOfMarks = Long.parseLong(currentPlace.get("numberOfRatings").toString());
+                    long curNumberOfMarks = Long
+                            .parseLong(currentPlace.get("numberOfRatings").toString());
 
                     curSum += mark;
                     curNumberOfMarks++;
 
-                    DatabaseReference mDatabaseReferenceSet = mDatabaseReference.child("sumOfMarks");
+                    DatabaseReference mDatabaseReferenceSet = mDatabaseReference
+                            .child("sumOfMarks");
                     mDatabaseReferenceSet.setValue(curSum);
 
                     mDatabaseReferenceSet = mDatabaseReference.child("numberOfRatings");
@@ -233,7 +245,8 @@ public class DatabaseManager {
         if (mDatabaseReference != null) {
             mDatabaseReference = mDatabaseReference.child(userId).child("favouritePlaces");
         }
-        mDatabaseReference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
+        mDatabaseReference.addListenerForSingleValueEvent(
+                new AbstractValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 Object placeObject = dataSnapshot.getValue();
@@ -300,7 +313,8 @@ public class DatabaseManager {
                         for (String tag : place.getTags().split(",")) {
                             if (query.toLowerCase().equals(tag.toLowerCase())) {
                                 googleMap.addMarker(new MarkerOptions()
-                                        .position(new LatLng(place.getLatitude(), place.getLongitude()))
+                                        .position(new LatLng(place.getLatitude(),
+                                                place.getLongitude()))
                                         .title(place.getName()));
                                 break;
                             }
@@ -322,10 +336,12 @@ public class DatabaseManager {
         if (mDatabaseReference != null) {
             mDatabaseReference = mDatabaseReference.child(userId);
         }
-        mDatabaseReference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
+        mDatabaseReference.addListenerForSingleValueEvent(
+                new AbstractValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                HashMap<String, String> currentUser = (HashMap<String, String>) dataSnapshot.getValue();
+                HashMap<String, String> currentUser =
+                        (HashMap<String, String>)dataSnapshot.getValue();
 
                 if (currentUser != null) {
                     toLoad[2].setText(currentUser.get(USER_NAME_KEY));
@@ -341,10 +357,12 @@ public class DatabaseManager {
             mDatabaseReferenceAuth = mDatabaseReferenceAuth.child(userId);
         }
         if (mDatabaseReferenceAuth != null) {
-            mDatabaseReferenceAuth.addListenerForSingleValueEvent(new AbstractValueEventListener() {
+            mDatabaseReferenceAuth.addListenerForSingleValueEvent(
+                    new AbstractValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
-                    HashMap<String, String> currentUser = (HashMap<String, String>) dataSnapshot.getValue();
+                    HashMap<String, String> currentUser =
+                            (HashMap<String, String>)dataSnapshot.getValue();
 
                     if (currentUser != null) {
                         toLoad[0].setText(currentUser.get(USER_LOGIN_KEY));
@@ -389,7 +407,8 @@ public class DatabaseManager {
      * @param adapter adapter to put places
      */
     @Deprecated
-    public static void loadUserFavouritePlacesList(final String userId, ArrayAdapter<String> adapter) {
+    public static void loadUserFavouritePlacesList(final String userId,
+                                                   ArrayAdapter<String> adapter) {
         mDatabaseReference = getDatabaseChild(USERS_KEY);
         if (mDatabaseReference != null) {
             mDatabaseReference = mDatabaseReference.child(userId).child("favouritePlaces");
@@ -404,14 +423,16 @@ public class DatabaseManager {
                     Arrays.sort(idArray, (a, b) -> (Integer.parseInt(a) - Integer.parseInt(b)));
                     DatabaseReference mDatabaseReferencePlaces = getDatabaseChild(PLACES_KEY);
                     if (mDatabaseReferencePlaces != null) {
-                        mDatabaseReferencePlaces.addChildEventListener(new AbstractChildEventListener() {
+                        mDatabaseReferencePlaces.addChildEventListener(
+                                new AbstractChildEventListener() {
                             int position = 0;
 
                             @Override
                             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                                 Place place = dataSnapshot.getValue(Place.class);
                                 if (place != null) {
-                                    if (position < idArray.length && (place.getIdAsString()).equals(idArray[position])) {
+                                    if (position < idArray.length && (place.getIdAsString())
+                                            .equals(idArray[position])) {
                                         position++;
                                         adapter.add(place.getName());
 
@@ -432,7 +453,9 @@ public class DatabaseManager {
      * @param fragmentManager fragment managet for transaction
      * @param fragment output fragment
      */
-    public static void loadUserFavouritePlacesListNew(final String userId, final Context context, final FragmentManager fragmentManager, final Fragment fragment) {
+    public static void loadUserFavouritePlacesListNew(final String userId, final Context context,
+                                                      final FragmentManager fragmentManager,
+                                                      final Fragment fragment) {
         mDatabaseReference = getDatabaseChild(USERS_KEY);
         if (mDatabaseReference != null) {
             mDatabaseReference = mDatabaseReference.child(userId).child("favouritePlaces");
@@ -454,7 +477,9 @@ public class DatabaseManager {
      * @param userProfileInfo fields with user profile information
      * @param fragmentManager fragment manager to load friends list
      */
-    public static void loadUserProfile(final Context context, final int userId, final TextView[] userProfileInfo, final FragmentManager fragmentManager) {
+    public static void loadUserProfile(final Context context, final int userId,
+                                       final TextView[] userProfileInfo,
+                                       final FragmentManager fragmentManager) {
         mDatabaseReference = getDatabaseChild(USERS_KEY);
 
         mDatabaseReference.addChildEventListener(new AbstractChildEventListener() {
@@ -475,11 +500,13 @@ public class DatabaseManager {
                     //TODO: add friends list
                     Controller.setFriendsLength(context, user.getFriendsLength());
                     Controller.setFriends(context, user.getFriends());
-                    android.support.v4.app.Fragment fragment = fragmentManager.findFragmentById(R.id.fragmentContainer);
+                    android.support.v4.app.Fragment fragment = fragmentManager
+                            .findFragmentById(R.id.fragmentContainer);
 
                     if (fragment == null) {
                         fragment = new HorizontalListViewFragment();
-                        fragmentManager.beginTransaction().add(R.id.fragmentContainer, fragment).commit();
+                        fragmentManager.beginTransaction().add(R.id.fragmentContainer,
+                                fragment).commit();
                     }
                 }
             }
@@ -492,7 +519,8 @@ public class DatabaseManager {
      * @param placeInfo text description of the place
      * @param position place coordinates
      */
-    public static void saveCreatedPlace(final Uri uri, final String[] placeInfo, final LatLng position) {
+    public static void saveCreatedPlace(final Uri uri, final String[] placeInfo,
+                                        final LatLng position) {
         mDatabaseReference = getDatabaseChild("maxidplaces");
         mDatabaseReference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
             @Override
@@ -500,7 +528,8 @@ public class DatabaseManager {
                 final Integer id = dataSnapshot.getValue(Integer.class);
 
                 if (id != null) {
-                    Place newPlace = new Place(id, placeInfo[0], placeInfo[1], placeInfo[2], position.latitude, position.longitude);
+                    Place newPlace = new Place(id, placeInfo[0], placeInfo[1], placeInfo[2],
+                            position.latitude, position.longitude);
                     DatabaseReference reference = getDatabaseChild(PLACES_KEY);
 
                     if (reference != null) {
@@ -508,7 +537,8 @@ public class DatabaseManager {
                         mDatabaseReference.setValue(id + 1);
                     }
 
-                    StorageReference child = mStorageRef.child("photos").child(id.toString() + "place_photo");
+                    StorageReference child = mStorageRef.child("photos").child(id.toString() +
+                            "place_photo");
 
                     if (uri != null) {
                         child.putFile(uri);
@@ -524,7 +554,8 @@ public class DatabaseManager {
      * @param placeInfo text description of the place
      * @param position place coordinates
      */
-    public static void saveCreatedPlace2(final Bitmap bitmap, final String[] placeInfo, final LatLng position) {
+    public static void saveCreatedPlace2(final Bitmap bitmap, final String[] placeInfo,
+                                         final LatLng position) {
         mDatabaseReference = getDatabaseChild("maxidplaces");
         mDatabaseReference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
             @Override
@@ -532,7 +563,8 @@ public class DatabaseManager {
                 final Integer id = dataSnapshot.getValue(Integer.class);
 
                 if (id != null) {
-                    Place newPlace = new Place(id, placeInfo[0], placeInfo[1], placeInfo[2], position.latitude, position.longitude);
+                    Place newPlace = new Place(id, placeInfo[0], placeInfo[1], placeInfo[2],
+                            position.latitude, position.longitude);
                     DatabaseReference reference = getDatabaseChild(PLACES_KEY);
 
                     if (reference != null) {
@@ -540,7 +572,8 @@ public class DatabaseManager {
                         mDatabaseReference.setValue(id + 1);
                     }
 
-                    StorageReference child = mStorageRef.child("photos").child(id.toString() + "place_photo");
+                    StorageReference child = mStorageRef.child("photos").child(id.toString() +
+                            "place_photo");
 
                     if (bitmap != null) {
                         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -561,7 +594,8 @@ public class DatabaseManager {
      */
     public static void saveRoute(final Uri uri, final String userId, final Context context) {
         if (uri != null) {
-            mStorageRef.child("routes").child(userId).child(userId + "_" + Controller.getRoutesLength(context)).putFile(uri);
+            mStorageRef.child("routes").child(userId).child(userId + "_" +
+                    Controller.getRoutesLength(context)).putFile(uri);
         }
     }
 
@@ -584,16 +618,20 @@ public class DatabaseManager {
      * @param fragmentManager fragment manager for transaction
      * @param fragment output fragment
      */
-    public static void getUserRoutesLength(final String userId, final Context context, final FragmentManager fragmentManager, final Fragment fragment) {
+    public static void getUserRoutesLength(final String userId, final Context context,
+                                           final FragmentManager fragmentManager,
+                                           final Fragment fragment) {
         DatabaseReference reference = getDatabaseChild(USERS_KEY);
         if(reference != null) {
-            reference.child(userId).child("routesLength").addListenerForSingleValueEvent(new AbstractValueEventListener() {
+            reference.child(userId).child("routesLength").addListenerForSingleValueEvent(
+                    new AbstractValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     Long length = (Long) dataSnapshot.getValue();
                     if (length != null) {
                         Controller.setRoutesLength(context, length);
-                        fragmentManager.beginTransaction().add(R.id.fragmentContainer2, fragment).commit();
+                        fragmentManager.beginTransaction().add(R.id.fragmentContainer2, fragment)
+                                .commit();
                     }
                 }
 
@@ -609,7 +647,8 @@ public class DatabaseManager {
     public static void getUserRoutesLength2(final String userId, final Context context) {
         DatabaseReference reference = getDatabaseChild(USERS_KEY);
         if (reference != null) {
-            reference.child(userId).child("routesLength").addListenerForSingleValueEvent(new AbstractValueEventListener() {
+            reference.child(userId).child("routesLength")
+                    .addListenerForSingleValueEvent(new AbstractValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     Long length = (Long) dataSnapshot.getValue();
@@ -629,7 +668,8 @@ public class DatabaseManager {
      */
     public static void saveConvertedPlace(final Uri uri, final Place place) {
         mDatabaseReference = getDatabaseChild("maxidplaces");
-        mDatabaseReference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
+        mDatabaseReference
+                .addListenerForSingleValueEvent(new AbstractValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 final Integer id = dataSnapshot.getValue(Integer.class);
@@ -641,7 +681,8 @@ public class DatabaseManager {
                         reference.child(id.toString()).setValue(place);
                         mDatabaseReference.setValue(id + 1);
 
-                        StorageReference child = mStorageRef.child("photos").child(id.toString() + "place_photo");
+                        StorageReference child = mStorageRef
+                                .child("photos").child(id.toString() + "place_photo");
 
                         if (uri != null) {
                             child.putFile(uri);
@@ -658,7 +699,8 @@ public class DatabaseManager {
      * @param context current context
      * @param marker place position
      */
-    public static void runDescriptionDialog(final Context context, final Marker marker, final LatLng myPosition, final GoogleMap googleMap) {
+    public static void runDescriptionDialog(final Context context, final Marker marker,
+                                            final LatLng myPosition, final GoogleMap googleMap) {
         DatabaseReference reference = getDatabaseChild(PLACES_KEY);
         if (reference != null) {
             reference.addChildEventListener(new AbstractChildEventListener() {
@@ -667,8 +709,10 @@ public class DatabaseManager {
                 public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                     Place place = dataSnapshot.getValue(Place.class);
                     if (place != null) {
-                        if ((place.getLatitude() == marker.getPosition().latitude) && (place.getLongitude() == marker.getPosition().longitude)) {
-                            AlertDialogCreator.createAlertDescriptionDialog(context, place, myPosition, googleMap).show();
+                        if ((place.getLatitude() == marker.getPosition().latitude) &&
+                                (place.getLongitude() == marker.getPosition().longitude)) {
+                            AlertDialogCreator.createAlertDescriptionDialog(context, place,
+                                    myPosition, googleMap).show();
                         }
                     }
                 }
@@ -710,7 +754,8 @@ public class DatabaseManager {
      * @param descriptionId ID of route that has this description
      * @param description string that contains all description
      */
-    public static void saveRouteInfo(final String userId, final Long descriptionId, final String description) {
+    public static void saveRouteInfo(final String userId, final Long descriptionId,
+                                     final String description) {
         DatabaseReference reference = getDatabaseChild("routes_descriptions");
         if (reference != null) {
             reference.child(userId).child(descriptionId.toString()).setValue(description);
@@ -723,10 +768,12 @@ public class DatabaseManager {
      * @param id route ID
      * @param userId user ID
      */
-    public static void fillDescription(final TextView textView, final Integer id, final String userId) {
+    public static void fillDescription(final TextView textView, final Integer id,
+                                       final String userId) {
         DatabaseReference reference = getDatabaseChild("routes_descriptions");
         if (reference != null) {
-            reference.child(userId).child(id.toString()).addListenerForSingleValueEvent(new AbstractValueEventListener() {
+            reference.child(userId).child(id.toString())
+                    .addListenerForSingleValueEvent(new AbstractValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     String description = "No description given.";
@@ -750,7 +797,8 @@ public class DatabaseManager {
         final StringBuilder stringBuilder = new StringBuilder();
         DatabaseReference referenceName = getDatabaseChild(PLACES_KEY);
         if (referenceName != null) {
-            referenceName.child(id).child(USER_NAME_KEY).addListenerForSingleValueEvent(new AbstractValueEventListener() {
+            referenceName.child(id).child(USER_NAME_KEY)
+                    .addListenerForSingleValueEvent(new AbstractValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
 
@@ -763,7 +811,8 @@ public class DatabaseManager {
         }
         DatabaseReference referenceDescription = getDatabaseChild(PLACES_KEY);
         if (referenceDescription != null) {
-            referenceDescription.child(id).child("description").addListenerForSingleValueEvent(new AbstractValueEventListener() {
+            referenceDescription.child(id).child("description")
+                    .addListenerForSingleValueEvent(new AbstractValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
 
@@ -782,11 +831,12 @@ public class DatabaseManager {
      * @param context current context
      * @param userId id of the user
      */
-    public static void loadAvatar(CircleImageView circleImageView, final Context context, final String userId) {
+    public static void loadAvatar(CircleImageView circleImageView, final Context context,
+                                  final String userId) {
         mStorageRef.child(USER_AVATAR_KEY).child(userId + "avatar")
                 .getDownloadUrl().addOnSuccessListener(uri -> Picasso.with(context).load(uri)
-                .placeholder(android.R.drawable.btn_star_big_on)
-                .error(android.R.drawable.btn_star_big_on)
+                .placeholder(R.drawable.grey)
+                .error(R.drawable.grey)
                 .into(circleImageView));
     }
 
@@ -796,11 +846,12 @@ public class DatabaseManager {
      * @param place place with all necessary information
      * @param context current context
      */
-    public static void loadDescriptionImage(final ImageView imageView, final Place place, final Context context) {
+    public static void loadDescriptionImage(final ImageView imageView, final Place place,
+                                            final Context context) {
         mStorageRef.child("photos").child(place.getIdAsString() + "place_photo")
                 .getDownloadUrl().addOnSuccessListener(uri -> Picasso.with(context).load(uri)
-                .placeholder(android.R.drawable.btn_star_big_on)
-                .error(android.R.drawable.btn_star_big_on)
+                .placeholder(R.drawable.loading)
+                .error(R.drawable.loading)
                 .into(imageView));
     }
 
@@ -838,8 +889,10 @@ public class DatabaseManager {
                         if (!alreadyAdded) {
                             DatabaseReference referenceFriends = getDatabaseChild(USERS_KEY);
                             if (referenceFriends != null) {
-                                referenceFriends.child(userId).child("friends").setValue(friends + "," + friendId);
-                                referenceFriends.child(userId).child("friendsLength").setValue(length + 1);
+                                referenceFriends.child(userId).child("friends")
+                                        .setValue(friends + "," + friendId);
+                                referenceFriends.child(userId).child("friendsLength")
+                                        .setValue(length + 1);
                             }
                         }
                     }

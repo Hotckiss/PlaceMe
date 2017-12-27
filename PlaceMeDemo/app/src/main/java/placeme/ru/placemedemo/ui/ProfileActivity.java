@@ -57,7 +57,8 @@ public class ProfileActivity extends AppCompatActivity {
 
         mCircleImageView = findViewById(R.id.profile_image);
 
-        Controller.loadAvatar(mCircleImageView, ProfileActivity.this, Controller.getLoggedInAsString(ProfileActivity.this));
+        Controller.loadAvatar(mCircleImageView, ProfileActivity.this,
+                Controller.getLoggedInAsString(ProfileActivity.this));
 
         mCircleImageView.setOnLongClickListener(v -> {
             createAlertDialogChangeAvatar().show();

@@ -67,11 +67,12 @@ import worldData.World;
 import static com.google.android.gms.location.places.ui.PlaceAutocomplete.getPlace;
 
 /**
- * Main activity of the app
+ * Main activity of the app.
  */
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback,
-        GoogleMap.OnMapLongClickListener, GoogleMap.OnMarkerClickListener, GoogleApiClient.OnConnectionFailedListener {
+        GoogleMap.OnMapLongClickListener, GoogleMap.OnMarkerClickListener,
+        GoogleApiClient.OnConnectionFailedListener {
 
     private static final int GALLERY_INTENT = 2;
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
@@ -97,6 +98,7 @@ public class MainActivity extends AppCompatActivity
     private Bitmap mBitmap;
     private Uri mUri;
     private int mLastAction = 0;
+
     //AR
     private static ArrayList<LatLng> points = new ArrayList<>();
 
@@ -105,13 +107,14 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             checkPermission();
         }
 
         checkLogin();
 
-        int permission = ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        int permission = ActivityCompat.checkSelfPermission(MainActivity.this,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE);
 
         if (permission != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(
@@ -121,20 +124,22 @@ public class MainActivity extends AppCompatActivity
             );
         }
 
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().
+                findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar,
+                R.string.navigation_drawer_open, R.string.navigation_drawer_close);
 
         drawer.addDrawerListener(toggle);
         toggle.syncState();
 
         NavigationView navigationView = findViewById(R.id.nav_view);
-        View hView =  navigationView.getHeaderView(0);
+        View hView = navigationView.getHeaderView(0);
 
         loadProfileAvatar(hView);
         navigationView.setNavigationItemSelectedListener(this);
@@ -142,8 +147,10 @@ public class MainActivity extends AppCompatActivity
         initializeInputWindow();
         initializeGeolocation();
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA},1);
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) !=
+                PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.CAMERA},1);
         } else {
             initializeCamera();
         }
@@ -153,7 +160,8 @@ public class MainActivity extends AppCompatActivity
         FloatingActionButton actionButton = findViewById(R.id.fab);
 
         actionButton.setOnClickListener(v -> {
-            Controller.getUserRoutesLength2(Controller.getLoggedInAsString(MainActivity.this), MainActivity.this);
+            Controller.getUserRoutesLength2(Controller.getLoggedInAsString(
+                    MainActivity.this), MainActivity.this);
             saveRoute().show();
         });
 
@@ -163,14 +171,16 @@ public class MainActivity extends AppCompatActivity
 
         searchFriendsButton.setOnClickListener(v -> {
             searchFriends().show();
-            //Controller.getUserRoutesLength2(Controller.getLoggedInAsString(MainActivity.this), MainActivity.this);
+            //Controller.getUserRoutesLength2(Controller.getLoggedInAsString(MainActivity.this),
+            // MainActivity.this);
             //saveRoute().show();
         });
     }
 
     private AlertDialog searchFriends() {
         final AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-        LayoutInflater inflater = (LayoutInflater) MainActivity.this.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
+        LayoutInflater inflater = (LayoutInflater) MainActivity.this.getSystemService(
+                Context.LAYOUT_INFLATER_SERVICE );
         final View layout = inflater.inflate(R.layout.save_route, null);
 
         builder.setPositiveButton("Search!", (dialog, id) -> {
@@ -179,7 +189,8 @@ public class MainActivity extends AppCompatActivity
             if (description == null || description.length() == 0) {
                 dialog.dismiss();
             }
-            AlertDialogCreator.createAlertDialogFoundedFriends(MainActivity.this, editTextDescription.getText().toString()).show();
+            AlertDialogCreator.createAlertDialogFoundedFriends(MainActivity.this,
+                    editTextDescription.getText().toString()).show();
         }).setNegativeButton(R.string.answer_back, (dialog, arg1) -> {});
 
         builder.setCancelable(true);
@@ -190,14 +201,16 @@ public class MainActivity extends AppCompatActivity
     private void loadProfileAvatar(View view) {
         CircleImageView circleImageView = view.findViewById(R.id.profile_image);
         if (circleImageView != null) {
-            Controller.loadAvatar(circleImageView, MainActivity.this, Controller.getLoggedInAsString(MainActivity.this));
+            Controller.loadAvatar(circleImageView, MainActivity.this,
+                    Controller.getLoggedInAsString(MainActivity.this));
         }
     }
 
     private void initGooglePlacesButton() {
         FloatingActionButton floatingActionButton = findViewById(R.id.google_places_button);
 
-        floatingActionButton.setOnClickListener(v -> alertDialogAskGooglePlacesUsage(MainActivity.this).show());
+        floatingActionButton.setOnClickListener(v -> alertDialogAskGooglePlacesUsage(
+                MainActivity.this).show());
     }
 
     private AlertDialog alertDialogAskGooglePlacesUsage(final Context context) {
@@ -211,7 +224,8 @@ public class MainActivity extends AppCompatActivity
             PlacePicker.IntentBuilder builder1 = new PlacePicker.IntentBuilder();
 
             try {
-                startActivityForResult(builder1.build(MainActivity.this), PLACE_PICKER_REQUEST);
+                startActivityForResult(builder1.build(MainActivity.this),
+                        PLACE_PICKER_REQUEST);
             } catch (GooglePlayServicesRepairableException e) {
                 e.printStackTrace();
             } catch (GooglePlayServicesNotAvailableException e) {
@@ -239,12 +253,14 @@ public class MainActivity extends AppCompatActivity
         mGoogleMap.getUiSettings().setMapToolbarEnabled(false);
         mGoogleMap.getUiSettings().setCompassEnabled(false);
 
-        requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
+        requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                LOCATION_PERMISSION_REQUEST_CODE);
         Controller.addAllMarkers(mGoogleMap);
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                                           int[] grantResults) {
         if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
             initializeCamera();
         }
@@ -315,7 +331,8 @@ public class MainActivity extends AppCompatActivity
         //TODO:PICTURE
         Intent sendIntent = new Intent();
         sendIntent.setAction(Intent.ACTION_SEND);
-        sendIntent.putExtra(Intent.EXTRA_TEXT, R.string.share_message);
+        sendIntent.putExtra(Intent.EXTRA_TEXT,
+                R.string.share_message);
         sendIntent.setType("text/plain");
         startActivity(Intent.createChooser(sendIntent, "Share using..."));
     }
@@ -323,7 +340,8 @@ public class MainActivity extends AppCompatActivity
     private void initializeSearchParameters() {
         FloatingActionButton searchParamButton  = findViewById(R.id.button_search_parameters);
         searchParamButton.setOnClickListener(v -> {
-            AlertDialog alert = AlertDialogCreator.createSearchParametersDialog(MainActivity.this);
+            AlertDialog alert = AlertDialogCreator.createSearchParametersDialog(
+                    MainActivity.this);
             alert.show();
         });
     }
@@ -408,7 +426,8 @@ public class MainActivity extends AppCompatActivity
         return result;
     }
 
-    private placeme.ru.placemedemo.elements.Place addTags(placeme.ru.placemedemo.elements.Place destination, Place src) {
+    private placeme.ru.placemedemo.elements.Place addTags(
+            placeme.ru.placemedemo.elements.Place destination, Place src) {
         List<Integer> placeTags = src.getPlaceTypes();
         StringBuilder tags = new StringBuilder();
         tags.append(",");
@@ -428,7 +447,8 @@ public class MainActivity extends AppCompatActivity
         return destination;
     }
 
-    private void putLineToPoint(GL1Renderer renderer, final World world, GLFactory objectFactory, LatLng start, LatLng finish) {
+    private void putLineToPoint(GL1Renderer renderer, final World world, GLFactory objectFactory,
+                                LatLng start, LatLng finish) {
         double maxx = Math.max(start.latitude, finish.latitude);
         double maxy = Math.max(start.longitude, finish.longitude);
         double minx = Math.min(start.latitude, finish.latitude);
@@ -452,9 +472,11 @@ public class MainActivity extends AppCompatActivity
 
     private void initializeCamera() {
         Button b = findViewById(R.id.button4);
-        b.setOnClickListener(v -> ArActivity.startWithSetup(MainActivity.this, new MySetup() {
+        b.setOnClickListener(v -> ArActivity.startWithSetup(MainActivity.this,
+                new MySetup() {
             @Override
-            public void addObjectsTo(GL1Renderer renderer, final World world, GLFactory objectFactory) {
+            public void addObjectsTo(GL1Renderer renderer, final World world,
+                                     GLFactory objectFactory) {
 
                 points = AlertDialogCreator.getPoints();
                 if (points == null) {
@@ -462,10 +484,13 @@ public class MainActivity extends AppCompatActivity
                 else {
                     if (points.size() == 0) {
                     } else {
-                        putLineToPoint(renderer, world, objectFactory, new LatLng(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude()), points.get(0));
+                        putLineToPoint(renderer, world, objectFactory,
+                                new LatLng(mLastKnownLocation.getLatitude(),
+                                        mLastKnownLocation.getLongitude()), points.get(0));
 
                         for (int i = 0; i < points.size() - 1; i++) {
-                            putLineToPoint(renderer, world, objectFactory, points.get(i), points.get(i + 1));
+                            putLineToPoint(renderer, world, objectFactory, points.get(i),
+                                    points.get(i + 1));
                         }
                         Location ls = new Location("");
                         LatLng end = points.get(points.size() - 1);
@@ -481,13 +506,15 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void initializeGeolocation() {
-        mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+        mFusedLocationProviderClient = LocationServices
+                .getFusedLocationProviderClient(this);
         try {
             Task<Location> locationResult = mFusedLocationProviderClient.getLastLocation();
             locationResult.addOnCompleteListener(this, task -> {
                 if (task.isSuccessful()) {
                     mLastKnownLocation = task.getResult();
-                    myPosition = new LatLng(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude());
+                    myPosition = new LatLng(mLastKnownLocation.getLatitude(),
+                            mLastKnownLocation.getLongitude());
                 }
             });
         } catch (SecurityException e)  {
@@ -503,7 +530,8 @@ public class MainActivity extends AppCompatActivity
             }
             final String query = mSearch.getText().toString();
             Controller.addFoundedMarkers(mGoogleMap, query);
-            AlertDialogCreator.createAlertDialogFounded(MainActivity.this, query, mGoogleMap, myPosition).show();
+            AlertDialogCreator.createAlertDialogFounded(MainActivity.this, query,
+                    mGoogleMap, myPosition).show();
 
             return false;
         });
@@ -540,7 +568,8 @@ public class MainActivity extends AppCompatActivity
 
     private AlertDialog saveRoute() {
         final AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-        LayoutInflater inflater = (LayoutInflater) MainActivity.this.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
+        LayoutInflater inflater = (LayoutInflater) MainActivity.this.getSystemService(
+                Context.LAYOUT_INFLATER_SERVICE );
         final View layout = inflater.inflate(R.layout.save_route, null);
 
         builder.setPositiveButton(R.string.answer_finish, (dialog, id) -> {
@@ -549,9 +578,11 @@ public class MainActivity extends AppCompatActivity
             if (description == null || description.length() == 0) {
                 description = "No description given.";
             }
-            Controller.saveRouteInfo(Controller.getLoggedInAsString(MainActivity.this), Controller.getRoutesLength(MainActivity.this), description);
+            Controller.saveRouteInfo(Controller.getLoggedInAsString(MainActivity.this),
+                    Controller.getRoutesLength(MainActivity.this), description);
             Controller.sendRoute(mGoogleMap, "tmp", MainActivity.this);
-            Controller.updateRoutesLength(Controller.getLoggedInAsString(MainActivity.this), Controller.getRoutesLength(MainActivity.this));
+            Controller.updateRoutesLength(Controller.getLoggedInAsString(MainActivity.this),
+                    Controller.getRoutesLength(MainActivity.this));
         }).setNegativeButton(R.string.answer_back, (dialog, arg1) -> {});
 
         builder.setCancelable(true);
@@ -560,19 +591,23 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void checkPermission(){
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
-                ContextCompat.checkSelfPermission(this,Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                ){//Can add more as per requirement
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
+                ContextCompat.checkSelfPermission(this,
+                        Manifest.permission.ACCESS_COARSE_LOCATION) !=
+                        PackageManager.PERMISSION_GRANTED) {//Can add more as per requirement
 
             ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.ACCESS_COARSE_LOCATION},
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION,
+                            Manifest.permission.ACCESS_COARSE_LOCATION},
                     123);
         }
     }
 
     private AlertDialog createNewPlace(final LatLng latLng) {
         final AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-        LayoutInflater inflater = (LayoutInflater) MainActivity.this.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
+        LayoutInflater inflater = (LayoutInflater) MainActivity.this.getSystemService(
+                Context.LAYOUT_INFLATER_SERVICE );
         final View layout = inflater.inflate(R.layout.dialog_new_place, null);
 
         mBitmap = null;
@@ -606,7 +641,8 @@ public class MainActivity extends AppCompatActivity
             builderInner.setNegativeButton(R.string.answer_cancel, new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-                    Toast.makeText(MainActivity.this, "cancel", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, "cancel",
+                            Toast.LENGTH_SHORT).show();
                 }
             });
             builderInner.show();

@@ -48,7 +48,8 @@ public class Controller {
      * @param email user email
      * @param password user password
      */
-    public static void findUserAndCheckPassword(final Context context, final String email, final String password) {
+    public static void findUserAndCheckPassword(final Context context, final String email,
+                                                final String password) {
         DatabaseManager.findUserAndCheckPassword(context, email, password);
     }
 
@@ -68,7 +69,9 @@ public class Controller {
      * @param myPosition current user positions
      * @param context current context
      */
-    public static void findPlacesByString(final ArrayAdapter<String> arrayAdapter, final ArrayList<Place> places, final String toFind, final LatLng myPosition, final Context context) {
+    public static void findPlacesByString(final ArrayAdapter<String> arrayAdapter,
+                                          final ArrayList<Place> places, final String toFind,
+                                          final LatLng myPosition, final Context context) {
         DatabaseManager.findPlacesByString(arrayAdapter, places, toFind, myPosition, context);
     }
 
@@ -133,7 +136,8 @@ public class Controller {
      * @param adapter adapter to put places
      */
     @Deprecated
-    public static void loadUserFavouritePlacesList(final String userId, ArrayAdapter<String> adapter) {
+    public static void loadUserFavouritePlacesList(final String userId,
+                                                   ArrayAdapter<String> adapter) {
         DatabaseManager.loadUserFavouritePlacesList(userId, adapter);
     }
 
@@ -144,7 +148,9 @@ public class Controller {
      * @param fragmentManager fragment managet for transaction
      * @param fragment output fragment
      */
-    public static void loadUserFavouritePlacesListNew(final String userId, final Context context, final FragmentManager fragmentManager, final Fragment fragment) {
+    public static void loadUserFavouritePlacesListNew(final String userId, final Context context,
+                                                      final FragmentManager fragmentManager,
+                                                      final Fragment fragment) {
         DatabaseManager.loadUserFavouritePlacesListNew(userId, context, fragmentManager, fragment);
     }
 
@@ -155,7 +161,9 @@ public class Controller {
      * @param userProfileInfo fields with user profile information
      * @param fragmentManager fragment manager to load friends list
      */
-    public static void loadUserProfile(final Context context, final int userId, final TextView[] userProfileInfo, final FragmentManager fragmentManager) {
+    public static void loadUserProfile(final Context context, final int userId,
+                                       final TextView[] userProfileInfo,
+                                       final FragmentManager fragmentManager) {
         DatabaseManager.loadUserProfile(context, userId, userProfileInfo, fragmentManager);
     }
 
@@ -165,7 +173,8 @@ public class Controller {
      * @param placeInfo text description of the place
      * @param position place coordinates
      */
-    public static void saveCreatedPlace(final Uri uri, final String[] placeInfo, final LatLng position) {
+    public static void saveCreatedPlace(final Uri uri, final String[] placeInfo,
+                                        final LatLng position) {
         DatabaseManager.saveCreatedPlace(uri, placeInfo, position);
     }
 
@@ -195,7 +204,9 @@ public class Controller {
      * @param fragmentManager fragment manager for transaction
      * @param fragment output fragment
      */
-    public static void getUserRoutesLength(final String userId, final Context context, final FragmentManager fragmentManager, final Fragment fragment) {
+    public static void getUserRoutesLength(final String userId, final Context context,
+                                           final FragmentManager fragmentManager,
+                                           final Fragment fragment) {
         DatabaseManager.getUserRoutesLength(userId, context, fragmentManager, fragment);
     }
 
@@ -223,7 +234,8 @@ public class Controller {
      * @param context current context
      * @param marker place position
      */
-    public static void runDescriptionDialog(final Context context, final Marker marker, final LatLng myPosition, final GoogleMap googleMap) {
+    public static void runDescriptionDialog(final Context context, final Marker marker,
+                                            final LatLng myPosition, final GoogleMap googleMap) {
         DatabaseManager.runDescriptionDialog(context, marker, myPosition, googleMap);
     }
 
@@ -243,7 +255,8 @@ public class Controller {
      * @param descriptionId ID of route that has this description
      * @param description string that contains all description
      */
-    public static void saveRouteInfo(final String userId, final Long descriptionId, final String description) {
+    public static void saveRouteInfo(final String userId, final Long descriptionId,
+                                     final String description) {
         DatabaseManager.saveRouteInfo(userId, descriptionId, description);
     }
 
@@ -253,7 +266,8 @@ public class Controller {
      * @param id route ID
      * @param userId user ID
      */
-    public static void fillDescription(final TextView textView, final Integer id, final String userId) {
+    public static void fillDescription(final TextView textView, final Integer id,
+                                       final String userId) {
         DatabaseManager.fillDescription(textView, id, userId);
     }
 
@@ -272,7 +286,8 @@ public class Controller {
      * @param context current context
      * @param userId id of the user
      */
-    public static void loadAvatar(CircleImageView circleImageView, final Context context, final String userId) {
+    public static void loadAvatar(CircleImageView circleImageView, final Context context,
+                                  final String userId) {
        DatabaseManager.loadAvatar(circleImageView, context, userId);
     }
 
@@ -282,7 +297,8 @@ public class Controller {
      * @param place place with all necessary information
      * @param context current context
      */
-    public static void loadDescriptionImage(final ImageView imageView, final Place place, final Context context) {
+    public static void loadDescriptionImage(final ImageView imageView, final Place place,
+                                            final Context context) {
         DatabaseManager.loadDescriptionImage(imageView, place, context);
     }
 
@@ -457,7 +473,9 @@ public class Controller {
      * @param googleMap map where route will be possibly build
      * @param points storage of route points which is important for route in augmented reality
      */
-    public static void makeRoute(final ListView listView, final LatLng myPosition, final ArrayList<Place> placeArrayList, final Context context, final GoogleMap googleMap, final ArrayList<LatLng> points) {
+    public static void makeRoute(final ListView listView, final LatLng myPosition,
+                                 final ArrayList<Place> placeArrayList, final Context context,
+                                 final GoogleMap googleMap, final ArrayList<LatLng> points) {
         MapManager.makeRoute(listView, myPosition, placeArrayList, context, googleMap, points);
     }
 
@@ -469,7 +487,9 @@ public class Controller {
      * @param googleMap map where route should be build
      * @param points storage of route points which is important for route in augmented reality
      */
-    public static void makeSingleRoute(final LatLng myPosition, final LatLng destination, final Context context, final GoogleMap googleMap, final ArrayList<LatLng> points) {
+    public static void makeSingleRoute(final LatLng myPosition, final LatLng destination,
+                                       final Context context, final GoogleMap googleMap,
+                                       final ArrayList<LatLng> points) {
         MapManager.makeSingleRoute(myPosition, destination, context, googleMap, points);
     }
 
@@ -479,7 +499,8 @@ public class Controller {
      * @param routeName route name
      * @return returns callback that can do a map screenshot
      */
-    public static GoogleMap.SnapshotReadyCallback getRoutePictureCallback(final Activity instance, final String routeName) {
+    public static GoogleMap.SnapshotReadyCallback getRoutePictureCallback(final Activity instance,
+                                                                          final String routeName) {
         GoogleMap.SnapshotReadyCallback callback = new GoogleMap.SnapshotReadyCallback() {
             Bitmap bitmap;
 
@@ -487,7 +508,8 @@ public class Controller {
             public void onSnapshotReady(Bitmap snapshot) {
                 try {
                     bitmap = snapshot;
-                    File outputDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), instance.getString(R.string.app_name));
+                    File outputDir = new File(Environment.getExternalStoragePublicDirectory(
+                            Environment.DIRECTORY_PICTURES), instance.getString(R.string.app_name));
 
                     if (!outputDir.exists()) {
                         outputDir.mkdir();
@@ -502,8 +524,10 @@ public class Controller {
                             null);
 
                     Uri attachment = Uri.fromFile(outputFile);
-                    DatabaseManager.getUserRoutesLength2(AuthorizationUtils.getLoggedInAsString(instance.getBaseContext()), instance.getBaseContext());
-                    DatabaseManager.saveRoute(attachment, AuthorizationUtils.getLoggedInAsString(instance.getBaseContext()), instance.getBaseContext());
+                    DatabaseManager.getUserRoutesLength2(AuthorizationUtils.getLoggedInAsString(
+                            instance.getBaseContext()), instance.getBaseContext());
+                    DatabaseManager.saveRoute(attachment, AuthorizationUtils.getLoggedInAsString(
+                            instance.getBaseContext()), instance.getBaseContext());
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -538,7 +562,10 @@ public class Controller {
         double dLatitude = degreeToRadian(finish.latitude - start.latitude);
         double dLongitude = degreeToRadian(finish.longitude - start.longitude);
 
-        double a = Math.sin(dLatitude / 2) * Math.sin(dLatitude / 2) + Math.cos(degreeToRadian(start.latitude)) * Math.cos(degreeToRadian(finish.latitude)) * Math.sin(dLongitude / 2) * Math.sin(dLongitude / 2);
+        double a = Math.sin(dLatitude / 2) * Math.sin(dLatitude / 2) +
+                Math.cos(degreeToRadian(start.latitude)) *
+                        Math.cos(degreeToRadian(finish.latitude)) * Math.sin(dLongitude / 2) *
+                        Math.sin(dLongitude / 2);
         double b = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
         return radius * b;
     }

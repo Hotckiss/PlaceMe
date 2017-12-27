@@ -19,12 +19,14 @@ public class RoutesActivity extends AppCompatActivity {
         setContentView(R.layout.activity_routes);
 
         FragmentManager fragmentManager = getSupportFragmentManager();
-        android.support.v4.app.Fragment fragment = fragmentManager.findFragmentById(R.id.fragmentContainer2);
-
+        android.support.v4.app.Fragment fragment = fragmentManager.findFragmentById(
+                R.id.fragmentContainer2);
 
         if (fragment == null) {
             fragment = new RoutesListViewFragment();
-            Controller.getUserRoutesLength(Controller.getLoggedInAsString(RoutesActivity.this), RoutesActivity.this, fragmentManager, fragment);
+            Controller.getUserRoutesLength(Controller.getLoggedInAsString(
+                    RoutesActivity.this), RoutesActivity.this,
+                    fragmentManager, fragment);
         }
     }
 
