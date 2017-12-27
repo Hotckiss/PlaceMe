@@ -15,7 +15,6 @@ import android.widget.ListView;
 import android.widget.RatingBar;
 import android.widget.TextView;
 
-import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -35,7 +34,6 @@ import placeme.ru.placemedemo.core.utils.FavouritePlacesUtils;
 import placeme.ru.placemedemo.core.utils.FriendsDataUtils;
 import placeme.ru.placemedemo.core.utils.RoutesUtils;
 import placeme.ru.placemedemo.elements.Place;
-import placeme.ru.placemedemo.ui.MainActivity;
 
 /**
  * Created by Андрей on 25.12.2017.
@@ -56,11 +54,10 @@ public class Controller {
 
     /**
      * Method that register new user in database with unique id
-     * @param context current context
      * @param information information that user input during registration
      */
-    public static void registerUser(final Context context, final String[] information) {
-        DatabaseManager.registerUser(context, information);
+    public static void registerUser(final String[] information) {
+        DatabaseManager.registerUser(information);
     }
 
     /**
@@ -68,9 +65,11 @@ public class Controller {
      * @param arrayAdapter adapter with names of founded places
      * @param places array with founded places
      * @param toFind string which contains user query to search
+     * @param myPosition current user positions
+     * @param context current context
      */
-    public static void findPlacesByString(final ArrayAdapter<String> arrayAdapter, final ArrayList<Place> places, final String toFind) {
-        DatabaseManager.findPlacesByString(arrayAdapter, places, toFind);
+    public static void findPlacesByString(final ArrayAdapter<String> arrayAdapter, final ArrayList<Place> places, final String toFind, final LatLng myPosition, final Context context) {
+        DatabaseManager.findPlacesByString(arrayAdapter, places, toFind, myPosition, context);
     }
 
     /**
@@ -526,5 +525,25 @@ public class Controller {
             map.snapshot(Controller.getRoutePictureCallback(activity, "tmp"));
         });
         myThread.run();
+    }
+
+    /**
+     * Method that converts distance between lat lng to kilometers
+     * @param start first point
+     * @param finish second point
+     * @return distance in kilometers
+     */
+    public static double getKilometers(LatLng start, LatLng finish) {
+        double radius = 6371;
+        double dLatitude = degreeToRadian(finish.latitude - start.latitude);
+        double dLongitude = degreeToRadian(finish.longitude - start.longitude);
+
+        double a = Math.sin(dLatitude / 2) * Math.sin(dLatitude / 2) + Math.cos(degreeToRadian(start.latitude)) * Math.cos(degreeToRadian(finish.latitude)) * Math.sin(dLongitude / 2) * Math.sin(dLongitude / 2);
+        double b = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return radius * b;
+    }
+
+    private static double degreeToRadian(double degree) {
+        return degree * (Math.PI / 180);
     }
 }

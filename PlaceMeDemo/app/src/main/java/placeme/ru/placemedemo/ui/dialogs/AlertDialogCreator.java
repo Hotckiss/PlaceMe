@@ -1,13 +1,18 @@
 package placeme.ru.placemedemo.ui.dialogs;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.support.v7.app.AlertDialog;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.RatingBar;
+import android.widget.SeekBar;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import com.google.android.gms.maps.GoogleMap;
@@ -20,6 +25,7 @@ import placeme.ru.placemedemo.core.Controller;
 import placeme.ru.placemedemo.core.database.DatabaseManager;
 import placeme.ru.placemedemo.core.map.MapManager;
 import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
+import placeme.ru.placemedemo.core.utils.SearchUtils;
 import placeme.ru.placemedemo.elements.Place;
 
 /**
@@ -66,7 +72,7 @@ public class AlertDialogCreator {
         final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(context, android.R.layout.select_dialog_multichoice);
         final ArrayList<Place> placeArrayList = new ArrayList<>();
 
-        Controller.findPlacesByString(arrayAdapter, placeArrayList, toFind);
+        Controller.findPlacesByString(arrayAdapter, placeArrayList, toFind, myPosition, context);
 
         builder.setNegativeButton(R.string.answer_cancel, (dialog, which) -> dialog.dismiss());
 
@@ -140,6 +146,103 @@ public class AlertDialogCreator {
         builder.setPositiveButton(R.string.answer_rate, (dialog, arg1) -> Controller.updatePlaceRating(rb, place.getIdAsString()));
         builder.setNeutralButton(R.string.answer_add, (dialog, id) -> Controller.addPlaceToFavourite(Controller.getLoggedInAsString(context), place.getIdAsString()));
         builder.setNegativeButton(R.string.answer_ok, (dialog, arg1) -> dialog.cancel());
+        builder.setCancelable(true);
+        builder.setView(layout);
+        return builder.create();
+    }
+
+    public static AlertDialog createSearchParametersDialog(final Context context) {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        LayoutInflater inflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
+        final View layout = inflater.inflate(R.layout.dialog_search_parameters, null);
+
+        builder.setNegativeButton(R.string.answer_ok, (dialog, arg1) -> dialog.cancel());
+
+        ((TextView)layout.findViewById(R.id.distance_param)).setText(String.valueOf(SearchUtils.getDistanceSearchValue(context)));
+        Log.d("ddddd", String.valueOf(SearchUtils.getRatingSearchValue(context) / 20.0));
+        Log.d("ddddd", String.valueOf(SearchUtils.getRatingSearchValue(context)));
+        ((TextView)layout.findViewById(R.id.rating_param)).setText("> " + String.valueOf(SearchUtils.getRatingSearchValue(context) / 20.0) + " stars");
+
+        final SeekBar seekBarDistance = layout.findViewById(R.id.seek_bar_distance);
+        final SeekBar seekBarRating = layout.findViewById(R.id.seek_bar_rating);
+        final Switch distanceSwitch = layout.findViewById(R.id.switch_dist);
+        final Switch ratingSwitch = layout.findViewById(R.id.switch_rating);
+
+
+        distanceSwitch.setChecked(SearchUtils.getDistanceSearchStatus(context));
+        ratingSwitch.setChecked(SearchUtils.getRatingSearchStatus(context));
+        seekBarDistance.setEnabled(SearchUtils.getDistanceSearchStatus(context));
+        seekBarRating.setEnabled(SearchUtils.getRatingSearchStatus(context));
+
+        seekBarDistance.setProgress(SearchUtils.getDistanceSearchValue(context));
+        seekBarRating.setProgress(SearchUtils.getRatingSearchValue(context));
+
+        distanceSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked) {
+                seekBarDistance.setEnabled(true);
+                SearchUtils.setDistanceSearchStatus(context,true);
+            } else {
+                seekBarDistance.setEnabled(false);
+                SearchUtils.setDistanceSearchStatus(context,false);
+            }
+        });
+
+
+        ratingSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked) {
+                seekBarRating.setEnabled(true);
+                SearchUtils.setRatingSearchStatus(context,true);
+            } else {
+                seekBarRating.setEnabled(false);
+                SearchUtils.setRatingSearchStatus(context,false);
+            }
+        });
+
+        seekBarDistance.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            private final TextView mTextView = (TextView)layout.findViewById(R.id.distance_param);
+
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                Integer dist =  progress;
+                SearchUtils.setDistanceSearchValue(context, progress);
+                mTextView.setText("< " + dist.toString() + " km");
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+
+        seekBarRating.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            private final TextView mTextView = (TextView) layout.findViewById(R.id.rating_param);
+
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                String intNumber;
+                String afterDotNumber;
+                Double rating;
+
+                SearchUtils.setRatingSearchValue(context, progress);
+                if (progress == 0) {
+                    intNumber = "0";
+                    afterDotNumber = "0";
+                } else {
+                    rating = (double) progress / 20.0;
+                    intNumber = rating.toString().split("\\.")[0];
+                    afterDotNumber = rating.toString().split("\\.")[1];//.charAt(0);
+                }
+                mTextView.setText("> " + intNumber + "." + afterDotNumber + " stars");
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+
         builder.setCancelable(true);
         builder.setView(layout);
         return builder.create();

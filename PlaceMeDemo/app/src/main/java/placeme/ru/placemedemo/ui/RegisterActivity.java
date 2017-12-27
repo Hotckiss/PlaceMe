@@ -9,7 +9,6 @@ import android.widget.TextView;
 
 import placeme.ru.placemedemo.R;
 import placeme.ru.placemedemo.core.Controller;
-import placeme.ru.placemedemo.core.database.DatabaseManager;
 
 /**
  * Activity that provides user to register in the application
@@ -37,7 +36,7 @@ public class RegisterActivity extends AppCompatActivity {
 
         submit.setOnClickListener(v -> {
             if (checkLogin() && checkPassword()) {
-                Controller.registerUser(RegisterActivity.this, generateNewUserData());
+                Controller.registerUser(generateNewUserData());
                 finish();
             } else {
                 createAlertDialogProblems().show();

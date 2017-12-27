@@ -2,12 +2,15 @@ package placeme.ru.placemedemo.ui;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 import android.support.design.widget.FloatingActionButton;
@@ -21,6 +24,7 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -54,6 +58,7 @@ import gl.GL1Renderer;
 import gl.GLFactory;
 import placeme.ru.placemedemo.R;
 import placeme.ru.placemedemo.core.Controller;
+import placeme.ru.placemedemo.core.database.DatabaseManager;
 import placeme.ru.placemedemo.ui.dialogs.AlertDialogCreator;
 import system.ArActivity;
 import system.MySetup;
@@ -71,6 +76,7 @@ public class MainActivity extends AppCompatActivity
     private static final int GALLERY_INTENT = 2;
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     private static final int PLACE_PICKER_REQUEST = 1;
+    private static final int CAMERA_RESULT = 0;
     private static final String MY_PLACE = "My place";
 
     private static final int REQUEST_EXTERNAL_STORAGE = 1;
@@ -87,9 +93,10 @@ public class MainActivity extends AppCompatActivity
 
     private EditText mSearch;
 
-    private static ImageView mImageView;
+    private ImageView mImageView;
+    private Bitmap mBitmap;
     private Uri mUri;
-
+    private int mLastAction = 0;
     //AR
     private static ArrayList<LatLng> points = new ArrayList<>();
 
@@ -97,6 +104,10 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ) {
+            checkPermission();
+        }
 
         checkLogin();
 
@@ -145,6 +156,8 @@ public class MainActivity extends AppCompatActivity
             Controller.getUserRoutesLength2(Controller.getLoggedInAsString(MainActivity.this), MainActivity.this);
             saveRoute().show();
         });
+
+        initializeSearchParameters();
     }
 
     private void loadProfileAvatar(View view) {
@@ -279,6 +292,14 @@ public class MainActivity extends AppCompatActivity
         sendIntent.setType("text/plain");
         startActivity(Intent.createChooser(sendIntent, "Share using..."));
     }
+
+    private void initializeSearchParameters() {
+        FloatingActionButton searchParamButton  = findViewById(R.id.button_search_parameters);
+        searchParamButton.setOnClickListener(v -> {
+            AlertDialog alert = AlertDialogCreator.createSearchParametersDialog(MainActivity.this);
+            alert.show();
+        });
+    }
     
     @Override
     public void onStop () {
@@ -297,6 +318,7 @@ public class MainActivity extends AppCompatActivity
         if (requestCode == GALLERY_INTENT && resultCode == RESULT_OK) {
             mUri = data.getData();
             mImageView.setImageURI(mUri);
+            mLastAction = 1;
         }
 
         if (requestCode == PLACE_PICKER_REQUEST) {
@@ -309,6 +331,12 @@ public class MainActivity extends AppCompatActivity
                 String toastMsg = String.format("Place: %s", place.getName().toString());
                 Toast.makeText(this, toastMsg, Toast.LENGTH_LONG).show();
             }
+        }
+        if (requestCode == CAMERA_RESULT) {
+            mBitmap = (Bitmap) data.getExtras().get("data");
+            mLastAction = 2;
+
+            mImageView.setImageBitmap(mBitmap);
         }
     }
 
@@ -504,22 +532,67 @@ public class MainActivity extends AppCompatActivity
         return builder.create();
     }
 
+    private void checkPermission(){
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
+                ContextCompat.checkSelfPermission(this,Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                ){//Can add more as per requirement
+
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.ACCESS_COARSE_LOCATION},
+                    123);
+        }
+    }
+
     private AlertDialog createNewPlace(final LatLng latLng) {
         final AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
         LayoutInflater inflater = (LayoutInflater) MainActivity.this.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
         final View layout = inflater.inflate(R.layout.dialog_new_place, null);
 
+        mBitmap = null;
+        mUri = null;
+        mLastAction = 0;
+
         mImageView = layout.findViewById(R.id.new_place_image);
         mImageView.setOnClickListener(v -> {
-            Intent intent = new Intent(Intent.ACTION_PICK);
+            AlertDialog.Builder builderInner = new AlertDialog.Builder(MainActivity.this);
+            builderInner.setMessage("Do you want to open gallery or take photo?");
+            builderInner.setTitle("Adding photo");
+            builderInner.setPositiveButton("Gallery", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    Intent intent = new Intent(Intent.ACTION_PICK);
 
-            intent.setType("image/*");
-            startActivityForResult(intent, GALLERY_INTENT);
+                    mLastAction = 1;
+                    intent.setType("image/*");
+                    startActivityForResult(intent, GALLERY_INTENT);
+                }
+            });
+            builderInner.setNeutralButton("Camera", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    //Toast.makeText(MainActivity.this, "cam", Toast.LENGTH_SHORT).show();
+                    mLastAction = 2;
+                    Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                    startActivityForResult(cameraIntent, CAMERA_RESULT);
+                }
+            });
+            builderInner.setNegativeButton(R.string.answer_cancel, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    Toast.makeText(MainActivity.this, "cancel", Toast.LENGTH_SHORT).show();
+                }
+            });
+            builderInner.show();
+
         });
 
         builder.setPositiveButton(R.string.answer_finish, (dialog, id) -> {
             String[] placeInfo = getPlaceInfo(layout);
-            Controller.saveCreatedPlace(mUri, placeInfo, latLng);
+            if(mLastAction == 1) {
+                Controller.saveCreatedPlace(mUri, placeInfo, latLng);
+            } else {
+                DatabaseManager.saveCreatedPlace2(mBitmap, placeInfo, latLng);
+            }
         }).setNegativeButton(R.string.answer_back, (dialog, arg1) -> {});
 
         builder.setCancelable(true);
