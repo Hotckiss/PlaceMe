@@ -24,13 +24,13 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -48,6 +48,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.Task;
+import com.tomergoldst.tooltips.ToolTip;
+import com.tomergoldst.tooltips.ToolTipsManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -97,6 +99,7 @@ public class MainActivity extends AppCompatActivity
     private Bitmap mBitmap;
     private Uri mUri;
     private int mLastAction = 0;
+    private ToolTipsManager mToolTipsManager;
     //AR
     private static ArrayList<LatLng> points = new ArrayList<>();
 
@@ -136,6 +139,8 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = findViewById(R.id.nav_view);
         View hView =  navigationView.getHeaderView(0);
 
+        mToolTipsManager = new ToolTipsManager();
+
         loadProfileAvatar(hView);
         navigationView.setNavigationItemSelectedListener(this);
 
@@ -157,15 +162,28 @@ public class MainActivity extends AppCompatActivity
             saveRoute().show();
         });
 
+        ToolTip.Builder builder1 = new ToolTip.Builder(this, actionButton, findViewById(R.id.root_t), "Take a route snapshot!", ToolTip.POSITION_LEFT_TO);
+
+        actionButton.setOnLongClickListener(v -> {
+            mToolTipsManager.show(builder1.build());
+            return true;
+        });
+
         initializeSearchParameters();
 
         FloatingActionButton searchFriendsButton = findViewById(R.id.search_friends);
 
+        ToolTip.Builder builder = new ToolTip.Builder(this, searchFriendsButton, findViewById(R.id.root_t), "Find friends\nhere!", ToolTip.POSITION_ABOVE );
+
         searchFriendsButton.setOnClickListener(v -> {
             searchFriends().show();
-            //Controller.getUserRoutesLength2(Controller.getLoggedInAsString(MainActivity.this), MainActivity.this);
-            //saveRoute().show();
         });
+
+        searchFriendsButton.setOnLongClickListener(v -> {
+            mToolTipsManager.show(builder.build());
+            return true;
+        });
+
     }
 
     private AlertDialog searchFriends() {
@@ -173,6 +191,11 @@ public class MainActivity extends AppCompatActivity
         LayoutInflater inflater = (LayoutInflater) MainActivity.this.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
         final View layout = inflater.inflate(R.layout.save_route, null);
 
+        final TextView textView = layout.findViewById(R.id.route_title);
+
+        textView.setText("Search friends!");
+
+        //builder.setTitle("Search friends");
         builder.setPositiveButton("Search!", (dialog, id) -> {
             EditText editTextDescription = layout.findViewById(R.id.route_description);
             String description = editTextDescription.getText().toString();
@@ -196,8 +219,14 @@ public class MainActivity extends AppCompatActivity
 
     private void initGooglePlacesButton() {
         FloatingActionButton floatingActionButton = findViewById(R.id.google_places_button);
+        ToolTip.Builder builder = new ToolTip.Builder(this, floatingActionButton, findViewById(R.id.root_t), "Import places\nfrom big base", ToolTip.POSITION_BELOW );
 
         floatingActionButton.setOnClickListener(v -> alertDialogAskGooglePlacesUsage(MainActivity.this).show());
+
+        floatingActionButton.setOnLongClickListener(v -> {
+            mToolTipsManager.show(builder.build());
+            return true;
+        });
     }
 
     private AlertDialog alertDialogAskGooglePlacesUsage(final Context context) {
@@ -297,7 +326,9 @@ public class MainActivity extends AppCompatActivity
             Intent routes = new Intent(this, RoutesActivity.class);
             startActivity(routes);
         } else if (id == R.id.nav_settings) {
-            Intent settings = new Intent(this, SettingsActivity.class);
+            /*Intent settings = new Intent(this, SettingsActivity.class);
+            startActivity(settings);*/
+            Intent settings = new Intent(this, PlanActivity.class);
             startActivity(settings);
         } else if (id == R.id.nav_share) {
             shareApplication();
@@ -322,10 +353,20 @@ public class MainActivity extends AppCompatActivity
 
     private void initializeSearchParameters() {
         FloatingActionButton searchParamButton  = findViewById(R.id.button_search_parameters);
+        ToolTip.Builder builder = new ToolTip.Builder(this, searchParamButton, findViewById(R.id.root_t), "Customize your search!", ToolTip.POSITION_LEFT_TO );
         searchParamButton.setOnClickListener(v -> {
             AlertDialog alert = AlertDialogCreator.createSearchParametersDialog(MainActivity.this);
             alert.show();
         });
+
+        searchParamButton.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                mToolTipsManager.show(builder.build());
+                return true;
+            }
+        });
+
     }
     
     @Override
@@ -584,31 +625,19 @@ public class MainActivity extends AppCompatActivity
             AlertDialog.Builder builderInner = new AlertDialog.Builder(MainActivity.this);
             builderInner.setMessage("Do you want to open gallery or take photo?");
             builderInner.setTitle("Adding photo");
-            builderInner.setPositiveButton("Gallery", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    Intent intent = new Intent(Intent.ACTION_PICK);
+            builderInner.setPositiveButton("Gallery", (dialog, which) -> {
+                Intent intent = new Intent(Intent.ACTION_PICK);
 
-                    mLastAction = 1;
-                    intent.setType("image/*");
-                    startActivityForResult(intent, GALLERY_INTENT);
-                }
+                mLastAction = 1;
+                intent.setType("image/*");
+                startActivityForResult(intent, GALLERY_INTENT);
             });
-            builderInner.setNeutralButton("Camera", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    //Toast.makeText(MainActivity.this, "cam", Toast.LENGTH_SHORT).show();
-                    mLastAction = 2;
-                    Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                    startActivityForResult(cameraIntent, CAMERA_RESULT);
-                }
+            builderInner.setNeutralButton("Camera", (dialog, which) -> {
+                mLastAction = 2;
+                Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                startActivityForResult(cameraIntent, CAMERA_RESULT);
             });
-            builderInner.setNegativeButton(R.string.answer_cancel, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    Toast.makeText(MainActivity.this, "cancel", Toast.LENGTH_SHORT).show();
-                }
-            });
+            builderInner.setNegativeButton(R.string.answer_cancel, (dialog, which) -> Toast.makeText(MainActivity.this, "cancel", Toast.LENGTH_SHORT).show());
             builderInner.show();
 
         });

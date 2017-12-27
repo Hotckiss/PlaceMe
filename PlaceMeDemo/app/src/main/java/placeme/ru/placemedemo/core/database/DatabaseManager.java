@@ -6,6 +6,7 @@ import android.net.Uri;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -27,6 +28,8 @@ import com.squareup.picasso.Picasso;
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 
 import de.hdodenhof.circleimageview.CircleImageView;
@@ -841,6 +844,136 @@ public class DatabaseManager {
                                 referenceFriends.child(userId).child("friends").setValue(friends + "," + friendId);
                                 referenceFriends.child(userId).child("friendsLength").setValue(length + 1);
                             }
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    public static void addPlan(final String placeName, final String userId, final String date) {
+        DatabaseReference reference = getDatabaseChild("plans");
+
+        if (reference != null) {
+            reference = reference.child(userId);
+            reference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    Object plan = dataSnapshot.getValue();
+                    if(plan != null) {
+                        String currentPlan = dataSnapshot.getValue().toString();
+                        if (currentPlan.length() == 0) {
+                            DatabaseReference referencePlan = getDatabaseChild("plans").child(userId);
+                            referencePlan.setValue(placeName + "\n" + date);
+                        } else {
+                            DatabaseReference referencePlan = getDatabaseChild("plans").child(userId);
+                            referencePlan.setValue(currentPlan + ";" + placeName + "\n" + date);
+                        }
+                    } else {
+                        DatabaseReference referencePlan = getDatabaseChild("plans").child(userId);
+                        referencePlan.setValue(placeName + "\n" + date);
+                    }
+                }
+            });
+        }
+    }
+
+    public static void loadPlan(final String userId, final ArrayAdapter<String> adapter) {
+        DatabaseReference reference = getDatabaseChild("plans");
+
+        if (reference != null) {
+            reference = reference.child(userId);
+            reference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    Object plan = dataSnapshot.getValue();
+                    if (plan != null) {
+                        String currentPlan = plan.toString();
+                        if (currentPlan.length() != 0) {
+                            String[] plans = currentPlan.split(";");
+                            for (String planSingle : plans) {
+                                String[] splitted = planSingle.split("\n");
+                                if (splitted.length != 0) {
+                                    if (validetePlan(splitted[splitted.length - 1])) {
+                                        adapter.add(planSingle);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    private static boolean validetePlan(final String planDate) {
+        Calendar calendar = Calendar.getInstance();
+        String[] dateTime = planDate.split(" ");
+        String[] data = dateTime[0].split("-");
+        String[] time = dateTime[1].split(":");
+        if (calendar.get(Calendar.YEAR) > Integer.parseInt(data[2])) {
+            return false;
+        } else if (calendar.get(Calendar.YEAR) == Integer.parseInt(data[2])) {
+            if (calendar.get(Calendar.MONTH) > Integer.parseInt(data[1])) {
+                return false;
+            } else if ((calendar.get(Calendar.MONTH) + 1) == Integer.parseInt(data[1])) {
+                if (calendar.get(Calendar.DAY_OF_MONTH) > Integer.parseInt(data[0])) {
+                    return false;
+                } else {
+                    return true;
+                }
+
+            }
+        }
+        return true;
+    }
+
+    public static void addReview(final String placeId, final String review) {
+        DatabaseReference reference = getDatabaseChild("reviews");
+        if (reference != null) {
+            reference = reference.child(placeId);
+            reference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    Object reviews = dataSnapshot.getValue();
+                    DatabaseReference referenceNewReviews = getDatabaseChild("reviews");
+                    if (referenceNewReviews != null) {
+                        if (reviews == null) {
+
+                            referenceNewReviews = referenceNewReviews.child(placeId);
+                            referenceNewReviews.setValue(review);
+                        } else {
+                            String allReviews = reviews.toString();
+                            if (allReviews.length() == 0) {
+
+                                referenceNewReviews = referenceNewReviews.child(placeId);
+                                referenceNewReviews.setValue(review);
+                            } else {
+
+                                referenceNewReviews = referenceNewReviews.child(placeId);
+                                referenceNewReviews.setValue(allReviews + ";" + review);
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    public static void findReviews(final String placeId, ArrayAdapter<String> adapter) {
+        DatabaseReference reference = getDatabaseChild("reviews");
+        if (reference != null) {
+            reference = reference.child(placeId);
+            reference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    Object data = dataSnapshot.getValue();
+                    if (data != null) {
+                        String allReviews = data.toString();
+                        String[] arrayReviews = allReviews.split(";");
+
+                        for (String singleReview : arrayReviews) {
+                            adapter.add(singleReview);
                         }
                     }
                 }

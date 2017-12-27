@@ -1,17 +1,24 @@
 package placeme.ru.placemedemo.ui.dialogs;
 
 import android.content.Context;
+import android.content.DialogInterface;
+import android.os.Build;
+import android.support.annotation.RequiresApi;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.DatePicker;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.RatingBar;
 import android.widget.SeekBar;
 import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.TimePicker;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
@@ -22,6 +29,7 @@ import java.util.ArrayList;
 import placeme.ru.placemedemo.R;
 import placeme.ru.placemedemo.core.Controller;
 import placeme.ru.placemedemo.core.database.DatabaseManager;
+import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
 import placeme.ru.placemedemo.core.utils.SearchUtils;
 import placeme.ru.placemedemo.elements.Place;
 import placeme.ru.placemedemo.elements.User;
@@ -116,12 +124,70 @@ public class AlertDialogCreator {
 
         builder.setPositiveButton(R.string.answer_go_here, (dialog, arg1) -> {
             Controller.makeSingleRoute(myPosition, new LatLng(place.getLatitude(), place.getLongitude()), context, googleMap, points);
-        }).setNeutralButton(R.string.answer_rate_place,
+        }).setNeutralButton("Actions",
                 (dialog, id) -> {
                     AlertDialog alert = AlertDialogCreator.createAlertRateDialog(place,context);
                     alert.show();
 
-                }).setNegativeButton(R.string.answer_ok, (dialog, arg1) -> dialog.cancel());
+                }).setNegativeButton("Reviews", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                AlertDialog.Builder reviewDialog = new AlertDialog.Builder(context);
+                LayoutInflater inflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
+                final View layoutInner = inflater.inflate(R.layout.add_review, null);
+                final EditText reviewText = layoutInner.findViewById(R.id.review);
+                reviewDialog.setTitle("Add review");
+                reviewDialog.setPositiveButton("Submit review", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        String newReview = reviewText.getText().toString();
+                        if(newReview.length() > 0) {
+                            DatabaseManager.addReview(place.getIdAsString(), newReview);
+                        }
+                        dialog.dismiss();
+                    }
+                });
+
+                reviewDialog.setNegativeButton(R.string.answer_cancel, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+                reviewDialog.setNeutralButton("Watch rewiews", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                        //***
+                        AlertDialog.Builder builderList = new AlertDialog.Builder(context);
+                        LayoutInflater inflaterList = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
+                        final View layoutList = inflaterList.inflate(R.layout.list, null);
+
+                        builderList.setView(layoutList);
+                        builderList.setTitle("All reviews");
+
+                        final ListView listView = layoutList.findViewById(R.id.lv);
+                        //listView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
+
+                        final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(context, android.R.layout.simple_list_item_1);
+                        //final ArrayList<Place> placeArrayList = new ArrayList<>();
+
+                        DatabaseManager.findReviews(((Integer)place.getId()).toString(), arrayAdapter);
+
+                        builderList.setNegativeButton(R.string.answer_cancel, (dialog1, which1) -> {});
+
+                        listView.setAdapter(arrayAdapter);
+                        builderList.create().show();
+                        //***
+
+                        dialog.dismiss();
+                    }
+                });
+                reviewDialog.setCancelable(true);
+                reviewDialog.setView(layoutInner);
+                reviewDialog.create().show();
+            }
+        });
 
         builder.setCancelable(true);
         builder.setView(layout);
@@ -143,7 +209,70 @@ public class AlertDialogCreator {
 
         builder.setPositiveButton(R.string.answer_rate, (dialog, arg1) -> Controller.updatePlaceRating(rb, place.getIdAsString()));
         builder.setNeutralButton(R.string.answer_add, (dialog, id) -> Controller.addPlaceToFavourite(Controller.getLoggedInAsString(context), place.getIdAsString()));
-        builder.setNegativeButton(R.string.answer_ok, (dialog, arg1) -> dialog.cancel());
+        builder.setNegativeButton("Plan to visit", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                AlertDialog.Builder dataPick = new AlertDialog.Builder(context);
+                LayoutInflater inflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
+                final View layoutInner = inflater.inflate(R.layout.data_set, null);
+
+                final DatePicker datePicker = layoutInner.findViewById(R.id.datePicker);
+
+                dataPick.setTitle("Select date");
+                dataPick.setNegativeButton(R.string.answer_cancel, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+
+                dataPick.setPositiveButton("Select", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Integer day = datePicker.getDayOfMonth();
+                        Integer month = datePicker.getMonth() + 1;
+                        Integer year = datePicker.getYear();
+                        //Log.d("dddd", ((Integer)month).toString());
+                        dialog.dismiss();
+                        //***
+                        AlertDialog.Builder timePick = new AlertDialog.Builder(context);
+                        LayoutInflater inflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
+                        final View layoutInnerTime = inflater.inflate(R.layout.time_set, null);
+
+                        final TimePicker timePicker = layoutInnerTime.findViewById(R.id.timePicker);
+
+                        timePick.setTitle("Select time");
+                        timePick.setNegativeButton(R.string.answer_cancel, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        });
+
+                        timePick.setPositiveButton("Select", new DialogInterface.OnClickListener() {
+                            @RequiresApi(api = Build.VERSION_CODES.M)
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                Integer hours = timePicker.getHour();
+                                Integer minutes = timePicker.getMinute();
+
+                                DatabaseManager.addPlan(place.getName(), Controller.getLoggedInAsString(context), day.toString() + "-" + month.toString() + "-" + year.toString() + " "
+                                + hours.toString() + ":" + minutes.toString());
+                                dialog.dismiss();
+                            }
+                        });
+                        timePick.setCancelable(true);
+                        timePick.setView(layoutInnerTime);
+                        timePick.create().show();
+                        //***
+                    }
+                });
+                dataPick.setCancelable(true);
+                dataPick.setView(layoutInner);
+                dataPick.create().show();
+            }
+
+        });
         builder.setCancelable(true);
         builder.setView(layout);
         return builder.create();
