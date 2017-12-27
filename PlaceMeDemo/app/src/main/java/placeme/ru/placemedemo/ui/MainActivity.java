@@ -89,7 +89,6 @@ public class MainActivity extends AppCompatActivity
 
     private GoogleMap mGoogleMap;
 
-    private FusedLocationProviderClient mFusedLocationProviderClient;
     private Location mLastKnownLocation;
     private LatLng myPosition;
 
@@ -103,16 +102,26 @@ public class MainActivity extends AppCompatActivity
     //AR
     private static ArrayList<LatLng> points = new ArrayList<>();
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ) {
-            checkPermission();
+        int permission4 = ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION);
+
+        if (permission4 != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
         }
 
-        checkLogin();
+        checkPermission();
+        int permission2 = ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION);
+
+        if (permission2 != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
+        }
+
+
 
         int permission = ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
 
@@ -124,6 +133,13 @@ public class MainActivity extends AppCompatActivity
             );
         }
 
+        int permission3 = ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA);
+
+        if (permission3 != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.CAMERA}, LOCATION_PERMISSION_REQUEST_CODE);
+        }
+        checkLogin();
+        initializeGeolocation();
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
@@ -145,7 +161,6 @@ public class MainActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
 
         initializeInputWindow();
-        initializeGeolocation();
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA},1);
@@ -268,7 +283,6 @@ public class MainActivity extends AppCompatActivity
         mGoogleMap.getUiSettings().setMapToolbarEnabled(false);
         mGoogleMap.getUiSettings().setCompassEnabled(false);
 
-        requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
         Controller.addAllMarkers(mGoogleMap);
     }
 
@@ -277,10 +291,12 @@ public class MainActivity extends AppCompatActivity
         if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
             initializeCamera();
         }
-        try {
-            mGoogleMap.setMyLocationEnabled(true);
-        } catch (SecurityException se) {
-            se.printStackTrace();
+        if (mGoogleMap != null) {
+            try {
+                mGoogleMap.setMyLocationEnabled(true);
+            } catch (SecurityException se) {
+                se.printStackTrace();
+            }
         }
     }
 
@@ -326,8 +342,6 @@ public class MainActivity extends AppCompatActivity
             Intent routes = new Intent(this, RoutesActivity.class);
             startActivity(routes);
         } else if (id == R.id.nav_settings) {
-            /*Intent settings = new Intent(this, SettingsActivity.class);
-            startActivity(settings);*/
             Intent settings = new Intent(this, PlanActivity.class);
             startActivity(settings);
         } else if (id == R.id.nav_share) {
@@ -346,7 +360,7 @@ public class MainActivity extends AppCompatActivity
         //TODO:PICTURE
         Intent sendIntent = new Intent();
         sendIntent.setAction(Intent.ACTION_SEND);
-        sendIntent.putExtra(Intent.EXTRA_TEXT, R.string.share_message);
+        sendIntent.putExtra(Intent.EXTRA_TEXT, "Я пользуюсь приложением PlaceMe! Присоединяйся и ты: placeme.com :)");
         sendIntent.setType("text/plain");
         startActivity(Intent.createChooser(sendIntent, "Share using..."));
     }
@@ -452,17 +466,215 @@ public class MainActivity extends AppCompatActivity
     private placeme.ru.placemedemo.elements.Place addTags(placeme.ru.placemedemo.elements.Place destination, Place src) {
         List<Integer> placeTags = src.getPlaceTypes();
         StringBuilder tags = new StringBuilder();
-        tags.append(",");
+        //tags.append(",");
 
         for (Integer id : placeTags) {
-            if (id.equals(Place.TYPE_GROCERY_OR_SUPERMARKET)) {
+            if (id.equals(Place.TYPE_AIRPORT)) {
+                tags.append("аэропорт,");
+                tags.append("самолёт,");
+            } else if (id.equals(Place.TYPE_ART_GALLERY)) {
+                tags.append("галерея,");
+                tags.append("арт,");
+                tags.append("искусство,");
+                tags.append("культура,");
+                tags.append("картины,");
+            } else if (id.equals(Place.TYPE_ATM)) {
+                tags.append("банк,");
+                tags.append("банкомат,");
+                tags.append("деньги,");
+            } else if (id.equals(Place.TYPE_BAKERY)) {
+                tags.append("пекарня,");
+                tags.append("выпечка,");
+                tags.append("хлеб,");
+                tags.append("булочная,");
+            } else if (id.equals(Place.TYPE_BANK)) {
+                tags.append("банк,");
+                tags.append("деньги,");
+            } else if (id.equals(Place.TYPE_BAR)) {
+                tags.append("бар,");
+                tags.append("кафе,");
+                tags.append("досуг,");
+            } else if (id.equals(Place.TYPE_BEAUTY_SALON)) {
+                tags.append("салон красоты,");
+                tags.append("красота,");
+                tags.append("спа,");
+                tags.append("салон,");
+                tags.append("парикмахерская,");
+            } else if (id.equals(Place.TYPE_BICYCLE_STORE)) {
+                tags.append("велосипед,");
+                tags.append("магазин,");
+            } else if (id.equals(Place.TYPE_BOOK_STORE)) {
+                tags.append("книги,");
+                tags.append("магазин книг,");
+                tags.append("магазин,");
+                tags.append("канцелярия,");
+            } else if (id.equals(Place.TYPE_BUS_STATION)) {
+                tags.append("автобус,");
+                tags.append("остановка,");
+                tags.append("троллейбус,");
+                tags.append("транспорт,");
+            } else if (id.equals(Place.TYPE_CAFE)) {
+                tags.append("кафе,");
+                tags.append("еда,");
+                tags.append("ресторан,");
+            } else if (id.equals(Place.TYPE_CAR_REPAIR)) {
+                tags.append("машина,");
+                tags.append("ремонт,");
+                tags.append("ремонт машин,");
+                tags.append("запчасти,");
+            } else if (id.equals(Place.TYPE_CAR_WASH)) {
+                tags.append("машина,");
+                tags.append("мойка,");
+                tags.append("мойка машин,");
+            } else if (id.equals(Place.TYPE_CHURCH)) {
+                tags.append("церковь,");
+            } else if (id.equals(Place.TYPE_CLOTHING_STORE)) {
+                tags.append("магазин,");
+                tags.append("одежда,");
+                tags.append("магазин одежды,");
+            } else if (id.equals(Place.TYPE_COUNTRY)) {
+                tags.append("страна,");
+                tags.append("государство,");
+            } else if (id.equals(Place.TYPE_DENTIST)) {
+                tags.append("дантист,");
+                tags.append("стоматология,");
+                tags.append("клиника,");
+                tags.append("стоматолог,");
+            } else if (id.equals(Place.TYPE_DEPARTMENT_STORE)) {
+                tags.append("универмаг,");
+            } else if (id.equals(Place.TYPE_DOCTOR)) {
+                tags.append("доктор,");
+                tags.append("врач,");
+                tags.append("больница,");
+                tags.append("поликлиника,");
+            } else if (id.equals(Place.TYPE_EMBASSY)) {
+                tags.append("консул,");
+                tags.append("консульство,");
+                tags.append("посольство,");
+                tags.append("посол,");
+            } else if (id.equals(Place.TYPE_FIRE_STATION)) {
+                tags.append("пожарная,");
+                tags.append("пожарная станция,");
+                tags.append("пожарная часть,");
+            } else if (id.equals(Place.TYPE_FLORIST)) {
+                tags.append("цветы,");
+                tags.append("цветочный магазин,");
+                tags.append("магазин цветов,");
+                tags.append("флорист,");
+            } else if (id.equals(Place.TYPE_FLORIST)) {
+                tags.append("цветы,");
+                tags.append("цветочный магазин,");
+                tags.append("магазин цветов,");
+                tags.append("флорист,");
+            } else if (id.equals(Place.TYPE_FOOD)) {
+                tags.append("еда,");
+            } else if (id.equals(Place.TYPE_GROCERY_OR_SUPERMARKET)) {
                 tags.append("магазин,");
                 tags.append("супермаркет,");
                 tags.append("еда,");
+            } else if (id.equals(Place.TYPE_GYM)) {
+                tags.append("фитнес,");
+                tags.append("спорт,");
+                tags.append("спортзал,");
+                tags.append("тренажёры,");
+            } else if (id.equals(Place.TYPE_HAIR_CARE)) {
+                tags.append("парикмахерская,");
+                tags.append("волосы,");
+                tags.append("стрижка,");
+                tags.append("парикмахер,");
+            } else if (id.equals(Place.TYPE_HEALTH)) {
+                tags.append("здоровье,");
+            } else if (id.equals(Place.TYPE_LIBRARY)) {
+                tags.append("книги,");
+                tags.append("библиотека,");
+                tags.append("чтение,");
+                tags.append("досуг,");
+            } else if (id.equals(Place.TYPE_MOVIE_THEATER)) {
+                tags.append("кино,");
+                tags.append("кинотеатр,");
+                tags.append("фильмы,");
+                tags.append("досуг,");
+            } else if (id.equals(Place.TYPE_MUSEUM)) {
+                tags.append("музей,");
+                tags.append("культура,");
+                tags.append("образование,");
+            } else if (id.equals(Place.TYPE_PARK)) {
+                tags.append("парк,");
+                tags.append("прогулка,");
+                tags.append("сад,");
+                tags.append("деревья,");
+            } else if (id.equals(Place.TYPE_PARKING)) {
+                tags.append("парковка,");
+                tags.append("стоянка,");
+            } else if (id.equals(Place.TYPE_PET_STORE)) {
+                tags.append("зоомагазин,");
+                tags.append("магазин,");
+                tags.append("питомец,");
+            } else if (id.equals(Place.TYPE_PHARMACY)) {
+                tags.append("аптека,");
+                tags.append("лекарства,");
+            } else if (id.equals(Place.TYPE_POLICE)) {
+                tags.append("полиция,");
+                tags.append("полицеский участок,");
+            } else if (id.equals(Place.TYPE_POST_OFFICE)) {
+                tags.append("почта,");
+                tags.append("посылка,");
+                tags.append("письмо,");
+            } else if (id.equals(Place.TYPE_RESTAURANT)) {
+                tags.append("ресторан,");
+                tags.append("кафе,");
+                tags.append("еда,");
+                tags.append("уют,");
+            } else if (id.equals(Place.TYPE_SCHOOL)) {
+                tags.append("школа,");
+                tags.append("образование,");
+            } else if (id.equals(Place.TYPE_SHOE_STORE)) {
+                tags.append("обувь,");
+                tags.append("магазин,");
+                tags.append("магазин обуви,");
+            } else if (id.equals(Place.TYPE_SHOPPING_MALL)) {
+                tags.append("торговый центр,");
+                tags.append("магазин,");
+                tags.append("тц,");
+                tags.append("шопинг,");
+            } else if (id.equals(Place.TYPE_SPA)) {
+                tags.append("спа,");
+                tags.append("отдых,");
+                tags.append("красота,");
+            } else if (id.equals(Place.TYPE_STADIUM)) {
+                tags.append("спорт,");
+                tags.append("стадион,");
+            } else if (id.equals(Place.TYPE_STORE)) {
+                tags.append("магазин,");
+            } else if (id.equals(Place.TYPE_STREET_ADDRESS)) {
+                tags.append("улица,");
+            } else if (id.equals(Place.TYPE_SUBWAY_STATION)) {
+                tags.append("метро,");
+                tags.append("станция метро,");
+                tags.append("транспорт,");
+            } else if (id.equals(Place.TYPE_TRAIN_STATION)) {
+                tags.append("поезд,");
+                tags.append("транспорт,");
+                tags.append("вокзал,");
+            } else if (id.equals(Place.TYPE_UNIVERSITY)) {
+                tags.append("университет,");
+                tags.append("обучение,");
+                tags.append("образование,");
+                tags.append("институт,");
+                tags.append("вуз,");
+            } else if (id.equals(Place.TYPE_VETERINARY_CARE)) {
+                tags.append("ветеринар,");
+                tags.append("питомец,");
+            } else if (id.equals(Place.TYPE_ZOO)) {
+                tags.append("зоопарк,");
+                tags.append("животные,");
+                tags.append("досуг,");
             }
         }
 
-        tags.deleteCharAt(tags.lastIndexOf(","));
+        if(tags.toString().length() > 0) {
+            tags.deleteCharAt(tags.lastIndexOf(","));
+        }
 
         destination.setTags(tags.toString());
 
@@ -493,6 +705,11 @@ public class MainActivity extends AppCompatActivity
 
     private void initializeCamera() {
         Button b = findViewById(R.id.button4);
+        ToolTip.Builder builder2 = new ToolTip.Builder(this, b, findViewById(R.id.root_t), "Try AR route!", ToolTip.POSITION_ABOVE );
+        b.setOnLongClickListener(v -> {
+            mToolTipsManager.show(builder2.build());
+            return true;
+        });
         b.setOnClickListener(v -> ArActivity.startWithSetup(MainActivity.this, new MySetup() {
             @Override
             public void addObjectsTo(GL1Renderer renderer, final World world, GLFactory objectFactory) {
@@ -522,7 +739,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void initializeGeolocation() {
-        mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+        FusedLocationProviderClient mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         try {
             Task<Location> locationResult = mFusedLocationProviderClient.getLastLocation();
             locationResult.addOnCompleteListener(this, task -> {
@@ -538,6 +755,14 @@ public class MainActivity extends AppCompatActivity
 
     private void initializeInputWindow() {
         mSearch = findViewById(R.id.search);
+        ToolTip.Builder builder2 = new ToolTip.Builder(this, mSearch, findViewById(R.id.root_t), "Search places\nhere!", ToolTip.POSITION_BELOW );
+        mSearch.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                mToolTipsManager.show(builder2.build());
+                return true;
+            }
+        });
         mSearch.setOnEditorActionListener((v, actionId, event) -> {
             if (mGoogleMap != null) {
                 mGoogleMap.clear();
@@ -635,6 +860,7 @@ public class MainActivity extends AppCompatActivity
             builderInner.setNeutralButton("Camera", (dialog, which) -> {
                 mLastAction = 2;
                 Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+
                 startActivityForResult(cameraIntent, CAMERA_RESULT);
             });
             builderInner.setNegativeButton(R.string.answer_cancel, (dialog, which) -> Toast.makeText(MainActivity.this, "cancel", Toast.LENGTH_SHORT).show());
@@ -644,7 +870,7 @@ public class MainActivity extends AppCompatActivity
 
         builder.setPositiveButton(R.string.answer_finish, (dialog, id) -> {
             String[] placeInfo = getPlaceInfo(layout);
-            if(mLastAction == 1) {
+            if (mLastAction == 1) {
                 Controller.saveCreatedPlace(mUri, placeInfo, latLng);
             } else {
                 DatabaseManager.saveCreatedPlace2(mBitmap, placeInfo, latLng);

@@ -110,7 +110,7 @@
             android:clickable="true"
             android:focusable="true"
             app:backgroundTint="@color/cardview_light_background"
-            app:srcCompat="@drawable/ic_info_black_24dp" />
+            app:srcCompat="@drawable/ic_menu_gallery" />
 
         <android.support.design.widget.FloatingActionButton
             android:id="@+id/button_search_parameters"
