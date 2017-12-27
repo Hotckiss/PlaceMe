@@ -158,6 +158,33 @@ public class MainActivity extends AppCompatActivity
         });
 
         initializeSearchParameters();
+
+        FloatingActionButton searchFriendsButton = findViewById(R.id.search_friends);
+
+        searchFriendsButton.setOnClickListener(v -> {
+            searchFriends().show();
+            //Controller.getUserRoutesLength2(Controller.getLoggedInAsString(MainActivity.this), MainActivity.this);
+            //saveRoute().show();
+        });
+    }
+
+    private AlertDialog searchFriends() {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+        LayoutInflater inflater = (LayoutInflater) MainActivity.this.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
+        final View layout = inflater.inflate(R.layout.save_route, null);
+
+        builder.setPositiveButton("Search!", (dialog, id) -> {
+            EditText editTextDescription = layout.findViewById(R.id.route_description);
+            String description = editTextDescription.getText().toString();
+            if (description == null || description.length() == 0) {
+                dialog.dismiss();
+            }
+            AlertDialogCreator.createAlertDialogFoundedFriends(MainActivity.this, editTextDescription.getText().toString()).show();
+        }).setNegativeButton(R.string.answer_back, (dialog, arg1) -> {});
+
+        builder.setCancelable(true);
+        builder.setView(layout);
+        return builder.create();
     }
 
     private void loadProfileAvatar(View view) {

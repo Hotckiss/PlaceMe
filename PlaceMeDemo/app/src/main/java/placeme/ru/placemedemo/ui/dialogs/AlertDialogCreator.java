@@ -1,13 +1,11 @@
 package placeme.ru.placemedemo.ui.dialogs;
 
 import android.content.Context;
-import android.content.DialogInterface;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ArrayAdapter;
-import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.RatingBar;
@@ -17,16 +15,16 @@ import android.widget.TextView;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.firebase.database.DatabaseReference;
 
 import java.util.ArrayList;
 
 import placeme.ru.placemedemo.R;
 import placeme.ru.placemedemo.core.Controller;
 import placeme.ru.placemedemo.core.database.DatabaseManager;
-import placeme.ru.placemedemo.core.map.MapManager;
-import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
 import placeme.ru.placemedemo.core.utils.SearchUtils;
 import placeme.ru.placemedemo.elements.Place;
+import placeme.ru.placemedemo.elements.User;
 
 /**
  * Created by Андрей on 21.11.2017.
@@ -246,6 +244,58 @@ public class AlertDialogCreator {
         builder.setCancelable(true);
         builder.setView(layout);
         return builder.create();
+    }
+
+    /**
+     * Method that creates alert dialog with the results of user query
+     * @param context current context
+     * @param toFind user query
+     * @return returns created alert dialog
+     */
+    public static AlertDialog createAlertDialogFoundedFriends(final Context context, final String toFind) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        LayoutInflater inflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
+        final View layout = inflater.inflate(R.layout.list, null);
+
+        builder.setView(layout);
+        builder.setIcon(R.drawable.icon);
+        builder.setTitle(R.string.query_result);
+
+        final ListView lv = layout.findViewById(R.id.lv);
+        lv.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
+
+        final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(context, android.R.layout.select_dialog_multichoice);
+        final ArrayList<User> users = new ArrayList<>();
+
+        DatabaseManager.findUsersByString(arrayAdapter, users, toFind);
+
+        builder.setNegativeButton(R.string.answer_cancel, (dialog, which) -> dialog.dismiss());
+
+        lv.setAdapter(arrayAdapter);
+
+        lv.setOnItemLongClickListener((parent, view, position, id) -> {
+            AlertDialog alertDialog = createInnerDescriptionDialogUser(position, context, users);
+            alertDialog.show();
+            return false;
+        });
+
+        builder.setPositiveButton("App to friends!", (dialog, which) -> {
+            int position = lv.getCheckedItemPosition();
+            if (position != -1) {
+                DatabaseManager.addFriend(Controller.getLoggedInAsString(context), String.valueOf(users.get(position).getId()));
+            }
+            dialog.dismiss();
+        });
+
+        return builder.create();
+    }
+
+    private static AlertDialog createInnerDescriptionDialogUser(final int position, final Context context, final ArrayList<User> users) {
+        AlertDialog.Builder builderInner = new AlertDialog.Builder(context);
+        builderInner.setMessage(users.get(position).getName() + " " + users.get(position).getSurname());
+        builderInner.setTitle("User info");
+        builderInner.setPositiveButton(R.string.answer_ok, (dialog, which) -> dialog.dismiss());
+        return builderInner.create();
     }
 
     private static AlertDialog createInnerDescriptionDialog(final int position, final Context context, final ArrayList<Place> placeArrayList) {

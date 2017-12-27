@@ -164,6 +164,30 @@ public class DatabaseManager {
     }
 
     /**
+     * Method that searches places in database within query string
+     * @param arrayAdapter adapter with names of founded places
+     * @param users array with founded users
+     * @param toFind string which contains user query to search
+     */
+    public static void findUsersByString(final ArrayAdapter<String> arrayAdapter, final ArrayList<User> users, final String toFind) {
+        mDatabaseReference = getDatabaseChild(USERS_KEY);
+
+        mChildEventListener = new AbstractChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                User user = dataSnapshot.getValue(User.class);
+                if (user != null) {
+                    if (user.getNickname().contains(toFind)) {
+                        arrayAdapter.add(user.getName());
+                        users.add(user);
+                    }
+                }
+            }
+        };
+        mDatabaseReference.addChildEventListener(mChildEventListener);
+    }
+
+    /**
      * Method that updates place rating after user voting
      * and immediately updates rating bar in UI
      * @param ratingBar rating bar to update
@@ -789,6 +813,40 @@ public class DatabaseManager {
         mStorageRef.child(USER_AVATAR_KEY).child(userId + "avatar").putFile(uri);
     }
 
+    public static void addFriend(final String userId, final String friendId) {
+        DatabaseReference reference = getDatabaseChild(USERS_KEY);
+        if (reference != null) {
+            reference = reference.child(userId).child("friends");
+            reference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    final String friends = dataSnapshot.getValue(String.class);
+                    if (friends.length() == 0) {
+                        DatabaseReference referenceFriends = getDatabaseChild(USERS_KEY);
+                        if (referenceFriends != null) {
+                            referenceFriends.child(userId).child("friends").setValue(friendId);
+                            referenceFriends.child(userId).child("friendsLength").setValue(1);
+                        }
+                    } else {
+                        int length = friends.split(",").length;
+                        boolean alreadyAdded = false;
+                        for (String friend : friends.split(",")) {
+                            if (friend.equals(friendId)) {
+                                alreadyAdded = true;
+                            }
+                        }
+                        if (!alreadyAdded) {
+                            DatabaseReference referenceFriends = getDatabaseChild(USERS_KEY);
+                            if (referenceFriends != null) {
+                                referenceFriends.child(userId).child("friends").setValue(friends + "," + friendId);
+                                referenceFriends.child(userId).child("friendsLength").setValue(length + 1);
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
     @Nullable
     private static DatabaseReference getDatabaseChild(String childName) {
         DatabaseReference databaseReference = getDatabaseReference();
