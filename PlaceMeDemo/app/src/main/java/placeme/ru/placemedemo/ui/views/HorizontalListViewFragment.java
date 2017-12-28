@@ -58,7 +58,7 @@ public class HorizontalListViewFragment extends Fragment {
             //TODO: delete string
             item.setmCardName("friend " + (i + 1));
 
-            item.setmImageResourceId(android.R.drawable.star_big_on);
+            item.setmImageResourceId(R.drawable.grey);
             item.setId(Integer.parseInt(friends[i]));
             listitems.add(item);
         }
@@ -121,8 +121,8 @@ public class HorizontalListViewFragment extends Fragment {
 
             StorageReference child = FirebaseStorage.getInstance().getReference().child("avatars").child(((Integer)list.get(position).getId()).toString() + "avatar");
             child.getDownloadUrl().addOnSuccessListener(uri -> Picasso.with(getActivity().getBaseContext()).load(uri)
-                    .placeholder(android.R.drawable.btn_star_big_on)
-                    .error(android.R.drawable.btn_star_big_on)
+                    .placeholder(R.drawable.grey)
+                    .error(R.drawable.noimage)
                     .into(holder.coverImageView));
         }
 
