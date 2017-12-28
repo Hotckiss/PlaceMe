@@ -83,8 +83,12 @@ public class MainActivity extends AppCompatActivity
 
     private static final int REQUEST_EXTERNAL_STORAGE = 1;
     private static String[] PERMISSIONS_STORAGE = {
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION,
             Manifest.permission.READ_EXTERNAL_STORAGE,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.CAMERA,
+
     };
 
     private GoogleMap mGoogleMap;
@@ -106,9 +110,10 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        ActivityCompat.requestPermissions(MainActivity.this, PERMISSIONS_STORAGE, REQUEST_EXTERNAL_STORAGE);
         setContentView(R.layout.activity_main);
         checkLogin();
-        int permission4 = ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION);
+        /*int permission4 = ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION);
 
         if (permission4 != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
@@ -122,21 +127,11 @@ public class MainActivity extends AppCompatActivity
         }
 
 
-        int permission = ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        int permission = ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE);*/
 
-        if (permission != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(
-                    MainActivity.this,
-                    PERMISSIONS_STORAGE,
-                    REQUEST_EXTERNAL_STORAGE
-            );
-        }
-
-        int permission3 = ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA);
-
-        if (permission3 != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[]{Manifest.permission.CAMERA}, LOCATION_PERMISSION_REQUEST_CODE);
-        }
+        //ActivityCompat.requestPermissions(MainActivity.this, PERMISSIONS_STORAGE, REQUEST_EXTERNAL_STORAGE);
+        //ActivityCompat.requestPermissions(MainActivity.this, PERMISSIONS_STORAGE, REQUEST_EXTERNAL_STORAGE);
+        //requestPermissions(new String[]{Manifest.permission.CAMERA}, LOCATION_PERMISSION_REQUEST_CODE);
 
         initializeGeolocation();
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
@@ -299,14 +294,15 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
+        /*if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
             initializeCamera();
         }
         try {
+
             mGoogleMap.setMyLocationEnabled(true);
         } catch (SecurityException se) {
             se.printStackTrace();
-        }
+        }*/
     }
 
     @Override
@@ -424,10 +420,14 @@ public class MainActivity extends AppCompatActivity
             }
         }
         if (requestCode == CAMERA_RESULT) {
-            mBitmap = (Bitmap) data.getExtras().get("data");
-            mLastAction = 2;
+            if (data != null) {
+                if (data.getExtras() != null) {
+                    mBitmap = (Bitmap) data.getExtras().get("data");
+                    mLastAction = 2;
 
-            mImageView.setImageBitmap(mBitmap);
+                    mImageView.setImageBitmap(mBitmap);
+                }
+            }
         }
     }
 
@@ -747,16 +747,23 @@ public class MainActivity extends AppCompatActivity
         }));
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
     private void initializeGeolocation() {
         FusedLocationProviderClient mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         try {
-            Task<Location> locationResult = mFusedLocationProviderClient.getLastLocation();
-            locationResult.addOnCompleteListener(this, task -> {
-                if (task.isSuccessful()) {
-                    mLastKnownLocation = task.getResult();
-                    myPosition = new LatLng(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude());
-                }
-            });
+            int permission2 = ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION);
+
+            if (permission2 != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
+            } else {
+                Task<Location> locationResult = mFusedLocationProviderClient.getLastLocation();
+                locationResult.addOnCompleteListener(this, task -> {
+                    if (task.isSuccessful()) {
+                        mLastKnownLocation = task.getResult();
+                        myPosition = new LatLng(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude());
+                    }
+                });
+            }
         } catch (SecurityException e)  {
             Log.e("Exception: %s", e.getMessage());
         }

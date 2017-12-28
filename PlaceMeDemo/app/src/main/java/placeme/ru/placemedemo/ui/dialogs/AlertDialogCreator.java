@@ -286,8 +286,6 @@ public class AlertDialogCreator {
         builder.setNegativeButton(R.string.answer_ok, (dialog, arg1) -> dialog.cancel());
 
         ((TextView)layout.findViewById(R.id.distance_param)).setText(String.valueOf(SearchUtils.getDistanceSearchValue(context)));
-        Log.d("ddddd", String.valueOf(SearchUtils.getRatingSearchValue(context) / 20.0));
-        Log.d("ddddd", String.valueOf(SearchUtils.getRatingSearchValue(context)));
         ((TextView)layout.findViewById(R.id.rating_param)).setText("> " + String.valueOf(SearchUtils.getRatingSearchValue(context) / 20.0) + " stars");
 
         final SeekBar seekBarDistance = layout.findViewById(R.id.seek_bar_distance);
@@ -408,7 +406,7 @@ public class AlertDialogCreator {
             return false;
         });
 
-        builder.setPositiveButton("App to friends!", (dialog, which) -> {
+        builder.setPositiveButton("Add to friends!", (dialog, which) -> {
             int position = lv.getCheckedItemPosition();
             if (position != -1) {
                 DatabaseManager.addFriend(Controller.getLoggedInAsString(context), String.valueOf(users.get(position).getId()));
