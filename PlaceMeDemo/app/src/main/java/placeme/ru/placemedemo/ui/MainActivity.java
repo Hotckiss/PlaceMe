@@ -107,7 +107,7 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        checkLogin();
         int permission4 = ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION);
 
         if (permission4 != PackageManager.PERMISSION_GRANTED) {
@@ -120,7 +120,6 @@ public class MainActivity extends AppCompatActivity
         if (permission2 != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
         }
-
 
 
         int permission = ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
@@ -138,7 +137,7 @@ public class MainActivity extends AppCompatActivity
         if (permission3 != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[]{Manifest.permission.CAMERA}, LOCATION_PERMISSION_REQUEST_CODE);
         }
-        checkLogin();
+
         initializeGeolocation();
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
@@ -153,7 +152,7 @@ public class MainActivity extends AppCompatActivity
         toggle.syncState();
 
         NavigationView navigationView = findViewById(R.id.nav_view);
-        View hView =  navigationView.getHeaderView(0);
+        View hView = navigationView.getHeaderView(0);
 
         mToolTipsManager = new ToolTipsManager();
 
@@ -163,7 +162,7 @@ public class MainActivity extends AppCompatActivity
         initializeInputWindow();
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA},1);
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, 1);
         } else {
             initializeCamera();
         }
@@ -188,7 +187,7 @@ public class MainActivity extends AppCompatActivity
 
         FloatingActionButton searchFriendsButton = findViewById(R.id.search_friends);
 
-        ToolTip.Builder builder = new ToolTip.Builder(this, searchFriendsButton, findViewById(R.id.root_t), "Find friends\nhere!", ToolTip.POSITION_ABOVE );
+        ToolTip.Builder builder = new ToolTip.Builder(this, searchFriendsButton, findViewById(R.id.root_t), "Find friends\nhere!", ToolTip.POSITION_ABOVE);
 
         searchFriendsButton.setOnClickListener(v -> {
             searchFriends().show();
@@ -203,7 +202,7 @@ public class MainActivity extends AppCompatActivity
 
     private AlertDialog searchFriends() {
         final AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-        LayoutInflater inflater = (LayoutInflater) MainActivity.this.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
+        LayoutInflater inflater = (LayoutInflater) MainActivity.this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         final View layout = inflater.inflate(R.layout.save_route, null);
 
         final TextView textView = layout.findViewById(R.id.route_title);
@@ -218,7 +217,8 @@ public class MainActivity extends AppCompatActivity
                 dialog.dismiss();
             }
             AlertDialogCreator.createAlertDialogFoundedFriends(MainActivity.this, editTextDescription.getText().toString()).show();
-        }).setNegativeButton(R.string.answer_back, (dialog, arg1) -> {});
+        }).setNegativeButton(R.string.answer_back, (dialog, arg1) -> {
+        });
 
         builder.setCancelable(true);
         builder.setView(layout);
@@ -234,7 +234,7 @@ public class MainActivity extends AppCompatActivity
 
     private void initGooglePlacesButton() {
         FloatingActionButton floatingActionButton = findViewById(R.id.google_places_button);
-        ToolTip.Builder builder = new ToolTip.Builder(this, floatingActionButton, findViewById(R.id.root_t), "Import places\nfrom big base", ToolTip.POSITION_BELOW );
+        ToolTip.Builder builder = new ToolTip.Builder(this, floatingActionButton, findViewById(R.id.root_t), "Import places\nfrom big base", ToolTip.POSITION_BELOW);
 
         floatingActionButton.setOnClickListener(v -> alertDialogAskGooglePlacesUsage(MainActivity.this).show());
 
@@ -278,11 +278,22 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onMapReady(GoogleMap map) {
         mGoogleMap = map;
+        Log.d("ddddd", "dvd");
         mGoogleMap.setOnMapLongClickListener(this);
         mGoogleMap.setOnMarkerClickListener(this);
         mGoogleMap.getUiSettings().setMapToolbarEnabled(false);
         mGoogleMap.getUiSettings().setCompassEnabled(false);
-
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        mGoogleMap.setMyLocationEnabled(true);
         Controller.addAllMarkers(mGoogleMap);
     }
 
@@ -291,12 +302,10 @@ public class MainActivity extends AppCompatActivity
         if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
             initializeCamera();
         }
-        if (mGoogleMap != null) {
-            try {
-                mGoogleMap.setMyLocationEnabled(true);
-            } catch (SecurityException se) {
-                se.printStackTrace();
-            }
+        try {
+            mGoogleMap.setMyLocationEnabled(true);
+        } catch (SecurityException se) {
+            se.printStackTrace();
         }
     }
 
@@ -382,7 +391,7 @@ public class MainActivity extends AppCompatActivity
         });
 
     }
-    
+
     @Override
     public void onStop () {
         super.onStop();
@@ -451,7 +460,7 @@ public class MainActivity extends AppCompatActivity
             description.append('\n');
             description.append(phone);
         }
-        
+
         result.setName(place.getName().toString());
         result.setDescription(description.toString());
 
