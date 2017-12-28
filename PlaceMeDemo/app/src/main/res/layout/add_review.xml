@@ -14,5 +14,7 @@
         android:inputType="textMultiLine"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        android:hint="Type your rewiew here"/>
+        android:hint="Type your rewiew here"
+        android:background="@drawable/lightblue"
+        />
 </android.support.constraint.ConstraintLayout>

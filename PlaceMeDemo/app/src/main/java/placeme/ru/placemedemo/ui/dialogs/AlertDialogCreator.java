@@ -285,6 +285,7 @@ public class AlertDialogCreator {
 
         builder.setNegativeButton(R.string.answer_ok, (dialog, arg1) -> dialog.cancel());
 
+
         ((TextView)layout.findViewById(R.id.distance_param)).setText(String.valueOf(SearchUtils.getDistanceSearchValue(context)));
         ((TextView)layout.findViewById(R.id.rating_param)).setText("> " + String.valueOf(SearchUtils.getRatingSearchValue(context) / 20.0) + " stars");
 

@@ -120,8 +120,8 @@ public class RoutesListViewFragment extends Fragment {
             StorageReference child = FirebaseStorage.getInstance().getReference().child("routes").child(Controller.getLoggedInAsString(getContext()))
                     .child(Controller.getLoggedInAsString(getContext()) + "_" + ((Integer)position).toString());
             child.getDownloadUrl().addOnSuccessListener(uri -> Picasso.with(getActivity().getBaseContext()).load(uri)
-                    .placeholder(android.R.drawable.btn_star_big_on)
-                    .error(android.R.drawable.btn_star_big_on)
+                    .placeholder(R.drawable.grey)
+                    .error(R.drawable.noimage)
                     .into(holder.iv));
 
             Controller.fillDescription(holder.tv, position, Controller.getLoggedInAsString(getContext()));

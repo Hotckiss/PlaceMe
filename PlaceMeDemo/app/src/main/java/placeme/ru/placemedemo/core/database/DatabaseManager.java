@@ -788,8 +788,8 @@ public class DatabaseManager {
     public static void loadAvatar(CircleImageView circleImageView, final Context context, final String userId) {
         mStorageRef.child(USER_AVATAR_KEY).child(userId + "avatar")
                 .getDownloadUrl().addOnSuccessListener(uri -> Picasso.with(context).load(uri)
-                .placeholder(android.R.drawable.btn_star_big_on)
-                .error(android.R.drawable.btn_star_big_on)
+                .placeholder(R.drawable.anonim)
+                .error(R.drawable.anonim)
                 .into(circleImageView));
     }
 
@@ -802,8 +802,8 @@ public class DatabaseManager {
     public static void loadDescriptionImage(final ImageView imageView, final Place place, final Context context) {
         mStorageRef.child("photos").child(place.getIdAsString() + "place_photo")
                 .getDownloadUrl().addOnSuccessListener(uri -> Picasso.with(context).load(uri)
-                .placeholder(android.R.drawable.btn_star_big_on)
-                .error(android.R.drawable.btn_star_big_on)
+                .placeholder(R.drawable.noimage)
+                .error(R.drawable.noimage)
                 .into(imageView));
     }
 

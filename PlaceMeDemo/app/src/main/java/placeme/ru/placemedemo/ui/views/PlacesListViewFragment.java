@@ -130,8 +130,8 @@ public class PlacesListViewFragment extends Fragment {
         public void onBindViewHolder(final MyViewHolder holder, final int position) {
             StorageReference child = FirebaseStorage.getInstance().getReference().child("photos").child(places[position]+"place_photo");
             child.getDownloadUrl().addOnSuccessListener(uri -> Picasso.with(getActivity().getBaseContext()).load(uri)
-                    .placeholder(android.R.drawable.btn_star_big_on)
-                    .error(android.R.drawable.btn_star_big_on)
+                    .placeholder(R.drawable.grey)
+                    .error(R.drawable.noimage)
                     .into(holder.iv));
 
             Controller.fillDescriptionPlaces(holder.tv, places[position]);

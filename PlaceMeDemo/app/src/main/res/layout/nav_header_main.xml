@@ -36,6 +36,6 @@
         android:id="@+id/profile_image"
         android:layout_width="90dp"
         android:layout_height="90dp"
-        android:src="@android:drawable/btn_star_big_on" />
+        android:src="@drawable/grey" />
 
 </LinearLayout>
