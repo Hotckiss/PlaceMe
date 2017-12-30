@@ -18,7 +18,7 @@
         android:id="@+id/new_place_image"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:srcCompat="@android:drawable/star_big_on" />
+        app:srcCompat="@drawable/tapload" />
 
     <EditText
         android:id="@+id/place_name"

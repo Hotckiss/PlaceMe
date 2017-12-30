@@ -20,17 +20,11 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
-import com.google.firebase.database.ChildEventListener;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import placeme.ru.placemedemo.core.database.DatabaseManager;
-import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
+import placeme.ru.placemedemo.core.Controller;
 import placeme.ru.placemedemo.elements.Place;
 
 /**
@@ -42,12 +36,13 @@ import placeme.ru.placemedemo.elements.Place;
  */
 public class MapManager {
     private static final String MAPS_API_KEY = "AIzaSyD_WcUAMqVEVW0H84GsXLKBr0HokiO-v_4";
+
     /**
      * Method that loads all markers from to the map
      * @param googleMap markers destination map
      */
     public static void addAllMarkers(final GoogleMap googleMap) {
-        DatabaseManager.loadMarkersToMap(googleMap);
+        Controller.loadMarkersToMap(googleMap);
     }
 
     /**
@@ -55,9 +50,9 @@ public class MapManager {
      * @param googleMap markers destination map
      */
     public static void refreshMarkers(final GoogleMap googleMap) {
-        if(googleMap != null) {
+        if (googleMap != null) {
             googleMap.clear();
-            DatabaseManager.loadMarkersToMap(googleMap);
+            Controller.loadMarkersToMap(googleMap);
         }
     }
 
@@ -67,11 +62,21 @@ public class MapManager {
      * @param toFind user search query
      */
     public static void addFoundedMarkers(final GoogleMap googleMap, final String toFind) {
-        DatabaseManager.addMarkersByQuery(googleMap, toFind);
+        Controller.addMarkersByQuery(googleMap, toFind);
     }
 
-    public static void makeRoute(final ListView lv, final LatLng myPosition, final ArrayList<Place> placeArrayList, final Context context, final GoogleMap googleMap, final ArrayList<LatLng> points) {
-        SparseBooleanArray sp = lv.getCheckedItemPositions();
+    /**
+     * Method that builds multi route between many points and places it to the map.
+     * Furthermore it saves it to database immediately and moves camera to the destination point
+     * @param listView list with the results of query, where user choose places to visit
+     * @param myPosition current user position
+     * @param placeArrayList arrau list with descriptions of places
+     * @param context current context
+     * @param googleMap map where route will be possibly build
+     * @param points storage of route points which is important for route in augmented reality
+     */
+    public static void makeRoute(final ListView listView, final LatLng myPosition, final ArrayList<Place> placeArrayList, final Context context, final GoogleMap googleMap, final ArrayList<LatLng> points) {
+        SparseBooleanArray sp = listView.getCheckedItemPositions();
 
         final LatLng origin = myPosition;
         LatLng destination = myPosition;
@@ -80,20 +85,20 @@ public class MapManager {
         route.add(myPosition);
         int lastPoint = -1;
         for (int i = 0; i < placeArrayList.size(); i++) {
-            if(sp.get(i)) {
+            if (sp.get(i)) {
                 lastPoint = i;
                 route.add(new LatLng(placeArrayList.get(i).getLatitude(), placeArrayList.get(i).getLongitude()));
             }
         }
 
-        DatabaseManager.saveRoute(AuthorizationUtils.getLoggedInAsString(context), route);
-        if(lastPoint != -1) {
+        Controller.saveRoute(Controller.getLoggedInAsString(context), route);
+        if (lastPoint != -1) {
             destination = new LatLng(placeArrayList.get(lastPoint).getLatitude(), placeArrayList.get(lastPoint).getLongitude());
         }
 
-        for(int i = 0; i < placeArrayList.size(); i++) {
-            if(sp.get(i)) {
-                if(i != lastPoint) {
+        for (int i = 0; i < placeArrayList.size(); i++) {
+            if (sp.get(i)) {
+                if (i != lastPoint) {
                     gd.and(new LatLng(placeArrayList.get(i).getLatitude(), placeArrayList.get(i).getLongitude()));
                 }
             }
@@ -105,7 +110,7 @@ public class MapManager {
                 .execute(new DirectionCallback() {
                     @Override
                     public void onDirectionSuccess(Direction direction, String rawBody) {
-                        if(direction.isOK()) {
+                        if (direction.isOK()) {
 
                             Route route = direction.getRouteList().get(0);
                             int legCount = route.getLegList().size();
@@ -132,6 +137,14 @@ public class MapManager {
         googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(destination, 15.0f));
     }
 
+    /**
+     * Method that builds single route between two places
+     * @param myPosition current user position
+     * @param destination destination point of route
+     * @param context current context
+     * @param googleMap map where route should be build
+     * @param points storage of route points which is important for route in augmented reality
+     */
     public static void makeSingleRoute(final LatLng myPosition, final LatLng destination, final Context context, final GoogleMap googleMap, final ArrayList<LatLng> points) {
 
         final LatLng origin = myPosition;
@@ -140,14 +153,14 @@ public class MapManager {
         route.add(myPosition);
         route.add(destination);
 
-        DatabaseManager.saveRoute(AuthorizationUtils.getLoggedInAsString(context), route);
+        Controller.saveRoute(Controller.getLoggedInAsString(context), route);
 
         gd.to(destination)
                 .transportMode(TransportMode.WALKING)
                 .execute(new DirectionCallback() {
                     @Override
                     public void onDirectionSuccess(Direction direction, String rawBody) {
-                        if(direction.isOK()) {
+                        if (direction.isOK()) {
 
                             Route route = direction.getRouteList().get(0);
                             int legCount = route.getLegList().size();

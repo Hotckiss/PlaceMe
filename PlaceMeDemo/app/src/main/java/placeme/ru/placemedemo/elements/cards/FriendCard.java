@@ -9,24 +9,24 @@ package placeme.ru.placemedemo.elements.cards;
  * in the user profile in card of friend
  */
 public class FriendCard {
-    private String cardName;
-    private int imageResourceId;
+    private String mCardName;
+    private int mImageResourceId;
     private int id;
 
     /**
      * Method that returns card name
      * @return card name
      */
-    public String getCardName() {
-        return cardName;
+    public String getmCardName() {
+        return mCardName;
     }
 
     /**
      * Method that changes current card name
-     * @param cardName new card name
+     * @param mCardName new card name
      */
-    public void setCardName(String cardName) {
-        this.cardName = cardName;
+    public void setmCardName(String mCardName) {
+        this.mCardName = mCardName;
     }
 
     /**
@@ -45,15 +45,15 @@ public class FriendCard {
      * Method that returns current image id of card
      * @return card image id
      */
-    public int getImageResourceId() {
-        return imageResourceId;
+    public int getmImageResourceId() {
+        return mImageResourceId;
     }
 
     /**
      * Method that changes image resource id of a card
-     * @param imageResourceId new image resource id
+     * @param mImageResourceId new image resource id
      */
-    public void setImageResourceId(int imageResourceId) {
-        this.imageResourceId = imageResourceId;
+    public void setmImageResourceId(int mImageResourceId) {
+        this.mImageResourceId = mImageResourceId;
     }
 }

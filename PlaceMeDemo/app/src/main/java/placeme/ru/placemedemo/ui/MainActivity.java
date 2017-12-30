@@ -2,13 +2,14 @@ package placeme.ru.placemedemo.ui;
 
 import android.Manifest;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 import android.support.design.widget.FloatingActionButton;
@@ -28,6 +29,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -45,6 +47,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.Task;
+import com.tomergoldst.tooltips.ToolTip;
+import com.tomergoldst.tooltips.ToolTipsManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,10 +59,6 @@ import gl.GL1Renderer;
 import gl.GLFactory;
 import placeme.ru.placemedemo.R;
 import placeme.ru.placemedemo.core.Controller;
-import placeme.ru.placemedemo.core.database.DatabaseManager;
-import placeme.ru.placemedemo.core.map.MapManager;
-import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
-import placeme.ru.placemedemo.core.utils.RoutesUtils;
 import placeme.ru.placemedemo.ui.dialogs.AlertDialogCreator;
 import system.ArActivity;
 import system.MySetup;
@@ -73,50 +73,67 @@ public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback,
         GoogleMap.OnMapLongClickListener, GoogleMap.OnMarkerClickListener, GoogleApiClient.OnConnectionFailedListener {
 
-    private GoogleMap googleMap;
-    private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
-
-    //location
-    private FusedLocationProviderClient mFusedLocationProviderClient;
-    private Location mLastKnownLocation;
-    private LatLng myPosition;
-
-    private EditText edSearch;
-
-    //image
     private static final int GALLERY_INTENT = 2;
-    private static ImageView imageView;
-    private Uri uri;
-
-    //AR
-    private static ArrayList<LatLng> points = new ArrayList<>();
-
+    private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     private static final int PLACE_PICKER_REQUEST = 1;
+    private static final int CAMERA_RESULT = 0;
+    private static final String MY_PLACE = "My place";
 
     private static final int REQUEST_EXTERNAL_STORAGE = 1;
     private static String[] PERMISSIONS_STORAGE = {
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION,
             Manifest.permission.READ_EXTERNAL_STORAGE,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.CAMERA,
+
     };
+
+    private GoogleMap mGoogleMap;
+
+    private Location mLastKnownLocation;
+    private LatLng myPosition;
+
+    private EditText mSearch;
+
+    private ImageView mImageView;
+    private Bitmap mBitmap;
+    private Uri mUri;
+    private int mLastAction = 0;
+    private ToolTipsManager mToolTipsManager;
+    //AR
+    private static ArrayList<LatLng> points = new ArrayList<>();
+
+    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        ActivityCompat.requestPermissions(MainActivity.this, PERMISSIONS_STORAGE, REQUEST_EXTERNAL_STORAGE);
         setContentView(R.layout.activity_main);
-
         checkLogin();
+        showInfo();
+        /*int permission4 = ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION);
 
-        int permission = ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
-
-        if (permission != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(
-                    MainActivity.this,
-                    PERMISSIONS_STORAGE,
-                    REQUEST_EXTERNAL_STORAGE
-            );
+        if (permission4 != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
         }
 
+        checkPermission();
+        int permission2 = ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION);
+
+        if (permission2 != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
+        }
+
+
+        int permission = ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE);*/
+
+        //ActivityCompat.requestPermissions(MainActivity.this, PERMISSIONS_STORAGE, REQUEST_EXTERNAL_STORAGE);
+        //ActivityCompat.requestPermissions(MainActivity.this, PERMISSIONS_STORAGE, REQUEST_EXTERNAL_STORAGE);
+        //requestPermissions(new String[]{Manifest.permission.CAMERA}, LOCATION_PERMISSION_REQUEST_CODE);
+
+        initializeGeolocation();
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
-        //getSupportFragmentManager().findFragmentById()
         mapFragment.getMapAsync(this);
 
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -125,20 +142,21 @@ public class MainActivity extends AppCompatActivity
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
 
-        //TODO: remove IDEA auto-generated call
-        drawer.setDrawerListener(toggle);
+        drawer.addDrawerListener(toggle);
         toggle.syncState();
 
         NavigationView navigationView = findViewById(R.id.nav_view);
-        View hView =  navigationView.getHeaderView(0);
+        View hView = navigationView.getHeaderView(0);
+
+        mToolTipsManager = new ToolTipsManager();
+
         loadProfileAvatar(hView);
         navigationView.setNavigationItemSelectedListener(this);
 
         initializeInputWindow();
-        initializeGeolocation();
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA},1);
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, 1);
         } else {
             initializeCamera();
         }
@@ -148,85 +166,108 @@ public class MainActivity extends AppCompatActivity
         FloatingActionButton actionButton = findViewById(R.id.fab);
 
         actionButton.setOnClickListener(v -> {
-            DatabaseManager.getUserRoutesLength2(AuthorizationUtils.getLoggedInAsString(MainActivity.this), MainActivity.this);
+            Controller.getUserRoutesLength2(Controller.getLoggedInAsString(MainActivity.this), MainActivity.this);
             saveRoute().show();
-
         });
 
+        ToolTip.Builder builder1 = new ToolTip.Builder(this, actionButton, findViewById(R.id.root_t), "Take a route snapshot!", ToolTip.POSITION_LEFT_TO);
 
+        actionButton.setOnLongClickListener(v -> {
+            mToolTipsManager.show(builder1.build());
+            return true;
+        });
 
+        initializeSearchParameters();
 
+        FloatingActionButton searchFriendsButton = findViewById(R.id.search_friends);
+
+        ToolTip.Builder builder = new ToolTip.Builder(this, searchFriendsButton, findViewById(R.id.root_t), "Find friends\nhere!", ToolTip.POSITION_ABOVE);
+
+        searchFriendsButton.setOnClickListener(v -> {
+            searchFriends().show();
+        });
+
+        searchFriendsButton.setOnLongClickListener(v -> {
+            mToolTipsManager.show(builder.build());
+            return true;
+        });
+
+    }
+
+    private void showInfo() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+
+        builder.setTitle("Information");
+        builder.setMessage("1) Long tap on map creates marker\n2) Tap on created marker to create new place\n3) Tap on existing marker to load place info\n4) Most interface elements have tooltip by long click!");
+        builder.setPositiveButton(R.string.answer_ok, (dialog, which) -> dialog.dismiss());
+
+        builder.setCancelable(false);
+        builder.show();
+    }
+    private AlertDialog searchFriends() {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+        LayoutInflater inflater = (LayoutInflater) MainActivity.this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        final View layout = inflater.inflate(R.layout.save_route, null);
+
+        final TextView textView = layout.findViewById(R.id.route_title);
+
+        textView.setText("Search friends!");
+
+        //builder.setTitle("Search friends");
+        builder.setPositiveButton("Search!", (dialog, id) -> {
+            EditText editTextDescription = layout.findViewById(R.id.route_description);
+            String description = editTextDescription.getText().toString();
+            if (description == null || description.length() == 0) {
+                dialog.dismiss();
+            }
+            AlertDialogCreator.createAlertDialogFoundedFriends(MainActivity.this, editTextDescription.getText().toString(), this).show();
+        }).setNegativeButton(R.string.answer_back, (dialog, arg1) -> {
+        });
+
+        builder.setCancelable(true);
+        builder.setView(layout);
+        return builder.create();
     }
 
     private void loadProfileAvatar(View view) {
         CircleImageView circleImageView = view.findViewById(R.id.profile_image);
         if (circleImageView != null) {
-            DatabaseManager.loadAvatar(circleImageView, MainActivity.this);
-        } else {
-            Log.d("ssssss", "dddddddd");
+            Controller.loadAvatar(circleImageView, MainActivity.this, Controller.getLoggedInAsString(MainActivity.this));
         }
     }
+
     private void initGooglePlacesButton() {
         FloatingActionButton floatingActionButton = findViewById(R.id.google_places_button);
+        ToolTip.Builder builder = new ToolTip.Builder(this, floatingActionButton, findViewById(R.id.root_t), "Import places\nfrom big base", ToolTip.POSITION_BELOW);
 
         floatingActionButton.setOnClickListener(v -> alertDialogAskGooglePlacesUsage(MainActivity.this).show());
+
+        floatingActionButton.setOnLongClickListener(v -> {
+            mToolTipsManager.show(builder.build());
+            return true;
+        });
     }
 
-    public AlertDialog alertDialogPlan(final Context context) {
+    private AlertDialog alertDialogAskGooglePlacesUsage(final Context context) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
 
-        builder.setTitle("Search in Google Places");
-        builder.setMessage("Do you want to search place in google places?\n(Google places widget will be opened)");
+        builder.setTitle(R.string.places_question_gp);
+        builder.setMessage(R.string.places_question_gp_message);
 
-        builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                //Toast.makeText(context, "TODO:open GP", Toast.LENGTH_SHORT).show();
+        builder.setPositiveButton(R.string.answer_yes, (dialog, which) -> {
 
-                PlacePicker.IntentBuilder builder = new PlacePicker.IntentBuilder();
+            PlacePicker.IntentBuilder builder1 = new PlacePicker.IntentBuilder();
 
-                try {
-                    startActivityForResult(builder.build(MainActivity.this), PLACE_PICKER_REQUEST);
-                } catch (GooglePlayServicesRepairableException e) {
-                    e.printStackTrace();
-                } catch (GooglePlayServicesNotAvailableException e) {
-                    e.printStackTrace();
-                }
+            try {
+                startActivityForResult(builder1.build(MainActivity.this), PLACE_PICKER_REQUEST);
+            } catch (GooglePlayServicesRepairableException e) {
+                e.printStackTrace();
+            } catch (GooglePlayServicesNotAvailableException e) {
+                e.printStackTrace();
             }
         });
 
-        builder.setNegativeButton("No", (dialog, which) -> dialog.cancel());
-
-        builder.setCancelable(true);
-
-        return builder.create();
-    }
-
-    public AlertDialog alertDialogAskGooglePlacesUsage(final Context context) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
-
-        builder.setTitle("Search in Google Places");
-        builder.setMessage("Do you want to search place in google places?\n(Google places widget will be opened)");
-
-        builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                //Toast.makeText(context, "TODO:open GP", Toast.LENGTH_SHORT).show();
-
-                PlacePicker.IntentBuilder builder = new PlacePicker.IntentBuilder();
-
-                try {
-                    startActivityForResult(builder.build(MainActivity.this), PLACE_PICKER_REQUEST);
-                } catch (GooglePlayServicesRepairableException e) {
-                    e.printStackTrace();
-                } catch (GooglePlayServicesNotAvailableException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-
-        builder.setNegativeButton("No", (dialog, which) -> dialog.cancel());
-
+        builder.setNegativeButton(R.string.answer_no, (dialog, which) -> dialog.cancel());
         builder.setCancelable(true);
 
         return builder.create();
@@ -234,44 +275,55 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onMapLongClick(LatLng point) {
-        googleMap.addMarker(new MarkerOptions().position(point).title("My Place"));
+        mGoogleMap.addMarker(new MarkerOptions().position(point).title(MY_PLACE));
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public void onMapReady(GoogleMap map) {
-        googleMap = map;
-        googleMap.setOnMapLongClickListener(this);
-        googleMap.setOnMarkerClickListener(this);
-        googleMap.getUiSettings().setMapToolbarEnabled(false);
-        googleMap.getUiSettings().setCompassEnabled(false);
-
-        requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
-        MapManager.addAllMarkers(googleMap);
+        mGoogleMap = map;
+        Log.d("ddddd", "dvd");
+        mGoogleMap.setOnMapLongClickListener(this);
+        mGoogleMap.setOnMarkerClickListener(this);
+        mGoogleMap.getUiSettings().setMapToolbarEnabled(false);
+        mGoogleMap.getUiSettings().setCompassEnabled(false);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        mGoogleMap.setMyLocationEnabled(true);
+        Controller.addAllMarkers(mGoogleMap);
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        if(requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
+        /*if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
             initializeCamera();
         }
         try {
-            googleMap.setMyLocationEnabled(true);
+
+            mGoogleMap.setMyLocationEnabled(true);
         } catch (SecurityException se) {
             se.printStackTrace();
-        }
+        }*/
     }
 
     @Override
     public boolean onMarkerClick(final Marker marker) {
-        if(marker.getTitle() == null) {
+        if (marker.getTitle() == null) {
             return false;
         }
-        if(marker.getTitle().equals("My Place")) {
+        if (marker.getTitle().equals(MY_PLACE)) {
             AlertDialog alert = createAlertDialogNewPlace(marker.getPosition());
             alert.show();
 
-            MapManager.refreshMarkers(googleMap);
+            Controller.refreshMarkers(mGoogleMap);
         }
         else {
             showDescriptionDialog(marker);
@@ -290,7 +342,6 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         int id = item.getItemId();
@@ -305,12 +356,12 @@ public class MainActivity extends AppCompatActivity
             Intent routes = new Intent(this, RoutesActivity.class);
             startActivity(routes);
         } else if (id == R.id.nav_settings) {
-            Intent settings = new Intent(this, SettingsActivity.class);
+            Intent settings = new Intent(this, PlanActivity.class);
             startActivity(settings);
         } else if (id == R.id.nav_share) {
             shareApplication();
         } else if (id == R.id.nav_exit) {
-            AuthorizationUtils.setLoggedOut(MainActivity.this);
+            Controller.setLoggedOut(MainActivity.this);
             login();
         }
 
@@ -327,6 +378,25 @@ public class MainActivity extends AppCompatActivity
         sendIntent.setType("text/plain");
         startActivity(Intent.createChooser(sendIntent, "Share using..."));
     }
+
+    private void initializeSearchParameters() {
+        FloatingActionButton searchParamButton  = findViewById(R.id.button_search_parameters);
+        ToolTip.Builder builder = new ToolTip.Builder(this, searchParamButton, findViewById(R.id.root_t), "Customize your search!", ToolTip.POSITION_LEFT_TO );
+        searchParamButton.setOnClickListener(v -> {
+            AlertDialog alert = AlertDialogCreator.createSearchParametersDialog(MainActivity.this);
+            alert.show();
+        });
+
+        searchParamButton.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                mToolTipsManager.show(builder.build());
+                return true;
+            }
+        });
+
+    }
+
     @Override
     public void onStop () {
         super.onStop();
@@ -341,9 +411,10 @@ public class MainActivity extends AppCompatActivity
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if(requestCode == GALLERY_INTENT && resultCode == RESULT_OK) {
-            uri = data.getData();
-            imageView.setImageURI(uri);
+        if (requestCode == GALLERY_INTENT && resultCode == RESULT_OK) {
+            mUri = data.getData();
+            mImageView.setImageURI(mUri);
+            mLastAction = 1;
         }
 
         if (requestCode == PLACE_PICKER_REQUEST) {
@@ -352,18 +423,21 @@ public class MainActivity extends AppCompatActivity
                 Place place = getPlace(this, data);
                 placeme.ru.placemedemo.elements.Place toAdd = convertGooglePlaceToPlace(place);
 
-                DatabaseManager.saveConvertedPlace(null, toAdd);
-                //placeme.ru.placemedemo.elements.Place myPlace = convertGooglePlaceToPlace(place);
-                //Place place = PlacePicker.getPlace(data, this);
-                //place.getPlaceTypes()
-                String toastMsg = String.format("Place: %s", getterTest(place));
+                Controller.saveConvertedPlace(null, toAdd);
+                String toastMsg = String.format("Place: %s", place.getName().toString());
                 Toast.makeText(this, toastMsg, Toast.LENGTH_LONG).show();
             }
         }
-    }
+        if (requestCode == CAMERA_RESULT) {
+            if (data != null) {
+                if (data.getExtras() != null) {
+                    mBitmap = (Bitmap) data.getExtras().get("data");
+                    mLastAction = 2;
 
-    private String getterTest(Place p) {
-        return p.getName().toString();
+                    mImageView.setImageBitmap(mBitmap);
+                }
+            }
+        }
     }
 
     private placeme.ru.placemedemo.elements.Place convertGooglePlaceToPlace(Place place) {
@@ -371,15 +445,15 @@ public class MainActivity extends AppCompatActivity
         String name = "Some place";
         String address = "";
         String phone = "";
-        if(place.getName() != null) {
+        if (place.getName() != null) {
             name = place.getName().toString();
         }
 
-        if(place.getAddress() != null) {
+        if (place.getAddress() != null) {
             address = place.getAddress().toString();
         }
 
-        if(place.getPhoneNumber() != null) {
+        if (place.getPhoneNumber() != null) {
             phone = place.getPhoneNumber().toString();
         }
 
@@ -396,7 +470,6 @@ public class MainActivity extends AppCompatActivity
             description.append(phone);
         }
 
-
         result.setName(place.getName().toString());
         result.setDescription(description.toString());
 
@@ -411,17 +484,215 @@ public class MainActivity extends AppCompatActivity
     private placeme.ru.placemedemo.elements.Place addTags(placeme.ru.placemedemo.elements.Place destination, Place src) {
         List<Integer> placeTags = src.getPlaceTypes();
         StringBuilder tags = new StringBuilder();
-        tags.append(",");
+        //tags.append(",");
 
         for (Integer id : placeTags) {
-            if(id.equals(Place.TYPE_GROCERY_OR_SUPERMARKET)) {
+            if (id.equals(Place.TYPE_AIRPORT)) {
+                tags.append("аэропорт,");
+                tags.append("самолёт,");
+            } else if (id.equals(Place.TYPE_ART_GALLERY)) {
+                tags.append("галерея,");
+                tags.append("арт,");
+                tags.append("искусство,");
+                tags.append("культура,");
+                tags.append("картины,");
+            } else if (id.equals(Place.TYPE_ATM)) {
+                tags.append("банк,");
+                tags.append("банкомат,");
+                tags.append("деньги,");
+            } else if (id.equals(Place.TYPE_BAKERY)) {
+                tags.append("пекарня,");
+                tags.append("выпечка,");
+                tags.append("хлеб,");
+                tags.append("булочная,");
+            } else if (id.equals(Place.TYPE_BANK)) {
+                tags.append("банк,");
+                tags.append("деньги,");
+            } else if (id.equals(Place.TYPE_BAR)) {
+                tags.append("бар,");
+                tags.append("кафе,");
+                tags.append("досуг,");
+            } else if (id.equals(Place.TYPE_BEAUTY_SALON)) {
+                tags.append("салон красоты,");
+                tags.append("красота,");
+                tags.append("спа,");
+                tags.append("салон,");
+                tags.append("парикмахерская,");
+            } else if (id.equals(Place.TYPE_BICYCLE_STORE)) {
+                tags.append("велосипед,");
+                tags.append("магазин,");
+            } else if (id.equals(Place.TYPE_BOOK_STORE)) {
+                tags.append("книги,");
+                tags.append("магазин книг,");
+                tags.append("магазин,");
+                tags.append("канцелярия,");
+            } else if (id.equals(Place.TYPE_BUS_STATION)) {
+                tags.append("автобус,");
+                tags.append("остановка,");
+                tags.append("троллейбус,");
+                tags.append("транспорт,");
+            } else if (id.equals(Place.TYPE_CAFE)) {
+                tags.append("кафе,");
+                tags.append("еда,");
+                tags.append("ресторан,");
+            } else if (id.equals(Place.TYPE_CAR_REPAIR)) {
+                tags.append("машина,");
+                tags.append("ремонт,");
+                tags.append("ремонт машин,");
+                tags.append("запчасти,");
+            } else if (id.equals(Place.TYPE_CAR_WASH)) {
+                tags.append("машина,");
+                tags.append("мойка,");
+                tags.append("мойка машин,");
+            } else if (id.equals(Place.TYPE_CHURCH)) {
+                tags.append("церковь,");
+            } else if (id.equals(Place.TYPE_CLOTHING_STORE)) {
+                tags.append("магазин,");
+                tags.append("одежда,");
+                tags.append("магазин одежды,");
+            } else if (id.equals(Place.TYPE_COUNTRY)) {
+                tags.append("страна,");
+                tags.append("государство,");
+            } else if (id.equals(Place.TYPE_DENTIST)) {
+                tags.append("дантист,");
+                tags.append("стоматология,");
+                tags.append("клиника,");
+                tags.append("стоматолог,");
+            } else if (id.equals(Place.TYPE_DEPARTMENT_STORE)) {
+                tags.append("универмаг,");
+            } else if (id.equals(Place.TYPE_DOCTOR)) {
+                tags.append("доктор,");
+                tags.append("врач,");
+                tags.append("больница,");
+                tags.append("поликлиника,");
+            } else if (id.equals(Place.TYPE_EMBASSY)) {
+                tags.append("консул,");
+                tags.append("консульство,");
+                tags.append("посольство,");
+                tags.append("посол,");
+            } else if (id.equals(Place.TYPE_FIRE_STATION)) {
+                tags.append("пожарная,");
+                tags.append("пожарная станция,");
+                tags.append("пожарная часть,");
+            } else if (id.equals(Place.TYPE_FLORIST)) {
+                tags.append("цветы,");
+                tags.append("цветочный магазин,");
+                tags.append("магазин цветов,");
+                tags.append("флорист,");
+            } else if (id.equals(Place.TYPE_FLORIST)) {
+                tags.append("цветы,");
+                tags.append("цветочный магазин,");
+                tags.append("магазин цветов,");
+                tags.append("флорист,");
+            } else if (id.equals(Place.TYPE_FOOD)) {
+                tags.append("еда,");
+            } else if (id.equals(Place.TYPE_GROCERY_OR_SUPERMARKET)) {
                 tags.append("магазин,");
                 tags.append("супермаркет,");
                 tags.append("еда,");
+            } else if (id.equals(Place.TYPE_GYM)) {
+                tags.append("фитнес,");
+                tags.append("спорт,");
+                tags.append("спортзал,");
+                tags.append("тренажёры,");
+            } else if (id.equals(Place.TYPE_HAIR_CARE)) {
+                tags.append("парикмахерская,");
+                tags.append("волосы,");
+                tags.append("стрижка,");
+                tags.append("парикмахер,");
+            } else if (id.equals(Place.TYPE_HEALTH)) {
+                tags.append("здоровье,");
+            } else if (id.equals(Place.TYPE_LIBRARY)) {
+                tags.append("книги,");
+                tags.append("библиотека,");
+                tags.append("чтение,");
+                tags.append("досуг,");
+            } else if (id.equals(Place.TYPE_MOVIE_THEATER)) {
+                tags.append("кино,");
+                tags.append("кинотеатр,");
+                tags.append("фильмы,");
+                tags.append("досуг,");
+            } else if (id.equals(Place.TYPE_MUSEUM)) {
+                tags.append("музей,");
+                tags.append("культура,");
+                tags.append("образование,");
+            } else if (id.equals(Place.TYPE_PARK)) {
+                tags.append("парк,");
+                tags.append("прогулка,");
+                tags.append("сад,");
+                tags.append("деревья,");
+            } else if (id.equals(Place.TYPE_PARKING)) {
+                tags.append("парковка,");
+                tags.append("стоянка,");
+            } else if (id.equals(Place.TYPE_PET_STORE)) {
+                tags.append("зоомагазин,");
+                tags.append("магазин,");
+                tags.append("питомец,");
+            } else if (id.equals(Place.TYPE_PHARMACY)) {
+                tags.append("аптека,");
+                tags.append("лекарства,");
+            } else if (id.equals(Place.TYPE_POLICE)) {
+                tags.append("полиция,");
+                tags.append("полицеский участок,");
+            } else if (id.equals(Place.TYPE_POST_OFFICE)) {
+                tags.append("почта,");
+                tags.append("посылка,");
+                tags.append("письмо,");
+            } else if (id.equals(Place.TYPE_RESTAURANT)) {
+                tags.append("ресторан,");
+                tags.append("кафе,");
+                tags.append("еда,");
+                tags.append("уют,");
+            } else if (id.equals(Place.TYPE_SCHOOL)) {
+                tags.append("школа,");
+                tags.append("образование,");
+            } else if (id.equals(Place.TYPE_SHOE_STORE)) {
+                tags.append("обувь,");
+                tags.append("магазин,");
+                tags.append("магазин обуви,");
+            } else if (id.equals(Place.TYPE_SHOPPING_MALL)) {
+                tags.append("торговый центр,");
+                tags.append("магазин,");
+                tags.append("тц,");
+                tags.append("шопинг,");
+            } else if (id.equals(Place.TYPE_SPA)) {
+                tags.append("спа,");
+                tags.append("отдых,");
+                tags.append("красота,");
+            } else if (id.equals(Place.TYPE_STADIUM)) {
+                tags.append("спорт,");
+                tags.append("стадион,");
+            } else if (id.equals(Place.TYPE_STORE)) {
+                tags.append("магазин,");
+            } else if (id.equals(Place.TYPE_STREET_ADDRESS)) {
+                tags.append("улица,");
+            } else if (id.equals(Place.TYPE_SUBWAY_STATION)) {
+                tags.append("метро,");
+                tags.append("станция метро,");
+                tags.append("транспорт,");
+            } else if (id.equals(Place.TYPE_TRAIN_STATION)) {
+                tags.append("поезд,");
+                tags.append("транспорт,");
+                tags.append("вокзал,");
+            } else if (id.equals(Place.TYPE_UNIVERSITY)) {
+                tags.append("университет,");
+                tags.append("обучение,");
+                tags.append("образование,");
+                tags.append("институт,");
+                tags.append("вуз,");
+            } else if (id.equals(Place.TYPE_VETERINARY_CARE)) {
+                tags.append("ветеринар,");
+                tags.append("питомец,");
+            } else if (id.equals(Place.TYPE_ZOO)) {
+                tags.append("зоопарк,");
+                tags.append("животные,");
+                tags.append("досуг,");
             }
         }
 
-        tags.deleteCharAt(tags.lastIndexOf(","));
+        if (tags.toString().length() > 0) {
+            tags.deleteCharAt(tags.lastIndexOf(","));
+        }
 
         destination.setTags(tags.toString());
 
@@ -436,7 +707,7 @@ public class MainActivity extends AppCompatActivity
         double dx = maxx - minx;
         double dy = maxy - miny;
         int iter = (int)(100 * Math.max(dx, dy)) + 3;
-        if(dx * dx + dy * dy < 1e-14) {
+        if (dx * dx + dy * dy < 1e-14) {
             iter = 1;
         }
         for (int i = 0; i <= iter; i++) {
@@ -452,12 +723,17 @@ public class MainActivity extends AppCompatActivity
 
     private void initializeCamera() {
         Button b = findViewById(R.id.button4);
+        ToolTip.Builder builder2 = new ToolTip.Builder(this, b, findViewById(R.id.root_t), "Try AR route!", ToolTip.POSITION_ABOVE );
+        b.setOnLongClickListener(v -> {
+            mToolTipsManager.show(builder2.build());
+            return true;
+        });
         b.setOnClickListener(v -> ArActivity.startWithSetup(MainActivity.this, new MySetup() {
             @Override
             public void addObjectsTo(GL1Renderer renderer, final World world, GLFactory objectFactory) {
 
                 points = AlertDialogCreator.getPoints();
-                if(points == null) {
+                if (points == null) {
                 }
                 else {
                     if (points.size() == 0) {
@@ -480,39 +756,52 @@ public class MainActivity extends AppCompatActivity
         }));
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
     private void initializeGeolocation() {
-        mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+        FusedLocationProviderClient mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         try {
-            Task<Location> locationResult = mFusedLocationProviderClient.getLastLocation();
-            locationResult.addOnCompleteListener(this, task -> {
-                if (task.isSuccessful()) {
-                    mLastKnownLocation = task.getResult();
-                    myPosition = new LatLng(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude());
-                }
-            });
+            int permission2 = ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION);
+
+            if (permission2 != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
+            } else {
+                Task<Location> locationResult = mFusedLocationProviderClient.getLastLocation();
+                locationResult.addOnCompleteListener(this, task -> {
+                    if (task.isSuccessful()) {
+                        mLastKnownLocation = task.getResult();
+                        if (mLastKnownLocation != null) {
+                            myPosition = new LatLng(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude());
+                        }
+                    }
+                });
+            }
         } catch (SecurityException e)  {
             Log.e("Exception: %s", e.getMessage());
         }
     }
 
     private void initializeInputWindow() {
-        edSearch = findViewById(R.id.search);
-        edSearch.setOnEditorActionListener((v, actionId, event) -> {
-            if(googleMap != null) {
-                googleMap.clear();
+        mSearch = findViewById(R.id.search);
+        ToolTip.Builder builder2 = new ToolTip.Builder(this, mSearch, findViewById(R.id.root_t), "Search places\nhere!", ToolTip.POSITION_BELOW );
+        mSearch.setOnLongClickListener(v -> {
+            mToolTipsManager.show(builder2.build());
+            return true;
+        });
+        mSearch.setOnEditorActionListener((v, actionId, event) -> {
+            if (mGoogleMap != null) {
+                mGoogleMap.clear();
             }
-            final String query = edSearch.getText().toString();
-            MapManager.addFoundedMarkers(googleMap, query);
-            AlertDialogCreator.createAlertDialogFounded(MainActivity.this, query, googleMap, myPosition).show();
+            final String query = mSearch.getText().toString();
+            Controller.addFoundedMarkers(mGoogleMap, query);
+            AlertDialogCreator.createAlertDialogFounded(MainActivity.this, query, mGoogleMap, myPosition, this).show();
 
             return false;
         });
     }
 
     private void checkLogin() {
-        if (AuthorizationUtils.getLoggedIn(this) == -1) {
+        if (Controller.getLoggedIn(this) == -1) {
             login();
-            return;
         }
     }
 
@@ -547,12 +836,12 @@ public class MainActivity extends AppCompatActivity
         builder.setPositiveButton(R.string.answer_finish, (dialog, id) -> {
             EditText editTextDescription = layout.findViewById(R.id.route_description);
             String description = editTextDescription.getText().toString();
-            if(description == null || description.length() == 0) {
+            if (description == null || description.length() == 0) {
                 description = "No description given.";
             }
-            DatabaseManager.saveRouteInfo(AuthorizationUtils.getLoggedInAsString(MainActivity.this), RoutesUtils.getRoutesLength(MainActivity.this), description);
-            Controller.sendRoute(googleMap, "tmp", MainActivity.this);
-            DatabaseManager.updateRoutesLength(AuthorizationUtils.getLoggedInAsString(MainActivity.this), RoutesUtils.getRoutesLength(MainActivity.this));
+            Controller.saveRouteInfo(Controller.getLoggedInAsString(MainActivity.this), Controller.getRoutesLength(MainActivity.this), description);
+            Controller.sendRoute(mGoogleMap, "tmp", MainActivity.this);
+            Controller.updateRoutesLength(Controller.getLoggedInAsString(MainActivity.this), Controller.getRoutesLength(MainActivity.this));
         }).setNegativeButton(R.string.answer_back, (dialog, arg1) -> {});
 
         builder.setCancelable(true);
@@ -560,22 +849,56 @@ public class MainActivity extends AppCompatActivity
         return builder.create();
     }
 
+    private void checkPermission(){
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
+                ContextCompat.checkSelfPermission(this,Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                ){//Can add more as per requirement
+
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.ACCESS_COARSE_LOCATION},
+                    123);
+        }
+    }
+
     private AlertDialog createNewPlace(final LatLng latLng) {
         final AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
         LayoutInflater inflater = (LayoutInflater) MainActivity.this.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
         final View layout = inflater.inflate(R.layout.dialog_new_place, null);
 
-        imageView = layout.findViewById(R.id.new_place_image);
-        imageView.setOnClickListener(v -> {
-            Intent intent = new Intent(Intent.ACTION_PICK);
+        mBitmap = null;
+        mUri = null;
+        mLastAction = 0;
 
-            intent.setType("image/*");
-            startActivityForResult(intent, GALLERY_INTENT);
+        mImageView = layout.findViewById(R.id.new_place_image);
+        mImageView.setOnClickListener(v -> {
+            AlertDialog.Builder builderInner = new AlertDialog.Builder(MainActivity.this);
+            builderInner.setMessage("Do you want to open gallery or take photo?");
+            builderInner.setTitle("Adding photo");
+            builderInner.setPositiveButton("Gallery", (dialog, which) -> {
+                Intent intent = new Intent(Intent.ACTION_PICK);
+
+                mLastAction = 1;
+                intent.setType("image/*");
+                startActivityForResult(intent, GALLERY_INTENT);
+            });
+            builderInner.setNeutralButton("Camera", (dialog, which) -> {
+                mLastAction = 2;
+                Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+
+                startActivityForResult(cameraIntent, CAMERA_RESULT);
+            });
+            builderInner.setNegativeButton(R.string.answer_cancel, (dialog, which) -> dialog.dismiss());
+            builderInner.show();
+
         });
 
         builder.setPositiveButton(R.string.answer_finish, (dialog, id) -> {
             String[] placeInfo = getPlaceInfo(layout);
-            DatabaseManager.saveCreatedPlace(uri, placeInfo, latLng);
+            if (mLastAction == 1) {
+                Controller.saveCreatedPlace(mUri, placeInfo, latLng);
+            } else {
+                Controller.saveCreatedPlace2(mBitmap, placeInfo, latLng);
+            }
         }).setNegativeButton(R.string.answer_back, (dialog, arg1) -> {});
 
         builder.setCancelable(true);
@@ -597,11 +920,9 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void showDescriptionDialog(final Marker marker) {
-        DatabaseManager.runDescriptionDialog(MainActivity.this, marker, myPosition, googleMap);
+        Controller.runDescriptionDialog(MainActivity.this, marker, myPosition, mGoogleMap);
     }
 
     @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-
-    }
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {}
 }

@@ -1,13 +1,18 @@
 package placeme.ru.placemedemo.core.database;
 
+import android.app.Activity;
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.view.View;
+import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.RatingBar;
 import android.widget.TextView;
 
@@ -23,29 +28,24 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.squareup.picasso.Picasso;
 
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.HashMap;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 import placeme.ru.placemedemo.R;
-import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
-import placeme.ru.placemedemo.core.utils.FavouritePlacesUtils;
-import placeme.ru.placemedemo.core.utils.FriendsDataUtils;
-import placeme.ru.placemedemo.core.utils.RoutesUtils;
+import placeme.ru.placemedemo.core.Controller;
 import placeme.ru.placemedemo.elements.AuthData;
 import placeme.ru.placemedemo.elements.Place;
 import placeme.ru.placemedemo.elements.User;
 import placeme.ru.placemedemo.ui.dialogs.AlertDialogCreator;
 import placeme.ru.placemedemo.ui.views.HorizontalListViewFragment;
-import util.Log;
-
-/**
- * Created by Андрей on 21.12.2017.
- */
 
 /**
  * Class that have all methods connected with working with the database
+ * Created by Андрей on 21.12.2017.
  */
 public class DatabaseManager {
     private static final String USERS_KEY = "users";
@@ -57,10 +57,12 @@ public class DatabaseManager {
     private static final String USER_NICKNAME_KEY = "nickname";
     private static final String USER_LOGIN_KEY = "login";
     private static final String USER_PASSWORD_KEY = "password";
+    private static final String USER_AVATAR_KEY = "avatars";
+    private static final String DOG_CHARACTER = "@";
     
     private static FirebaseDatabase mBase;
     private static DatabaseReference mDatabaseReference;
-    private static ChildEventListener childEventListener;
+    private static ChildEventListener mChildEventListener;
 
     private static StorageReference mStorageRef;
 
@@ -70,37 +72,10 @@ public class DatabaseManager {
     }
 
     /**
-     * Method that check existence of the user in the database
-     * @param context current context
-     * @param email user email
-     * @param password user password
-     */
-    public static void findUserAndCheckPassword(final Context context, final String email, final String password) {
-        mDatabaseReference = getDatabaseChild(AUTH_DATA_KEY);
-
-        AuthorizationUtils.setLoggedIn(context, -1);
-        childEventListener = new AbstractChildEventListener() {
-            @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                AuthData authData = dataSnapshot.getValue(AuthData.class);
-                if (authData != null) {
-                    if (authData.getLogin().equals(email)) {
-                        if (authData.getPassword().equals(password)) {
-                            AuthorizationUtils.setLoggedIn(context, authData.getId());
-                        }
-                    }
-                }
-            }
-        };
-        mDatabaseReference.addChildEventListener(childEventListener);
-    }
-
-    /**
      * Method that register new user in database with unique id
-     * @param context current context
      * @param information information that user input during registration
      */
-    public static void registerUser(final Context context, final String[] information) {
+    public static void registerUser(final String[] information) {
         mDatabaseReference = getDatabaseChild(MAX_ID);
 
         mDatabaseReference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
@@ -110,9 +85,14 @@ public class DatabaseManager {
                 if (id != null) {
                     AuthData newAuthData = new AuthData(id, information[0], information[1]);
                     User newUser = new User(id, information[2], information[3], information[4]);
-
-                    getDatabaseChild(USERS_KEY).child(id.toString()).setValue(newUser);
-                    getDatabaseChild(AUTH_DATA_KEY).child(id.toString()).setValue(newAuthData);
+                    DatabaseReference referenceAuth = getDatabaseChild(AUTH_DATA_KEY);
+                    DatabaseReference referenceUsers = getDatabaseChild(USERS_KEY);
+                    if (referenceUsers != null) {
+                        referenceUsers.child(id.toString()).setValue(newUser);
+                    }
+                    if (referenceAuth != null) {
+                        referenceAuth.child(id.toString()).setValue(newAuthData);
+                    }
                     mDatabaseReference.setValue(id + 1);
                 }
             }
@@ -120,34 +100,93 @@ public class DatabaseManager {
     }
 
     /**
-     * Method that searches places in database within query string
+     * Method that searches places in database within query string and lock any actions while loading
+     * this makes impossible to build root before loading all places
      * @param arrayAdapter adapter with names of founded places
      * @param places array with founded places
      * @param toFind string which contains user query to search
+     * @param myPosition current user positions
+     * @param context current context
+     * @param activity UI activity that calls method
      */
-    public static void findPlacesByString(final ArrayAdapter<String> arrayAdapter, final ArrayList<Place> places, final String toFind) {
-        mDatabaseReference = getDatabaseChild(PLACES_KEY);
-
-        childEventListener = new AbstractChildEventListener() {
+    public static void findPlacesByStringV2(final ArrayAdapter<String> arrayAdapter, final ArrayList<Place> places, final String toFind, final LatLng myPosition, final Context context, final Activity activity) {
+        activity.getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
+                WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+        ProgressBar progressBar = new ProgressBar(context);
+        progressBar.setVisibility(View.VISIBLE);
+        DatabaseReference reference = FirebaseDatabase.getInstance().getReference().child(PLACES_KEY);
+        reference.addChildEventListener(new AbstractChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 Place place = dataSnapshot.getValue(Place.class);
-                if (place.getName().toLowerCase().contains(toFind.toLowerCase())) {
-                    arrayAdapter.add(place.getName());
-                    places.add(place);
+                if (place != null) {
+                    boolean distanceEnabled = Controller.getDistanceSearchStatus(context);
+                    boolean distanceAccess = (!distanceEnabled) || (Controller.getKilometers(myPosition, new LatLng(place.getLatitude(), place.getLongitude())) <= Controller.getDistanceSearchValue(context));
+                    boolean ratingEnabled = Controller.getRatingSearchStatus(context);
+                    boolean ratingAccess = (!ratingEnabled) || (place.getMark() > (Controller.getRatingSearchValue(context) / 20.0));
 
-                } else {
-                    for (String tag : place.getTags().split(",")) {
-                        if (toFind.toLowerCase().equals(tag.toLowerCase())) {
+                    if (distanceAccess && ratingAccess) {
+                        if (place.getName().toLowerCase().contains(toFind.toLowerCase())) {
                             arrayAdapter.add(place.getName());
                             places.add(place);
-                            break;
+
+                        } else {
+                            for (String tag : place.getTags().split(",")) {
+                                if (toFind.toLowerCase().equals(tag.toLowerCase())) {
+                                    arrayAdapter.add(place.getName());
+                                    places.add(place);
+                                    break;
+                                }
+                            }
                         }
                     }
                 }
             }
-        };
-        mDatabaseReference.addChildEventListener(childEventListener);
+        });
+
+        reference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                progressBar.setVisibility(View.GONE);
+                activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+            }
+        });
+    }
+
+    /**
+     * Method that searches places in database within query string and maked impossible to add friends
+     * before load would be finished
+     * @param arrayAdapter adapter with names of founded places
+     * @param users array with founded users
+     * @param toFind string which contains user query to search
+     * @param activity UI activity that calls method
+     */
+    public static void findUsersByStringV2(final ArrayAdapter<String> arrayAdapter, final ArrayList<User> users, final String toFind, final Context context, final Activity activity) {
+        activity.getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
+                WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+        ProgressBar progressBar = new ProgressBar(context);
+        progressBar.setVisibility(View.VISIBLE);
+        DatabaseReference reference = FirebaseDatabase.getInstance().getReference().child("users");
+        reference.addChildEventListener(new AbstractChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                User user = dataSnapshot.getValue(User.class);
+                if (user != null) {
+                    if (user.getNickname().contains(toFind)) {
+                        arrayAdapter.add(user.getName());
+                        users.add(user);
+                    }
+                }
+            }
+        });
+
+        reference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                progressBar.setVisibility(View.GONE);
+                activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+            }
+        });
     }
 
     /**
@@ -156,25 +195,31 @@ public class DatabaseManager {
      * @param ratingBar rating bar to update
      * @param placeId place that user have rated
      */
+    @SuppressWarnings("unchecked")
     public static void updatePlaceRating(final RatingBar ratingBar, final String placeId) {
-        mDatabaseReference = getDatabaseChild(PLACES_KEY).child(placeId);
+        mDatabaseReference = getDatabaseChild(PLACES_KEY);
+        if (mDatabaseReference != null) {
+            mDatabaseReference = mDatabaseReference.child(placeId);
+        }
 
         mDatabaseReference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 HashMap<String, Object> currentPlace = (HashMap<String, Object>) dataSnapshot.getValue();
-                float mark = ratingBar.getRating();
-                float curSum = Float.parseFloat(currentPlace.get("sumOfMarks").toString());
-                long curNumberOfMarks = Long.parseLong(currentPlace.get("numberOfRatings").toString());
+                if (currentPlace != null) {
+                    float mark = ratingBar.getRating();
+                    float curSum = Float.parseFloat(currentPlace.get("sumOfMarks").toString());
+                    long curNumberOfMarks = Long.parseLong(currentPlace.get("numberOfRatings").toString());
 
-                curSum += mark;
-                curNumberOfMarks++;
+                    curSum += mark;
+                    curNumberOfMarks++;
 
-                DatabaseReference mDatabaseReferenceSet = mDatabaseReference.child("sumOfMarks");
-                mDatabaseReferenceSet.setValue(curSum);
+                    DatabaseReference mDatabaseReferenceSet = mDatabaseReference.child("sumOfMarks");
+                    mDatabaseReferenceSet.setValue(curSum);
 
-                mDatabaseReferenceSet = mDatabaseReference.child("numberOfRatings");
-                mDatabaseReferenceSet.setValue(curNumberOfMarks);
+                    mDatabaseReferenceSet = mDatabaseReference.child("numberOfRatings");
+                    mDatabaseReferenceSet.setValue(curNumberOfMarks);
+                }
             }
         });
     }
@@ -186,22 +231,32 @@ public class DatabaseManager {
      * @param placeId id of place that should be added
      */
     public static void addPlaceToFavourite(final String userId, final String placeId) {
-        mDatabaseReference = getDatabaseChild(USERS_KEY).child(userId).child("favouritePlaces");
+        mDatabaseReference = getDatabaseChild(USERS_KEY);
+        if (mDatabaseReference != null) {
+            mDatabaseReference = mDatabaseReference.child(userId).child("favouritePlaces");
+        }
         mDatabaseReference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                String places = dataSnapshot.getValue().toString();
-                boolean wasAlreadyAddedToFavourite = false;
-                for (String str : places.split(",")) {
-                    if (str.equals(placeId)) {
-                        wasAlreadyAddedToFavourite = true;
+                Object placeObject = dataSnapshot.getValue();
+                if (placeObject != null) {
+                    String places = placeObject.toString();
+                    if (places == null || places.equals("")) {
+                        mDatabaseReference.setValue(placeId);
+                    } else {
+                        boolean wasAlreadyAddedToFavourite = false;
+                        for (String str : places.split(",")) {
+                            if (str.equals(placeId)) {
+                                wasAlreadyAddedToFavourite = true;
+                            }
+                        }
+
+                        if (!wasAlreadyAddedToFavourite) {
+                            String newFavouritePlacesList = places + "," + placeId;
+                            mDatabaseReference.setValue(newFavouritePlacesList);
+
+                        }
                     }
-                }
-
-                if (!wasAlreadyAddedToFavourite) {
-                    String newFavouritePlacesList = places + "," + placeId;
-                    mDatabaseReference.setValue(newFavouritePlacesList);
-
                 }
             }
         });
@@ -217,9 +272,11 @@ public class DatabaseManager {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 Place place = dataSnapshot.getValue(Place.class);
-                googleMap.addMarker(new MarkerOptions()
-                         .position(new LatLng(place.getLatitude(), place.getLongitude()))
-                         .title(place.getName()));
+                if (place != null) {
+                    googleMap.addMarker(new MarkerOptions()
+                            .position(new LatLng(place.getLatitude(), place.getLongitude()))
+                            .title(place.getName()));
+                }
             }
 
         });
@@ -236,17 +293,19 @@ public class DatabaseManager {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 Place place = dataSnapshot.getValue(Place.class);
-                if (place.getName().toLowerCase().contains(query.toLowerCase())) {
-                    googleMap.addMarker(new MarkerOptions()
-                             .position(new LatLng(place.getLatitude(), place.getLongitude()))
-                             .title(place.getName()));
-                } else {
-                    for (String tag : place.getTags().split(",")) {
-                        if (query.toLowerCase().equals(tag.toLowerCase())) {
-                            googleMap.addMarker(new MarkerOptions()
-                                     .position(new LatLng(place.getLatitude(), place.getLongitude()))
-                                     .title(place.getName()));
-                            break;
+                if (place != null) {
+                    if (place.getName().toLowerCase().contains(query.toLowerCase())) {
+                        googleMap.addMarker(new MarkerOptions()
+                                .position(new LatLng(place.getLatitude(), place.getLongitude()))
+                                .title(place.getName()));
+                    } else {
+                        for (String tag : place.getTags().split(",")) {
+                            if (query.toLowerCase().equals(tag.toLowerCase())) {
+                                googleMap.addMarker(new MarkerOptions()
+                                        .position(new LatLng(place.getLatitude(), place.getLongitude()))
+                                        .title(place.getName()));
+                                break;
+                            }
                         }
                     }
                 }
@@ -259,31 +318,43 @@ public class DatabaseManager {
      * @param toLoad array of fields to init
      * @param userId user id to search in database
      */
+    @SuppressWarnings("unchecked")
     public static void loadUserDataForEdit(final EditText[] toLoad, String userId) {
-        mDatabaseReference = getDatabaseChild(USERS_KEY).child(userId);
-
+        mDatabaseReference = getDatabaseChild(USERS_KEY);
+        if (mDatabaseReference != null) {
+            mDatabaseReference = mDatabaseReference.child(userId);
+        }
         mDatabaseReference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 HashMap<String, String> currentUser = (HashMap<String, String>) dataSnapshot.getValue();
 
-                toLoad[2].setText(currentUser.get(USER_NAME_KEY));
-                toLoad[3].setText(currentUser.get(USER_SURNAME_KEY));
-                toLoad[4].setText(currentUser.get(USER_NICKNAME_KEY));
+                if (currentUser != null) {
+                    toLoad[2].setText(currentUser.get(USER_NAME_KEY));
+                    toLoad[3].setText(currentUser.get(USER_SURNAME_KEY));
+                    toLoad[4].setText(currentUser.get(USER_NICKNAME_KEY));
+                }
             }
         });
 
-        DatabaseReference mDatabaseReferenceAuth = getDatabaseChild(AUTH_DATA_KEY).child(userId);
+        DatabaseReference mDatabaseReferenceAuth = getDatabaseChild(AUTH_DATA_KEY);
 
-        mDatabaseReferenceAuth.addListenerForSingleValueEvent(new AbstractValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                HashMap<String, String> currentUser = (HashMap<String, String>) dataSnapshot.getValue();
+        if (mDatabaseReferenceAuth != null) {
+            mDatabaseReferenceAuth = mDatabaseReferenceAuth.child(userId);
+        }
+        if (mDatabaseReferenceAuth != null) {
+            mDatabaseReferenceAuth.addListenerForSingleValueEvent(new AbstractValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    HashMap<String, String> currentUser = (HashMap<String, String>) dataSnapshot.getValue();
 
-                toLoad[0].setText(currentUser.get(USER_LOGIN_KEY));
-                toLoad[1].setText(currentUser.get(USER_PASSWORD_KEY));
-            }
-        });
+                    if (currentUser != null) {
+                        toLoad[0].setText(currentUser.get(USER_LOGIN_KEY));
+                        toLoad[1].setText(currentUser.get(USER_PASSWORD_KEY));
+                    }
+                }
+            });
+        }
     }
 
     /**
@@ -292,47 +363,24 @@ public class DatabaseManager {
      * @param information new user information
      */
     public static void saveProfileChanges(final String userId, final String[] information) {
-        mDatabaseReference = getDatabaseChild(USERS_KEY).child(userId);
-
+        mDatabaseReference = getDatabaseChild(USERS_KEY);
+        if (mDatabaseReference != null) {
+            mDatabaseReference = mDatabaseReference.child(userId);
+        }
         mDatabaseReference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                getDatabaseChild(AUTH_DATA_KEY).child(userId).child(USER_LOGIN_KEY).setValue(information[0]);
-                getDatabaseChild(AUTH_DATA_KEY).child(userId).child(USER_PASSWORD_KEY).setValue(information[1]);
-                getDatabaseChild(USERS_KEY).child(userId).child(USER_NAME_KEY).setValue(information[2]);
-                getDatabaseChild(USERS_KEY).child(userId).child(USER_SURNAME_KEY).setValue(information[3]);
-                getDatabaseChild(USERS_KEY).child(userId).child(USER_NICKNAME_KEY).setValue(information[4]);
-            }
-        });
-    }
-
-    /**
-     * Method that allows to load user favorite places from database to array adapter
-     * @param userId user id
-     * @param adapter adapter to put places
-     */
-    @Deprecated
-    public static void loadUserFavouritePlacesList(final String userId, ArrayAdapter<String> adapter) {
-        mDatabaseReference = getDatabaseChild(USERS_KEY).child(userId).child("favouritePlaces");
-        mDatabaseReference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                String[] idArray = dataSnapshot.getValue().toString().split(",");
-
-                Arrays.sort(idArray, (a, b) -> (Integer.parseInt(a) - Integer.parseInt(b)));
-                DatabaseReference mDatabaseReferencePlaces= getDatabaseChild(PLACES_KEY);
-                mDatabaseReferencePlaces.addChildEventListener(new AbstractChildEventListener() {
-                    int position = 0;
-                    @Override
-                    public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                        Place place = dataSnapshot.getValue(Place.class);
-                        if (position < idArray.length && (place.getIdAsString()).equals(idArray[position])) {
-                            position++;
-                            adapter.add(place.getName());
-
-                        }
-                    }
-                });
+                DatabaseReference referenceAuth = getDatabaseChild(AUTH_DATA_KEY);
+                if (referenceAuth != null) {
+                    referenceAuth.child(userId).child(USER_LOGIN_KEY).setValue(information[0]);
+                    referenceAuth.child(userId).child(USER_PASSWORD_KEY).setValue(information[1]);
+                }
+                DatabaseReference referenceUsers = getDatabaseChild(USERS_KEY);
+                if (referenceUsers != null) {
+                    referenceUsers.child(userId).child(USER_NAME_KEY).setValue(information[2]);
+                    referenceUsers.child(userId).child(USER_SURNAME_KEY).setValue(information[3]);
+                    referenceUsers.child(userId).child(USER_NICKNAME_KEY).setValue(information[4]);
+                }
             }
         });
     }
@@ -344,13 +392,16 @@ public class DatabaseManager {
      * @param fragmentManager fragment managet for transaction
      * @param fragment output fragment
      */
-    public static void loadUserFavouritePlacesListNew(final String userId, final Context context, final FragmentManager fragmentManager, final Fragment fragment) {
-        mDatabaseReference = getDatabaseChild(USERS_KEY).child(userId).child("favouritePlaces");
+    public static void loadUserFavouritePlacesListV2(final String userId, final Context context, final FragmentManager fragmentManager, final Fragment fragment) {
+        mDatabaseReference = getDatabaseChild(USERS_KEY);
+        if (mDatabaseReference != null) {
+            mDatabaseReference = mDatabaseReference.child(userId).child("favouritePlaces");
+        }
         mDatabaseReference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                String idArray = dataSnapshot.getValue().toString();
-                FavouritePlacesUtils.setPlaces(context, idArray);
+                String idArray = (String) dataSnapshot.getValue();
+                Controller.setPlaces(context, idArray);
                 fragmentManager.beginTransaction().add(R.id.places_fragment, fragment).commit();
             }
         });
@@ -377,12 +428,12 @@ public class DatabaseManager {
                 if (userId == user.getId()) {
                     userProfileInfo[0].setText(user.getName());
                     userProfileInfo[1].setText(user.getSurname());
-                    //TODO: move string constant to values/strings
-                    userProfileInfo[2].setText("@" + user.getNickname());
 
-                    //TODO: add friends list
-                    FriendsDataUtils.setFriendsLength(context, user.getFriendsLength());
-                    FriendsDataUtils.setFriends(context, user.getFriends());
+                    final String nickname = DOG_CHARACTER + user.getNickname();
+                    userProfileInfo[2].setText(nickname);
+
+                    Controller.setFriendsLength(context, user.getFriendsLength());
+                    Controller.setFriends(context, user.getFriends());
                     android.support.v4.app.Fragment fragment = fragmentManager.findFragmentById(R.id.fragmentContainer);
 
                     if (fragment == null) {
@@ -407,15 +458,55 @@ public class DatabaseManager {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 final Integer id = dataSnapshot.getValue(Integer.class);
 
-                Place newPlace = new Place(id, placeInfo[0], placeInfo[1], placeInfo[2], position.latitude, position.longitude);
+                if (id != null) {
+                    Place newPlace = new Place(id, placeInfo[0], placeInfo[1], placeInfo[2], position.latitude, position.longitude);
+                    DatabaseReference reference = getDatabaseChild(PLACES_KEY);
 
-                getDatabaseChild(PLACES_KEY).child(id.toString()).setValue(newPlace);
-                mDatabaseReference.setValue(id + 1);
+                    if (reference != null) {
+                        reference.child(id.toString()).setValue(newPlace);
+                        mDatabaseReference.setValue(id + 1);
+                    }
 
-                StorageReference child = mStorageRef.child("photos").child(id.toString() + "place_photo");
+                    StorageReference child = mStorageRef.child("photos").child(id.toString() + "place_photo");
 
-                if (uri != null) {
-                    child.putFile(uri);
+                    if (uri != null) {
+                        child.putFile(uri);
+                    }
+                }
+            }
+        });
+    }
+
+    /**
+     * Method that allows to save created place in database
+     * @param bitmap picture bitmap
+     * @param placeInfo text description of the place
+     * @param position place coordinates
+     */
+    public static void saveCreatedPlace2(final Bitmap bitmap, final String[] placeInfo, final LatLng position) {
+        mDatabaseReference = getDatabaseChild("maxidplaces");
+        mDatabaseReference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                final Integer id = dataSnapshot.getValue(Integer.class);
+
+                if (id != null) {
+                    Place newPlace = new Place(id, placeInfo[0], placeInfo[1], placeInfo[2], position.latitude, position.longitude);
+                    DatabaseReference reference = getDatabaseChild(PLACES_KEY);
+
+                    if (reference != null) {
+                        reference.child(id.toString()).setValue(newPlace);
+                        mDatabaseReference.setValue(id + 1);
+                    }
+
+                    StorageReference child = mStorageRef.child("photos").child(id.toString() + "place_photo");
+
+                    if (bitmap != null) {
+                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+                        byte[] data = baos.toByteArray();
+                        child.putBytes(data);
+                    }
                 }
             }
         });
@@ -429,7 +520,7 @@ public class DatabaseManager {
      */
     public static void saveRoute(final Uri uri, final String userId, final Context context) {
         if (uri != null) {
-            mStorageRef.child("routes").child(userId).child(userId + "_" + RoutesUtils.getRoutesLength(context)).putFile(uri);
+            mStorageRef.child("routes").child(userId).child(userId + "_" + Controller.getRoutesLength(context)).putFile(uri);
         }
     }
 
@@ -439,7 +530,10 @@ public class DatabaseManager {
      * @param length current last added route ID
      */
     public static void updateRoutesLength(final String userId, final long length) {
-        getDatabaseChild(USERS_KEY).child(userId).child("routesLength").setValue(length + 1);
+        DatabaseReference reference = getDatabaseChild(USERS_KEY);
+        if (reference != null) {
+           reference.child(userId).child("routesLength").setValue(length + 1);
+        }
     }
 
     /**
@@ -450,15 +544,20 @@ public class DatabaseManager {
      * @param fragment output fragment
      */
     public static void getUserRoutesLength(final String userId, final Context context, final FragmentManager fragmentManager, final Fragment fragment) {
-        getDatabaseChild(USERS_KEY).child(userId).child("routesLength").addListenerForSingleValueEvent(new AbstractValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                Long length = (Long) dataSnapshot.getValue();
-                RoutesUtils.setRoutesLength(context, length);
-                fragmentManager.beginTransaction().add(R.id.fragmentContainer2, fragment).commit();
-            }
+        DatabaseReference reference = getDatabaseChild(USERS_KEY);
+        if (reference != null) {
+            reference.child(userId).child("routesLength").addListenerForSingleValueEvent(new AbstractValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    Long length = (Long) dataSnapshot.getValue();
+                    if (length != null) {
+                        Controller.setRoutesLength(context, length);
+                        fragmentManager.beginTransaction().add(R.id.fragmentContainer2, fragment).commit();
+                    }
+                }
 
-        });
+            });
+        }
     }
 
     /**
@@ -467,14 +566,19 @@ public class DatabaseManager {
      * @param context current context
      */
     public static void getUserRoutesLength2(final String userId, final Context context) {
-        getDatabaseChild(USERS_KEY).child(userId).child("routesLength").addListenerForSingleValueEvent(new AbstractValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                Long length = (Long) dataSnapshot.getValue();
-                RoutesUtils.setRoutesLength(context, length);
-            }
+        DatabaseReference reference = getDatabaseChild(USERS_KEY);
+        if (reference != null) {
+            reference.child(userId).child("routesLength").addListenerForSingleValueEvent(new AbstractValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    Long length = (Long) dataSnapshot.getValue();
+                    if (length != null) {
+                        Controller.setRoutesLength(context, length);
+                    }
+                }
 
-        });
+            });
+        }
     }
 
     /**
@@ -488,15 +592,20 @@ public class DatabaseManager {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 final Integer id = dataSnapshot.getValue(Integer.class);
-                place.setId(id);
+                if (id != null) {
+                    place.setId(id);
 
-                getDatabaseChild(PLACES_KEY).child(id.toString()).setValue(place);
-                mDatabaseReference.setValue(id + 1);
+                    DatabaseReference reference = getDatabaseChild(PLACES_KEY);
+                    if (reference != null) {
+                        reference.child(id.toString()).setValue(place);
+                        mDatabaseReference.setValue(id + 1);
 
-                StorageReference child = mStorageRef.child("photos").child(id.toString() + "place_photo");
+                        StorageReference child = mStorageRef.child("photos").child(id.toString() + "place_photo");
 
-                if (uri != null) {
-                    child.putFile(uri);
+                        if (uri != null) {
+                            child.putFile(uri);
+                        }
+                    }
                 }
             }
         });
@@ -509,16 +618,21 @@ public class DatabaseManager {
      * @param marker place position
      */
     public static void runDescriptionDialog(final Context context, final Marker marker, final LatLng myPosition, final GoogleMap googleMap) {
-        getDatabaseChild(PLACES_KEY).addChildEventListener(new AbstractChildEventListener() {
+        DatabaseReference reference = getDatabaseChild(PLACES_KEY);
+        if (reference != null) {
+            reference.addChildEventListener(new AbstractChildEventListener() {
 
-            @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                Place place = dataSnapshot.getValue(Place.class);
-                if ((place.getLatitude() == marker.getPosition().latitude) && (place.getLongitude() == marker.getPosition().longitude)) {
-                    AlertDialogCreator.createAlertDescriptionDialog(context, place, myPosition, googleMap).show();
+                @Override
+                public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                    Place place = dataSnapshot.getValue(Place.class);
+                    if (place != null) {
+                        if ((place.getLatitude() == marker.getPosition().latitude) && (place.getLongitude() == marker.getPosition().longitude)) {
+                            AlertDialogCreator.createAlertDescriptionDialog(context, place, myPosition, googleMap).show();
+                        }
+                    }
                 }
-            }
-        });
+            });
+        }
     }
 
 
@@ -543,7 +657,10 @@ public class DatabaseManager {
             routeString.deleteCharAt(routeString.lastIndexOf(":"));
         }
 
-        getDatabaseChild("routes").child(userId).push().setValue(routeString.toString());
+        DatabaseReference reference = getDatabaseChild("routes");
+        if (reference != null) {
+            reference.child(userId).push().setValue(routeString.toString());
+        }
     }
 
     /**
@@ -553,7 +670,10 @@ public class DatabaseManager {
      * @param description string that contains all description
      */
     public static void saveRouteInfo(final String userId, final Long descriptionId, final String description) {
-        getDatabaseChild("routes_descriptions").child(userId).child(descriptionId.toString()).setValue(description);
+        DatabaseReference reference = getDatabaseChild("routes_descriptions");
+        if (reference != null) {
+            reference.child(userId).child(descriptionId.toString()).setValue(description);
+        }
     }
 
     /**
@@ -563,18 +683,21 @@ public class DatabaseManager {
      * @param userId user ID
      */
     public static void fillDescription(final TextView textView, final Integer id, final String userId) {
-        getDatabaseChild("routes_descriptions").child(userId).child(id.toString()).addListenerForSingleValueEvent(new AbstractValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                String description = "No description given.";
+        DatabaseReference reference = getDatabaseChild("routes_descriptions");
+        if (reference != null) {
+            reference.child(userId).child(id.toString()).addListenerForSingleValueEvent(new AbstractValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    String description = "No description given.";
 
-                if (dataSnapshot != null) {
-                    description = (String) dataSnapshot.getValue();
+                    if (dataSnapshot != null) {
+                        description = (String) dataSnapshot.getValue();
+                    }
+
+                    textView.setText(description);
                 }
-
-                textView.setText(description);
-            }
-        });
+            });
+        }
     }
 
     /**
@@ -584,48 +707,262 @@ public class DatabaseManager {
      */
     public static void fillDescriptionPlaces(final TextView textView, final String id) {
         final StringBuilder stringBuilder = new StringBuilder();
-        getDatabaseChild(PLACES_KEY).child(id).child(USER_NAME_KEY).addListenerForSingleValueEvent(new AbstractValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
+        DatabaseReference referenceName = getDatabaseChild(PLACES_KEY);
+        if (referenceName != null) {
+            referenceName.child(id).child(USER_NAME_KEY).addListenerForSingleValueEvent(new AbstractValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
 
-                if (dataSnapshot != null) {
-                    stringBuilder.append((String) dataSnapshot.getValue());
-                    stringBuilder.append('\n');
+                    if (dataSnapshot != null) {
+                        stringBuilder.append((String) dataSnapshot.getValue());
+                        stringBuilder.append('\n');
+                    }
                 }
-            }
-        });
-        getDatabaseChild(PLACES_KEY).child(id).child("description").addListenerForSingleValueEvent(new AbstractValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
+            });
+        }
+        DatabaseReference referenceDescription = getDatabaseChild(PLACES_KEY);
+        if (referenceDescription != null) {
+            referenceDescription.child(id).child("description").addListenerForSingleValueEvent(new AbstractValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
 
-                if (dataSnapshot != null) {
-                    stringBuilder.append((String) dataSnapshot.getValue());
+                    if (dataSnapshot != null) {
+                        stringBuilder.append((String) dataSnapshot.getValue());
+                    }
+                    textView.setText(stringBuilder.toString());
                 }
-                textView.setText(stringBuilder.toString());
-            }
-        });
+            });
+        }
     }
 
     /**
      * Method that loads avatar to the field with picture of user
      * @param circleImageView image view to load avatar
      * @param context current context
+     * @param userId id of the user
      */
-    public static void loadAvatar(CircleImageView circleImageView, final Context context) {
-        mStorageRef.child("avatars").child(AuthorizationUtils.getLoggedInAsString(context) + "avatar")
+    public static void loadAvatar(CircleImageView circleImageView, final Context context, final String userId) {
+        mStorageRef.child(USER_AVATAR_KEY).child(userId + "avatar")
                 .getDownloadUrl().addOnSuccessListener(uri -> Picasso.with(context).load(uri)
-                .placeholder(android.R.drawable.btn_star_big_on)
-                .error(android.R.drawable.btn_star_big_on)
+                .placeholder(R.drawable.anonim)
+                .error(R.drawable.anonim)
                 .into(circleImageView));
     }
 
+    /**
+     * Method that loads picture of a place
+     * @param imageView view where picture should be placed
+     * @param place place with all necessary information
+     * @param context current context
+     */
     public static void loadDescriptionImage(final ImageView imageView, final Place place, final Context context) {
         mStorageRef.child("photos").child(place.getIdAsString() + "place_photo")
                 .getDownloadUrl().addOnSuccessListener(uri -> Picasso.with(context).load(uri)
-                .placeholder(android.R.drawable.btn_star_big_on)
-                .error(android.R.drawable.btn_star_big_on)
+                .placeholder(R.drawable.noimage)
+                .error(R.drawable.noimage)
                 .into(imageView));
     }
+
+    /**
+     * Method that loads new avatar of user instead of old one
+     * @param userId user id who changes avatar
+     * @param uri uri of new avatar image
+     */
+    public static void setNewAvatar(final String userId, final Uri uri) {
+        mStorageRef.child(USER_AVATAR_KEY).child(userId + "avatar").putFile(uri);
+    }
+
+    /**
+     * Method that adds friend to users friend list if it wasn't already added
+     * @param userId id of user who wants to add new friend
+     * @param friendId id of friend to be added
+     */
+    public static void addFriend(final String userId, final String friendId) {
+        DatabaseReference reference = getDatabaseChild(USERS_KEY);
+        if (reference != null) {
+            reference = reference.child(userId).child("friends");
+            reference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    final String friends = dataSnapshot.getValue(String.class);
+                    if (friends.length() == 0) {
+                        DatabaseReference referenceFriends = getDatabaseChild(USERS_KEY);
+                        if (referenceFriends != null) {
+                            referenceFriends.child(userId).child("friends").setValue(friendId);
+                            referenceFriends.child(userId).child("friendsLength").setValue(1);
+                        }
+                    } else {
+                        int length = friends.split(",").length;
+                        boolean alreadyAdded = false;
+                        for (String friend : friends.split(",")) {
+                            if (friend.equals(friendId)) {
+                                alreadyAdded = true;
+                            }
+                        }
+                        if (!alreadyAdded) {
+                            DatabaseReference referenceFriends = getDatabaseChild(USERS_KEY);
+                            if (referenceFriends != null) {
+                                referenceFriends.child(userId).child("friends").setValue(friends + "," + friendId);
+                                referenceFriends.child(userId).child("friendsLength").setValue(length + 1);
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    /**
+     * Method that adds visiting plan to users plans list
+     * @param placeName name of place to visit
+     * @param userId id of user who wants to visit place
+     * @param date date of planned visit
+     */
+    public static void addPlan(final String placeName, final String userId, final String date) {
+        DatabaseReference reference = getDatabaseChild("plans");
+
+        if (reference != null) {
+            reference = reference.child(userId);
+            reference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    Object plan = dataSnapshot.getValue();
+                    if (plan != null) {
+                        String currentPlan = dataSnapshot.getValue().toString();
+                        if (currentPlan.length() == 0) {
+                            DatabaseReference referencePlan = getDatabaseChild("plans").child(userId);
+                            referencePlan.setValue(placeName + "\n" + date);
+                        } else {
+                            DatabaseReference referencePlan = getDatabaseChild("plans").child(userId);
+                            referencePlan.setValue(currentPlan + ";" + placeName + "\n" + date);
+                        }
+                    } else {
+                        DatabaseReference referencePlan = getDatabaseChild("plans").child(userId);
+                        referencePlan.setValue(placeName + "\n" + date);
+                    }
+                }
+            });
+        }
+    }
+
+    /**
+     * Method that loads visiting plan to the screen
+     * @param userId id of user whose plan should be loaded
+     * @param adapter adapter with plans list
+     */
+    public static void loadPlan(final String userId, final ArrayAdapter<String> adapter) {
+        DatabaseReference reference = getDatabaseChild("plans");
+
+        if (reference != null) {
+            reference = reference.child(userId);
+            reference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    Object plan = dataSnapshot.getValue();
+                    if (plan != null) {
+                        String currentPlan = plan.toString();
+                        if (currentPlan.length() != 0) {
+                            String[] plans = currentPlan.split(";");
+                            for (String planSingle : plans) {
+                                String[] splitted = planSingle.split("\n");
+                                if (splitted.length != 0) {
+                                    if (validatePlan(splitted[splitted.length - 1])) {
+                                        adapter.add(planSingle);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    /**
+     * Method that adds user review to all reviews about place
+     * @param placeId reviewed place
+     * @param review user review text
+     */
+    public static void addReview(final String placeId, final String review) {
+        DatabaseReference reference = getDatabaseChild("reviews");
+        if (reference != null) {
+            reference = reference.child(placeId);
+            reference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    Object reviews = dataSnapshot.getValue();
+                    DatabaseReference referenceNewReviews = getDatabaseChild("reviews");
+                    if (referenceNewReviews != null) {
+                        if (reviews == null) {
+
+                            referenceNewReviews = referenceNewReviews.child(placeId);
+                            referenceNewReviews.setValue(review);
+                        } else {
+                            String allReviews = reviews.toString();
+                            if (allReviews.length() == 0) {
+
+                                referenceNewReviews = referenceNewReviews.child(placeId);
+                                referenceNewReviews.setValue(review);
+                            } else {
+
+                                referenceNewReviews = referenceNewReviews.child(placeId);
+                                referenceNewReviews.setValue(allReviews + ";" + review);
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    /**
+     * Method that loads all users reviews to array aadapter
+     * @param placeId place which reviews should be extracted
+     * @param adapter destination adapter to load reviews
+     */
+    public static void findReviews(final String placeId, ArrayAdapter<String> adapter) {
+        DatabaseReference reference = getDatabaseChild("reviews");
+        if (reference != null) {
+            reference = reference.child(placeId);
+            reference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    Object data = dataSnapshot.getValue();
+                    if (data != null) {
+                        String allReviews = data.toString();
+                        String[] arrayReviews = allReviews.split(";");
+
+                        for (String singleReview : arrayReviews) {
+                            adapter.add(singleReview);
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    private static boolean validatePlan(final String planDate) {
+        Calendar calendar = Calendar.getInstance();
+        String[] dateTime = planDate.split(" ");
+        String[] data = dateTime[0].split("-");
+        String[] time = dateTime[1].split(":");
+        if (calendar.get(Calendar.YEAR) > Integer.parseInt(data[2])) {
+            return false;
+        } else if (calendar.get(Calendar.YEAR) == Integer.parseInt(data[2])) {
+            if (calendar.get(Calendar.MONTH) > Integer.parseInt(data[1])) {
+                return false;
+            } else if ((calendar.get(Calendar.MONTH) + 1) == Integer.parseInt(data[1])) {
+                if (calendar.get(Calendar.DAY_OF_MONTH) > Integer.parseInt(data[0])) {
+                    return false;
+                } else {
+                    return true;
+                }
+
+            }
+        }
+        return true;
+    }
+
     @Nullable
     private static DatabaseReference getDatabaseChild(String childName) {
         DatabaseReference databaseReference = getDatabaseReference();
@@ -643,5 +980,145 @@ public class DatabaseManager {
         }
 
         return null;
+    }
+
+    /**
+     * Method that check existence of the user in the database
+     * @param context current context
+     * @param email user email
+     * @param password user password
+     */
+    @Deprecated
+    public static void findUserAndCheckPassword(final Context context, final String email, final String password) {
+        mDatabaseReference = getDatabaseChild(AUTH_DATA_KEY);
+
+        Controller.setLoggedIn(context, -1);
+        mChildEventListener = new AbstractChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                AuthData authData = dataSnapshot.getValue(AuthData.class);
+                if (authData != null) {
+                    if (authData.getLogin().equals(email)) {
+                        if (authData.getPassword().equals(password)) {
+                            Controller.setLoggedIn(context, authData.getId());
+                        }
+                    }
+                }
+            }
+        };
+        mDatabaseReference.addChildEventListener(mChildEventListener);
+    }
+
+    /**
+     * Use findPlacesByStringV2 instead
+     * Method that searches places in database within query string
+     * @param arrayAdapter adapter with names of founded places
+     * @param places array with founded places
+     * @param toFind string which contains user query to search
+     * @param myPosition current user positions
+     * @param context current context
+     */
+    @Deprecated
+    public static void findPlacesByString(final ArrayAdapter<String> arrayAdapter, final ArrayList<Place> places, final String toFind, final LatLng myPosition, final Context context) {
+        mDatabaseReference = getDatabaseChild(PLACES_KEY);
+
+        mChildEventListener = new AbstractChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                Place place = dataSnapshot.getValue(Place.class);
+                if (place != null) {
+                    boolean distanceEnabled = Controller.getDistanceSearchStatus(context);
+                    boolean distanceAccess = (!distanceEnabled) || (Controller.getKilometers(myPosition, new LatLng(place.getLatitude(), place.getLongitude())) <= Controller.getDistanceSearchValue(context));
+                    boolean ratingEnabled = Controller.getRatingSearchStatus(context);
+                    boolean ratingAccess = (!ratingEnabled) || (place.getMark() > (Controller.getRatingSearchValue(context) / 20.0));
+
+                    if (distanceAccess && ratingAccess) {
+                        if (place.getName().toLowerCase().contains(toFind.toLowerCase())) {
+                            arrayAdapter.add(place.getName());
+                            places.add(place);
+
+                        } else {
+                            for (String tag : place.getTags().split(",")) {
+                                if (toFind.toLowerCase().equals(tag.toLowerCase())) {
+                                    arrayAdapter.add(place.getName());
+                                    places.add(place);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        };
+        mDatabaseReference.addChildEventListener(mChildEventListener);
+    }
+
+    /**
+     * Use loadUserFavouritePlacesListV2 instead
+     * Method that allows to load user favorite places from database to array adapter
+     * @param userId user id
+     * @param adapter adapter to put places
+     */
+    @Deprecated
+    public static void loadUserFavouritePlacesList(final String userId, ArrayAdapter<String> adapter) {
+        mDatabaseReference = getDatabaseChild(USERS_KEY);
+        if (mDatabaseReference != null) {
+            mDatabaseReference = mDatabaseReference.child(userId).child("favouritePlaces");
+        }
+        mDatabaseReference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Object arrayId = dataSnapshot.getValue();
+                if (arrayId != null) {
+                    String[] idArray = arrayId.toString().split(",");
+
+                    Arrays.sort(idArray, (a, b) -> (Integer.parseInt(a) - Integer.parseInt(b)));
+                    DatabaseReference mDatabaseReferencePlaces = getDatabaseChild(PLACES_KEY);
+                    if (mDatabaseReferencePlaces != null) {
+                        mDatabaseReferencePlaces.addChildEventListener(new AbstractChildEventListener() {
+                            int position = 0;
+
+                            @Override
+                            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                                Place place = dataSnapshot.getValue(Place.class);
+                                if (place != null) {
+                                    if (position < idArray.length && (place.getIdAsString()).equals(idArray[position])) {
+                                        position++;
+                                        adapter.add(place.getName());
+
+                                    }
+                                }
+                            }
+                        });
+                    }
+                }
+            }
+        });
+    }
+
+    /**
+     * Use findUsersByStringV2 instead
+     * Method that searches places in database within query string
+     * @param arrayAdapter adapter with names of founded places
+     * @param users array with founded users
+     * @param toFind string which contains user query to search
+     */
+    @Deprecated
+    public static void findUsersByString(final ArrayAdapter<String> arrayAdapter, final ArrayList<User> users, final String toFind) {
+        mDatabaseReference = getDatabaseChild(USERS_KEY);
+
+        mChildEventListener = new AbstractChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                User user = dataSnapshot.getValue(User.class);
+                if (user != null) {
+                    if (user.getNickname().contains(toFind)) {
+                        arrayAdapter.add(user.getName());
+                        users.add(user);
+                    }
+                }
+            }
+        };
+        mDatabaseReference.addChildEventListener(mChildEventListener);
     }
 }

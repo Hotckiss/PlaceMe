@@ -1,25 +1,27 @@
 package placeme.ru.placemedemo.ui;
 
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
 import placeme.ru.placemedemo.R;
-import placeme.ru.placemedemo.core.database.DatabaseManager;
+import placeme.ru.placemedemo.core.Controller;
 
 /**
  * Activity that provides user to register in the application
  */
 public class RegisterActivity extends AppCompatActivity {
+    private static final String DOG_CHARACTER = "@";
 
-    private EditText teLogin;
-    private EditText tePassword;
-    private EditText teName;
-    private EditText teSurname;
-    private EditText teNickname;
+    private EditText mLogin;
+    private EditText mPassword;
+    private EditText mConfirmPassword;
+    private EditText mName;
+    private EditText mSurname;
+    private EditText mNickname;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,30 +35,93 @@ public class RegisterActivity extends AppCompatActivity {
         Button submit = findViewById(R.id.submit_up);
 
         submit.setOnClickListener(v -> {
-            //TODO: check correctness of login and password
-            DatabaseManager.registerUser(RegisterActivity.this, generateNewUserData());
-            finish();
+            if (checkLogin() && checkPassword()) {
+                Controller.registerUser(generateNewUserData());
+                finish();
+            } else {
+                createAlertDialogProblems().show();
+            }
         });
     }
 
+    private AlertDialog createAlertDialogProblems() {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(RegisterActivity.this);
+        builder.setTitle(R.string.register_problems);
+        String password = mPassword.getText().toString();
+        if (!checkLogin()) {
+            builder.setMessage(R.string.register_login_dog);
+        } else if (!hasThreeDigits(password)) {
+            builder.setMessage(R.string.register_digits);
+        } else if (!hasFiveLetters(password)) {
+            builder.setMessage(R.string.register_letters);
+        } else if (!hasBigLetter(password)) {
+            builder.setMessage(R.string.register_big_letter);
+        } else {
+            builder.setMessage(R.string.register_equals);
+        }
+
+        builder.setPositiveButton(R.string.answer_ok, (dialog, which) -> {
+            dialog.dismiss();
+        });
+        builder.setCancelable(true);
+        return builder.create();
+    }
     private String[] generateNewUserData() {
         String[] result = new String[5];
-        result[0] = teLogin.getText().toString();
-        result[1] = tePassword.getText().toString();
-        result[2] = teName.getText().toString();
-        result[3] = teSurname.getText().toString();
-        result[4] = teNickname.getText().toString();
+        result[0] = mLogin.getText().toString();
+        result[1] = mPassword.getText().toString();
+        result[2] = mName.getText().toString();
+        result[3] = mSurname.getText().toString();
+        result[4] = mNickname.getText().toString();
 
         return result;
     }
 
-    //TODO: implement
     private boolean checkLogin() {
-        return false;
+        String login = mLogin.getText().toString();
+        return login.contains(DOG_CHARACTER);
     }
 
-    //TODO: implement
     private boolean checkPassword() {
+        String password = mPassword.getText().toString();
+
+        return hasBigLetter(password) && hasFiveLetters(password) && hasThreeDigits(password) && confirm(password);
+    }
+
+    private boolean hasThreeDigits(final String password) {
+        int numberOfDigits = 0;
+        for (int i = 0; i < password.length(); i++) {
+            if (Character.isDigit(password.charAt(i))) {
+                numberOfDigits++;
+            }
+        }
+
+        return numberOfDigits >= 3;
+    }
+
+    private boolean confirm(final String password) {
+        return password.equals(mConfirmPassword.getText().toString());
+    }
+
+    private boolean hasFiveLetters(final String password) {
+        int numberOfLetters = 0;
+        for (int i = 0; i < password.length(); i++) {
+            if (Character.isLetter(password.charAt(i))) {
+                numberOfLetters++;
+            }
+        }
+
+        return numberOfLetters >= 5;
+    }
+
+    private boolean hasBigLetter(final String password) {
+
+        for (int i = 0; i < password.length(); i++) {
+            if (Character.isLetter(password.charAt(i))) {
+                return true;
+            }
+        }
+
         return false;
     }
 
@@ -66,6 +131,9 @@ public class RegisterActivity extends AppCompatActivity {
 
         TextView tvPassword = findViewById(R.id.tvPassword);
         tvPassword.setText(R.string.register_password);
+
+        TextView tvConfirmPassword = findViewById(R.id.tvConfirmPassword);
+        tvConfirmPassword.setText(R.string.register_confirm_password);
 
         TextView tvName = findViewById(R.id.tvName);
         tvName.setText(R.string.register_name);
@@ -78,14 +146,16 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private void initializeEditTextFields() {
-        teLogin = findViewById(R.id.teLogin);
+        mLogin = findViewById(R.id.teLogin);
 
-        tePassword = findViewById(R.id.tePassword);
+        mPassword = findViewById(R.id.tePassword);
 
-        teName = findViewById(R.id.teName);
+        mConfirmPassword = findViewById(R.id.teConfirmPassword);
 
-        teSurname = findViewById(R.id.teSurname);
+        mName = findViewById(R.id.teName);
 
-        teNickname = findViewById(R.id.teNickname);
+        mSurname = findViewById(R.id.teSurname);
+
+        mNickname = findViewById(R.id.teNickname);
     }
 }

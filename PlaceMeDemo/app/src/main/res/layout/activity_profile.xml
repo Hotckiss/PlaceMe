@@ -5,7 +5,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/darkblue_small"
-    tools:context="placeme.ru.placemedemo.ui.ProfileActivity">
+    tools:context="placeme.ru.placemedemo.ui.ProfileActivity"
+    android:id="@+id/root_p">
 
     <ScrollView
         android:id="@+id/scrollView2"
@@ -40,7 +41,7 @@
                 android:id="@+id/profile_image"
                 android:layout_width="120dp"
                 android:layout_height="120dp"
-                android:src="@drawable/ic_placeme_icon" />
+                android:src="@drawable/anonim" />
 
 
             <LinearLayout

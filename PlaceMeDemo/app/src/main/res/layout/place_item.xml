@@ -19,7 +19,7 @@
             android:layout_width="160dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            card_view:srcCompat="@drawable/apple" />
+            card_view:srcCompat="@drawable/noimage" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -53,9 +53,11 @@
 
             <TextView
                 android:id="@+id/place_description"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="TextView" />
+                android:layout_marginLeft="10dp"
+                android:text="No descroption given."
+                android:layout_marginStart="10dp" />
 
 
         </LinearLayout>

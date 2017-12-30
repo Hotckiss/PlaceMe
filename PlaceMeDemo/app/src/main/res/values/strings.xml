@@ -106,9 +106,16 @@
     <!--- Register activity -->
     <string name="register_login">Login:</string>
     <string name="register_password">Password:</string>
+    <string name="register_confirm_password">Confirm password:</string>
     <string name="register_name">Name:</string>
     <string name="register_surname">Surname:</string>
     <string name="register_nickname">Nickname:</string>
+    <string name="register_problems">Problems with registration</string>
+    <string name="register_login_dog">Login must contains \'\@\'!</string>
+    <string name="register_digits">Password must contains at least 3 digits!</string>
+    <string name="register_letters">Password must contains at least 5 letters!</string>
+    <string name="register_big_letter">Password must contains at least one big letter!</string>
+    <string name="register_equals">Passwords are nor equal!</string>
 
     <!--- User answers -->
     <string name="answer_yes">Yes!</string>
@@ -123,11 +130,19 @@
     <string name="answer_go_here">Go here!</string>
     <string name="answer_rate_place">Rate place</string>
 
-
     <!--- Places -->
     <string name="places_creating">Creating place</string>
     <string name="places_creating_question">Create new place here?</string>
+    <string name="places_question_gp">Search in Google Places</string>
+    <string name="places_question_gp_message">Do you want to search place in google places?</string>
     <!--- Dialogs -->
     <string name="query_result">Results of query</string>
+
+    <!--- Profile activity -->
+    <string name="profile_changing_avatar">Changing avatar</string>
+    <string name="profile_changing_avatar_message">Do you want to change avatar?</string>
+
+    <!--- Sharing -->
+    <string name="share_message">Я пользуюсь приложением PlaceMe! Присоединяйся и ты: placeme.com :)</string>
 
 </resources>

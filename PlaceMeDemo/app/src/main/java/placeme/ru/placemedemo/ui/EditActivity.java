@@ -7,8 +7,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import placeme.ru.placemedemo.R;
-import placeme.ru.placemedemo.core.database.DatabaseManager;
-import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
+import placeme.ru.placemedemo.core.Controller;
 
 /**
  * Activity that provides to edit user profile
@@ -23,12 +22,12 @@ public class EditActivity extends AppCompatActivity {
         initializeTextFields();
         final EditText[] toLoad = initializeEditFields();
 
-        DatabaseManager.loadUserDataForEdit(toLoad, AuthorizationUtils.getLoggedInAsString(this));
+        Controller.loadUserDataForEdit(toLoad, Controller.getLoggedInAsString(this));
 
         Button saveButton = findViewById(R.id.saveEdit);
 
         saveButton.setOnClickListener(v -> {
-            DatabaseManager.saveProfileChanges(AuthorizationUtils.getLoggedInAsString(EditActivity.this), generateNewUserData(toLoad));
+            Controller.saveProfileChanges(Controller.getLoggedInAsString(EditActivity.this), generateNewUserData(toLoad));
             finish();
         });
     }

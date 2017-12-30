@@ -1,5 +1,6 @@
 package placeme.ru.placemedemo.ui;
 
+import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
@@ -16,24 +17,28 @@ import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
-import android.view.KeyEvent;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.inputmethod.EditorInfo;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
+
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import placeme.ru.placemedemo.R;
-import placeme.ru.placemedemo.core.database.DatabaseManager;
-import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
+import placeme.ru.placemedemo.core.Controller;
+import placeme.ru.placemedemo.core.database.AbstractChildEventListener;
+import placeme.ru.placemedemo.core.database.AbstractValueEventListener;
+import placeme.ru.placemedemo.elements.AuthData;
 
 import static android.Manifest.permission.READ_CONTACTS;
 
@@ -57,41 +62,40 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private View mProgressView;
     private View mLoginFormView;
 
+    private static String[] PERMISSIONS_STORAGE = {
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.CAMERA,
+
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        ActivityCompat.requestPermissions(LoginActivity.this, PERMISSIONS_STORAGE, REQUEST_READ_CONTACTS);
         setContentView(R.layout.activity_login);
         // Set up the login form.
-        mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
+        mEmailView = findViewById(R.id.email);
         populateAutoComplete();
 
-        mPasswordView = (EditText) findViewById(R.id.password);
-        mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
-                if (id == R.id.login || id == EditorInfo.IME_NULL) {
-                    attemptLogin();
-                    return true;
-                }
-                return false;
-            }
-        });
-
-        final Button mEmailSignInButton = (Button) findViewById(R.id.email_sign_in_button);
-        mEmailSignInButton.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View view) {
+        mPasswordView = findViewById(R.id.password);
+        mPasswordView.setOnEditorActionListener((textView, id, keyEvent) -> {
+            if (id == R.id.login || id == EditorInfo.IME_NULL) {
                 attemptLogin();
+                return true;
             }
+            return false;
         });
 
-        final Button mEmailSignUpButton = (Button) findViewById(R.id.email_sign_up_button);
-        mEmailSignUpButton.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent register = new Intent(LoginActivity.this, RegisterActivity.class);
-                startActivity(register);
-            }
+        final Button mEmailSignInButton = findViewById(R.id.email_sign_in_button);
+        mEmailSignInButton.setOnClickListener(view -> attemptLogin());
+
+        final Button mEmailSignUpButton = findViewById(R.id.email_sign_up_button);
+        mEmailSignUpButton.setOnClickListener(view -> {
+            Intent register = new Intent(LoginActivity.this, RegisterActivity.class);
+            startActivity(register);
         });
 
         mLoginFormView = findViewById(R.id.email_login_form);
@@ -115,13 +119,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         }
         if (shouldShowRequestPermissionRationale(READ_CONTACTS)) {
             Snackbar.make(mEmailView, R.string.permission_rationale, Snackbar.LENGTH_INDEFINITE)
-                    .setAction(android.R.string.ok, new View.OnClickListener() {
-                        @Override
-                        @TargetApi(Build.VERSION_CODES.M)
-                        public void onClick(View v) {
-                            requestPermissions(new String[]{READ_CONTACTS}, REQUEST_READ_CONTACTS);
-                        }
-                    });
+                    .setAction(android.R.string.ok, v -> requestPermissions(new String[]{READ_CONTACTS}, REQUEST_READ_CONTACTS));
         } else {
             requestPermissions(new String[]{READ_CONTACTS}, REQUEST_READ_CONTACTS);
         }
@@ -298,7 +296,11 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
         private final String mEmail;
         private final String mPassword;
-        private int stage = -3;
+        private boolean maxIdSet = false;
+        private int maxId = 1;
+        private int currentId = 0;
+
+        private boolean isFinished = false;
         UserLoginTask(String email, String password) {
             mEmail = email;
             mPassword = password;
@@ -306,20 +308,89 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
         @Override
         protected Boolean doInBackground(Void... params) {
-            DatabaseManager.findUserAndCheckPassword(LoginActivity.this, mEmail, mPassword);
 
-            // TODO: listener runs other thread
-            try {
-                Thread.sleep(3000);
-            } catch (InterruptedException e) {
-                return false;
-            }
+            if ((mEmail != null) && (mPassword != null)) {
+                isFinished = false;
+                DatabaseReference reference = FirebaseDatabase.getInstance().getReference().child("authdata");
 
-            if(AuthorizationUtils.getLoggedIn(LoginActivity.this) == -1) {
-                return false;
+                reference.addChildEventListener(new AbstractChildEventListener() {
+                    @Override
+                    public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                        AuthData authData = dataSnapshot.getValue(AuthData.class);
+                        if (authData != null) {
+                            if (authData.getLogin().equals(mEmail)) {
+                                if (authData.getPassword().equals(mPassword)) {
+                                    Controller.setLoggedIn(LoginActivity.this, authData.getId());
+                                }
+                            }
+                        }
+                    }
+                });
+
+                reference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        isFinished = true;
+                    }
+                });
+
+                while (!isFinished) {
+                    try {
+                        Thread.sleep(10);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                if (Controller.getLoggedIn(LoginActivity.this) == -1) {
+                    return false;
+                } else {
+                    return true;
+                }
             } else {
-                return true;
+                return false;
             }
+            /*if ((mEmail != null) && (mPassword != null)) {
+                DatabaseReference reference = FirebaseDatabase.getInstance().getReference().child("maxid");
+
+                reference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        Long maxid = (Long) dataSnapshot.getValue();
+                        maxIdSet = true;
+                        maxId = maxid.intValue();
+                        DatabaseReference reference1 = FirebaseDatabase.getInstance().getReference().child("authdata");
+                        reference1.addChildEventListener(new AbstractChildEventListener() {
+                            @Override
+                            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                                AuthData authData = dataSnapshot.getValue(AuthData.class);
+                                if (authData != null) {
+                                    if (authData.getLogin().equals(mEmail)) {
+                                        if (authData.getPassword().equals(mPassword)) {
+                                            Controller.setLoggedIn(LoginActivity.this, authData.getId());
+                                        }
+                                    }
+                                }
+                                currentId++;
+                            }
+                        });
+                    }
+                });
+
+                while (!maxIdSet || currentId < (maxId - 1)) {
+                    try {
+                        Thread.sleep(10);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                if (Controller.getLoggedIn(LoginActivity.this) == -1) {
+                    return false;
+                } else {
+                    return true;
+                }
+            } else {
+                return false;
+            }*/
         }
 
         @Override
