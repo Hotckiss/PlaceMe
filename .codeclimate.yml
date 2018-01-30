@@ -1,0 +1,5 @@
+## other configuration excluded from example...
+exclude_patterns:
+- "UI/*"
+- "PlaceMeDemo/droidAR/*"
+- "PlaceMe/PlaceMeDemo/app/src/main/res/*"
