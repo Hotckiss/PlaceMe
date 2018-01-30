@@ -1,0 +1,148 @@
+<resources>
+    <string name="app_name">PlaceMe</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_settings">Settings</string>
+    <string name="title_activity_login">Sign in</string>
+    <string name="new_place">New place</string>
+
+    <!-- Strings related to login -->
+    <string name="prompt_email">e-mail</string>
+    <string name="prompt_password">password</string>
+    <string name="action_sign_in">Sign in</string>
+    <string name="action_sign_up">Sign up</string>
+    <string name="action_sign_in_short">Sign in</string>
+    <string name="error_invalid_email">This email address is invalid</string>
+    <string name="error_invalid_password">This password is too short</string>
+    <string name="error_incorrect_password">This password is incorrect</string>
+    <string name="error_field_required">This field is required</string>
+    <string name="permission_rationale">"Contacts permissions are needed for providing email
+        completions."
+    </string>
+    <string name="title_activity_maps">Map</string>
+    <string name="title_activity_favourite_places">FavouritePlacesActivity</string>
+    <string name="edit">Edit</string>
+    <string name="title_activity_routes">RoutesActivity</string>
+    <string name="title_activity_settings">Settings</string>
+
+    <!-- Strings related to Settings -->
+
+    <!-- Example General settings -->
+    <string name="pref_header_general">General</string>
+
+    <string name="pref_title_social_recommendations">Enable social recommendations</string>
+    <string name="pref_description_social_recommendations">Recommendations for people to contact
+        based on your message history
+    </string>
+
+    <string name="pref_title_display_name">Display name</string>
+    <string name="pref_default_display_name">John Smith</string>
+
+    <string name="pref_title_add_friends_to_messages">Add friends to messages</string>
+    <string-array name="pref_example_list_titles">
+        <item>Always</item>
+        <item>When possible</item>
+        <item>Never</item>
+    </string-array>
+    <string-array name="pref_example_list_values">
+        <item>1</item>
+        <item>0</item>
+        <item>-1</item>
+    </string-array>
+
+    <!-- Example settings for Data & Sync -->
+    <string name="pref_header_data_sync">Data &amp; sync</string>
+
+    <string name="pref_title_sync_frequency">Sync frequency</string>
+    <string-array name="pref_sync_frequency_titles">
+        <item>15 minutes</item>
+        <item>30 minutes</item>
+        <item>1 hour</item>
+        <item>3 hours</item>
+        <item>6 hours</item>
+        <item>Never</item>
+    </string-array>
+    <string-array name="pref_sync_frequency_values">
+        <item>15</item>
+        <item>30</item>
+        <item>60</item>
+        <item>180</item>
+        <item>360</item>
+        <item>-1</item>
+    </string-array>
+
+    <string-array name="list_preference_entries">
+        <item>Entry 1</item>
+        <item>Entry 2</item>
+        <item>Entry 3</item>
+    </string-array>
+
+    <string-array name="list_preference_entry_values">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+    </string-array>
+
+    <string-array name="multi_select_list_preference_default_value" />
+
+    <string name="pref_title_system_sync_settings">System sync settings</string>
+
+    <!-- Example settings for Notifications -->
+    <string name="pref_header_notifications">Notifications</string>
+
+    <string name="pref_title_new_message_notifications">New message notifications</string>
+
+    <string name="pref_title_ringtone">Ringtone</string>
+    <string name="pref_ringtone_silent">Silent</string>
+
+    <string name="pref_title_vibrate">Vibrate</string>
+
+    <string name="permission_rationale_location">Access to the location service is required to demonstrate the \'my location\' feature, which shows your current location on the map.</string>
+    <string name="location_permission_denied">This sample requires location permission to enable the \'my location\' layer. Please try again and grant access to use the location.\nIf the permission has been permanently denied, it can be enabled from the System Settings &gt; Apps &gt; \'Google Maps API Demos\'.</string>
+    <string name="permission_required_toast">Location permission is required for this demo.</string>
+
+    <!--- Register activity -->
+    <string name="register_login">Login:</string>
+    <string name="register_password">Password:</string>
+    <string name="register_confirm_password">Confirm password:</string>
+    <string name="register_name">Name:</string>
+    <string name="register_surname">Surname:</string>
+    <string name="register_nickname">Nickname:</string>
+    <string name="register_problems">Problems with registration</string>
+    <string name="register_login_dog">Login must contains \'\@\'!</string>
+    <string name="register_digits">Password must contains at least 3 digits!</string>
+    <string name="register_letters">Password must contains at least 5 letters!</string>
+    <string name="register_big_letter">Password must contains at least one big letter!</string>
+    <string name="register_equals">Passwords are nor equal!</string>
+
+    <!--- User answers -->
+    <string name="answer_yes">Yes!</string>
+    <string name="answer_no">No</string>
+    <string name="answer_finish">Finish</string>
+    <string name="answer_back">Back</string>
+    <string name="answer_cancel">Cancel</string>
+    <string name="answer_make_route">Make route</string>
+    <string name="answer_ok">Ok</string>
+    <string name="answer_rate">Rate it!</string>
+    <string name="answer_add">Add to favourite</string>
+    <string name="answer_go_here">Go here!</string>
+    <string name="answer_rate_place">Rate place</string>
+
+    <!--- Places -->
+    <string name="places_creating">Creating place</string>
+    <string name="places_creating_question">Create new place here?</string>
+    <string name="places_question_gp">Search in Google Places</string>
+    <string name="places_question_gp_message">Do you want to search place in google places?</string>
+    <!--- Dialogs -->
+    <string name="query_result">Results of query</string>
+
+    <!--- Profile activity -->
+    <string name="profile_changing_avatar">Changing avatar</string>
+    <string name="profile_changing_avatar_message">Do you want to change avatar?</string>
+
+    <!--- Sharing -->
+    <string name="share_message">Я пользуюсь приложением PlaceMe! Присоединяйся и ты: placeme.com :)</string>
+
+</resources>
