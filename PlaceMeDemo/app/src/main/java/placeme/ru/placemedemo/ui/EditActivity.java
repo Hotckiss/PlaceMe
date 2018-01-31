@@ -8,11 +8,15 @@ import android.widget.TextView;
 
 import placeme.ru.placemedemo.R;
 import placeme.ru.placemedemo.core.Controller;
+import placeme.ru.placemedemo.elements.AuthData;
+import placeme.ru.placemedemo.elements.User;
+import placeme.ru.placemedemo.elements.UserDataFields;
 
 /**
  * Activity that provides to edit user profile
  */
 public class EditActivity extends AppCompatActivity {
+    private static final int NO_ID = -1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -20,14 +24,12 @@ public class EditActivity extends AppCompatActivity {
         setContentView(R.layout.activity_edit);
 
         initializeTextFields();
-        final EditText[] toLoad = initializeEditFields();
-
-        Controller.loadUserDataForEdit(toLoad, Controller.getLoggedInAsString(this));
+        Controller.loadUserDataForEdit(initializeEditFields(), Controller.getLoggedInAsString(this));
 
         Button saveButton = findViewById(R.id.saveEdit);
 
         saveButton.setOnClickListener(v -> {
-            Controller.saveProfileChanges(Controller.getLoggedInAsString(EditActivity.this), generateNewUserData(toLoad));
+            Controller.saveProfileChanges(Controller.getLoggedInAsString(EditActivity.this), generateNewAuthData(), generateNewUserData());
             finish();
         });
     }
@@ -37,17 +39,18 @@ public class EditActivity extends AppCompatActivity {
         finish();
     }
 
-    private String[] generateNewUserData(final EditText[] fields) {
-        String[] result = new String[5];
-        result[0] = fields[0].getText().toString();
-        result[1] = fields[1].getText().toString();
-        result[2] = fields[2].getText().toString();
-        result[3] = fields[3].getText().toString();
-        result[4] = fields[4].getText().toString();
-
-        return result;
+    private AuthData generateNewAuthData() {
+        return new AuthData(NO_ID, getFieldValue(R.id.teEditLogin), getFieldValue(R.id.teEditPassword));
     }
 
+    private User generateNewUserData() {
+        return new User(NO_ID, getFieldValue(R.id.teEditName),
+                getFieldValue(R.id.teEditSurname), getFieldValue(R.id.teEditNickname));
+    }
+
+    private String getFieldValue(int fieldId) {
+        return ((EditText)findViewById(fieldId)).getText().toString();
+    }
     private void initializeTextFields() {
         TextView tvLogin = findViewById(R.id.tvEditLogin);
         tvLogin.setText(R.string.register_login);
@@ -65,15 +68,8 @@ public class EditActivity extends AppCompatActivity {
         tvNickname.setText(R.string.register_nickname);
     }
 
-    private EditText[] initializeEditFields() {
-        EditText[] edits = new EditText[5];
-
-        edits[0] = findViewById(R.id.teEditLogin);
-        edits[1] = findViewById(R.id.teEditPassword);
-        edits[2] = findViewById(R.id.teEditName);
-        edits[3] = findViewById(R.id.teEditSurname);
-        edits[4] = findViewById(R.id.teEditNickname);
-
-        return edits;
+    private UserDataFields initializeEditFields() {
+        return new UserDataFields(findViewById(R.id.teEditLogin), findViewById(R.id.teEditPassword),
+                findViewById(R.id.teEditName), findViewById(R.id.teEditSurname), findViewById(R.id.teEditNickname));
     }
 }

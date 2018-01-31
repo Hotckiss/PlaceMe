@@ -9,7 +9,6 @@ import android.os.Environment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.widget.ArrayAdapter;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.RatingBar;
@@ -37,6 +36,8 @@ import placeme.ru.placemedemo.core.utils.SearchUtils;
 import placeme.ru.placemedemo.elements.AuthData;
 import placeme.ru.placemedemo.elements.Place;
 import placeme.ru.placemedemo.elements.User;
+import placeme.ru.placemedemo.elements.UserDataFields;
+import placeme.ru.placemedemo.elements.UserProfileFields;
 
 /**
  * Created by Андрей on 25.12.2017.
@@ -96,17 +97,18 @@ public class Controller {
      * @param toLoad array of fields to init
      * @param userId user id to search in database
      */
-    public static void loadUserDataForEdit(final EditText[] toLoad, String userId) {
+    public static void loadUserDataForEdit(final UserDataFields toLoad, String userId) {
         DatabaseManager.loadUserDataForEdit(toLoad, userId);
     }
 
     /**
      * Method that saves changed user data
      * @param userId user id
-     * @param information new user information
+     * @param newAuthData authentication data that user input during editing profile
+     * @param newUserData user data that user input during editing profile
      */
-    public static void saveProfileChanges(final String userId, final String[] information) {
-        DatabaseManager.saveProfileChanges(userId, information);
+    public static void saveProfileChanges(final String userId, final AuthData newAuthData, final User newUserData) {
+        DatabaseManager.saveProfileChanges(userId, newAuthData, newUserData);
     }
 
     /**
@@ -117,7 +119,7 @@ public class Controller {
      * @param fragment output fragment
      */
     public static void loadUserFavouritePlacesListV2(final String userId, final Context context, final FragmentManager fragmentManager, final Fragment fragment) {
-        DatabaseManager.loadUserFavouritePlacesListV2(userId, context, fragmentManager, fragment);
+        DatabaseManager.loadUserFavouritePlacesList(userId, context, fragmentManager, fragment);
     }
 
     /**
@@ -127,7 +129,7 @@ public class Controller {
      * @param userProfileInfo fields with user profile information
      * @param fragmentManager fragment manager to load friends list
      */
-    public static void loadUserProfile(final Context context, final int userId, final TextView[] userProfileInfo, final FragmentManager fragmentManager) {
+    public static void loadUserProfile(final Context context, final int userId, final UserProfileFields userProfileInfo, final FragmentManager fragmentManager) {
         DatabaseManager.loadUserProfile(context, userId, userProfileInfo, fragmentManager);
     }
 
@@ -137,7 +139,7 @@ public class Controller {
      * @param placeInfo text description of the place
      * @param position place coordinates
      */
-    public static void saveCreatedPlace(final Uri uri, final String[] placeInfo, final LatLng position) {
+    public static void saveCreatedPlace(final Uri uri, final Place placeInfo, final LatLng position) {
         DatabaseManager.saveCreatedPlace(uri, placeInfo, position);
     }
 
@@ -511,7 +513,7 @@ public class Controller {
      */
     public static void findPlacesByStringV2(final ArrayAdapter<String> arrayAdapter, final ArrayList<Place> places,
                                             final String toFind, final LatLng myPosition, final Context context, final Activity activity) {
-        DatabaseManager.findPlacesByStringV2(arrayAdapter, places, toFind, myPosition, context, activity);
+        DatabaseManager.findPlacesByString(arrayAdapter, places, toFind, myPosition, context, activity);
     }
 
     /**
@@ -551,7 +553,7 @@ public class Controller {
      * @param activity UI activity that calls method
      */
     public static void findUsersByStringV2(final ArrayAdapter<String> arrayAdapter, final ArrayList<User> users, final String toFind, final Context context, final Activity activity) {
-        DatabaseManager.findUsersByStringV2(arrayAdapter, users, toFind, context, activity);
+        DatabaseManager.findUsersByString(arrayAdapter, users, toFind, context, activity);
     }
 
     /**
@@ -569,7 +571,7 @@ public class Controller {
      * @param placeInfo text description of the place
      * @param position place coordinates
      */
-    public static void saveCreatedPlace2(final Bitmap bitmap, final String[] placeInfo, final LatLng position) {
+    public static void saveCreatedPlace2(final Bitmap bitmap, final Place placeInfo, final LatLng position) {
         DatabaseManager.saveCreatedPlace2(bitmap, placeInfo, position);
     }
 

@@ -2,7 +2,6 @@ package placeme.ru.placemedemo.core.map;
 
 import android.content.Context;
 import android.graphics.Color;
-import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.widget.ListView;
 

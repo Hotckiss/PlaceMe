@@ -7,7 +7,6 @@ import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.Button;
-import android.widget.TextView;
 
 import com.tomergoldst.tooltips.ToolTip;
 import com.tomergoldst.tooltips.ToolTipsManager;
@@ -15,6 +14,7 @@ import com.tomergoldst.tooltips.ToolTipsManager;
 import de.hdodenhof.circleimageview.CircleImageView;
 import placeme.ru.placemedemo.R;
 import placeme.ru.placemedemo.core.Controller;
+import placeme.ru.placemedemo.elements.UserProfileFields;
 
 
 /**
@@ -104,17 +104,13 @@ public class ProfileActivity extends AppCompatActivity {
     }
 
     private void loadUserProfile() {
-        TextView[] userProfileFields = profileInfoFields();
         FragmentManager fm = getSupportFragmentManager();
-        Controller.loadUserProfile(ProfileActivity.this, Controller.getLoggedIn(ProfileActivity.this), userProfileFields, fm);
+        Controller.loadUserProfile(ProfileActivity.this,
+                Controller.getLoggedIn(ProfileActivity.this), profileInfoFields(), fm);
     }
 
-    private TextView[] profileInfoFields() {
-        TextView[] result = new TextView[3];
-        result[0] = findViewById(R.id.name);
-        result[1] = findViewById(R.id.surname);
-        result[2] = findViewById(R.id.nickname);
-
-        return result;
+    private UserProfileFields profileInfoFields() {
+        return new UserProfileFields(findViewById(R.id.name),
+                findViewById(R.id.surname), findViewById(R.id.nickname));
     }
 }

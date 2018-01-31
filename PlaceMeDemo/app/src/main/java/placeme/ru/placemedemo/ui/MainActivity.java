@@ -870,7 +870,7 @@ public class MainActivity extends AppCompatActivity
         });
 
         builder.setPositiveButton(R.string.answer_finish, (dialog, id) -> {
-            String[] placeInfo = getPlaceInfo(layout);
+            placeme.ru.placemedemo.elements.Place placeInfo = getPlaceInfo(layout);
             if (mLastAction == 1) {
                 Controller.saveCreatedPlace(mUri, placeInfo, latLng);
             } else {
@@ -883,17 +883,16 @@ public class MainActivity extends AppCompatActivity
         return builder.create();
     }
 
-    private String[] getPlaceInfo(final View layout) {
+    private placeme.ru.placemedemo.elements.Place getPlaceInfo(final View layout) {
         EditText edName = layout.findViewById(R.id.place_name);
         EditText edDescription = layout.findViewById(R.id.place_description);
         EditText edTags = layout.findViewById(R.id.place_tags);
 
-        String[] result = new String[3];
-        result[0] = edName.getText().toString();
-        result[1] = edDescription.getText().toString();
-        result[2] = edTags.getText().toString();
-        return result;
+        return new placeme.ru.placemedemo.elements.Place(-1, getFieldValue(edName), getFieldValue(edDescription), getFieldValue(edTags), 0, 0);
+    }
 
+    private String getFieldValue(final EditText editText) {
+        return editText.getText().toString();
     }
 
     private void showDescriptionDialog(final Marker marker) {
