@@ -4,6 +4,7 @@ package placeme.ru.placemedemo.ui.views;
  * Created by Андрей on 20.12.2017.
  */
 
+import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
@@ -33,16 +34,12 @@ import java.io.IOException;
 
 import placeme.ru.placemedemo.R;
 import placeme.ru.placemedemo.core.Controller;
-import placeme.ru.placemedemo.core.database.DatabaseManager;
-import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
-import placeme.ru.placemedemo.core.utils.RoutesUtils;
 
 /**
  * Fragment that represents information about routes
  */
 public class RoutesListViewFragment extends Fragment {
-    RecyclerView mRecyclerView;
-    int length;
+    private int length;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -54,8 +51,8 @@ public class RoutesListViewFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         View view = inflater.inflate(R.layout.fragment_horizontal_list_view, container, false);
-        mRecyclerView = view.findViewById(R.id.cardView);
-        mRecyclerView.setHasFixedSize(false);
+        RecyclerView mRecyclerView = view.findViewById(R.id.cardView);
+        mRecyclerView.setHasFixedSize(true);
 
         LinearLayoutManager MyLayoutManager = new LinearLayoutManager(getActivity());
         MyLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
@@ -104,8 +101,6 @@ public class RoutesListViewFragment extends Fragment {
     }
 
     public class MyAdapter extends RecyclerView.Adapter<MyViewHolder> {
-        public MyAdapter() {
-        }
 
         @Override
         public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -119,11 +114,13 @@ public class RoutesListViewFragment extends Fragment {
 
             StorageReference child = FirebaseStorage.getInstance().getReference().child("routes").child(Controller.getLoggedInAsString(getContext()))
                     .child(Controller.getLoggedInAsString(getContext()) + "_" + ((Integer)position).toString());
-            child.getDownloadUrl().addOnSuccessListener(uri -> Picasso.with(getActivity().getBaseContext()).load(uri)
-                    .placeholder(R.drawable.grey)
-                    .error(R.drawable.noimage)
-                    .into(holder.iv));
-
+            Activity activity = getActivity();
+            if (activity != null) {
+                child.getDownloadUrl().addOnSuccessListener(uri -> Picasso.with(activity.getBaseContext()).load(uri)
+                        .placeholder(R.drawable.grey)
+                        .error(R.drawable.noimage)
+                        .into(holder.iv));
+            }
             Controller.fillDescription(holder.tv, position, Controller.getLoggedInAsString(getContext()));
         }
 
@@ -145,22 +142,19 @@ public class RoutesListViewFragment extends Fragment {
             iv = v.findViewById(R.id.route_photo);
 
             b2 = v.findViewById(R.id.routes2);
-            b2.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    final Intent shareIntent = new Intent(Intent.ACTION_SEND);
-                    shareIntent.setType("image/*");
+            b2.setOnClickListener(view -> {
+                final Intent shareIntent = new Intent(Intent.ACTION_SEND);
+                shareIntent.setType("image/*");
 
-                    Uri bmpUri = null;
-                    try {
-                        bmpUri = getLocalBitmapUri(iv);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-
-                    shareIntent.putExtra(Intent.EXTRA_STREAM, bmpUri);
-                    startActivity(Intent.createChooser(shareIntent, "Share image using"));
+                Uri bmpUri = null;
+                try {
+                    bmpUri = getLocalBitmapUri(iv);
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
+
+                shareIntent.putExtra(Intent.EXTRA_STREAM, bmpUri);
+                startActivity(Intent.createChooser(shareIntent, "Share image using"));
             });
 
             b3 = v.findViewById(R.id.routes3);

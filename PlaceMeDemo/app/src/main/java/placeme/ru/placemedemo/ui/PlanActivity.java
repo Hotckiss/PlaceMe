@@ -1,16 +1,12 @@
 package placeme.ru.placemedemo.ui;
 
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
-import java.util.Calendar;
-import java.util.Date;
-
 import placeme.ru.placemedemo.R;
 import placeme.ru.placemedemo.core.Controller;
-import placeme.ru.placemedemo.core.database.DatabaseManager;
 
 public class PlanActivity extends AppCompatActivity {
 

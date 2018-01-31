@@ -10,17 +10,17 @@ import com.google.firebase.database.ValueEventListener;
 import util.Log;
 
 /**
- * A class that allows not to implement some not necessary methods
+ * A class that provides default implementation for some not necessary methods
  */
 public abstract class AbstractValueEventListener implements ValueEventListener {
-    private static final String DATABASE_ERROR_TAG = "DATABASE_ERROR_TAG";
+    private static final String DATABASE_ERROR_TAG = "DATABASE_ERROR";
 
     /**
      * Method that prints error in the log if some errors occurred in database
      * @param firebaseError database error
      */
     @Override
-    public void onCancelled( DatabaseError firebaseError) {
+    public void onCancelled(DatabaseError firebaseError) {
         Log.d(DATABASE_ERROR_TAG, firebaseError.getMessage());
     }
 }

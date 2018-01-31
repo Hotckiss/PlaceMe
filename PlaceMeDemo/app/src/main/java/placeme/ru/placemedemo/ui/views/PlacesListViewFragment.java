@@ -34,16 +34,13 @@ import java.util.Arrays;
 
 import placeme.ru.placemedemo.R;
 import placeme.ru.placemedemo.core.Controller;
-import placeme.ru.placemedemo.core.database.DatabaseManager;
-import placeme.ru.placemedemo.core.utils.FavouritePlacesUtils;
 
 /**
  * Fragment that represents information about favourite places
  */
 public class PlacesListViewFragment extends Fragment {
-    RecyclerView mRecyclerView;
-    String[] places;
-    boolean isNullLength = false;
+    private String[] places;
+    private boolean isNullLength = false;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -64,8 +61,8 @@ public class PlacesListViewFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         View view = inflater.inflate(R.layout.fragment_horizontal_list_view, container, false);
-        mRecyclerView = view.findViewById(R.id.cardView);
-        mRecyclerView.setHasFixedSize(false);
+        RecyclerView mRecyclerView = view.findViewById(R.id.cardView);
+        mRecyclerView.setHasFixedSize(true);
 
         LinearLayoutManager MyLayoutManager = new LinearLayoutManager(getActivity());
         MyLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
@@ -151,6 +148,7 @@ public class PlacesListViewFragment extends Fragment {
         public TextView tv;
         public ImageButton b2;
         public ImageButton b3;
+
         public MyViewHolder(View v) {
             super(v);
             tv = v.findViewById(R.id.place_description);
@@ -174,9 +172,6 @@ public class PlacesListViewFragment extends Fragment {
 
             b3 = v.findViewById(R.id.place_button_close);
             b3.setOnClickListener(v1 -> Toast.makeText(getContext(), "Successfully deleted", Toast.LENGTH_LONG).show());
-
-
-
         }
     }
 }

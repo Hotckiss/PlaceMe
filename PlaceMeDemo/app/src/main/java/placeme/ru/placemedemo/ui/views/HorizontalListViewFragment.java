@@ -26,8 +26,6 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.squareup.picasso.Picasso;
-import com.tomergoldst.tooltips.ToolTip;
-import com.tomergoldst.tooltips.ToolTipsManager;
 
 import java.util.ArrayList;
 
@@ -35,9 +33,6 @@ import placeme.ru.placemedemo.R;
 import placeme.ru.placemedemo.core.Controller;
 import placeme.ru.placemedemo.core.chat.Chat;
 import placeme.ru.placemedemo.core.database.AbstractChildEventListener;
-import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
-import placeme.ru.placemedemo.core.utils.ChatUtils;
-import placeme.ru.placemedemo.core.utils.FriendsDataUtils;
 import placeme.ru.placemedemo.elements.User;
 import placeme.ru.placemedemo.elements.cards.FriendCard;
 
@@ -45,9 +40,7 @@ import placeme.ru.placemedemo.elements.cards.FriendCard;
  * Fragment that represents information about friends
  */
 public class HorizontalListViewFragment extends Fragment {
-
-    ArrayList<FriendCard> listitems = new ArrayList<>();
-    RecyclerView mRecyclerView;
+    private ArrayList<FriendCard> listitems = new ArrayList<>();
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -71,7 +64,7 @@ public class HorizontalListViewFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         View view = inflater.inflate(R.layout.fragment_horizontal_list_view, container, false);
-        mRecyclerView = view.findViewById(R.id.cardView);
+        RecyclerView mRecyclerView = view.findViewById(R.id.cardView);
         mRecyclerView.setHasFixedSize(true);
         LinearLayoutManager MyLayoutManager = new LinearLayoutManager(getActivity());
         MyLayoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);

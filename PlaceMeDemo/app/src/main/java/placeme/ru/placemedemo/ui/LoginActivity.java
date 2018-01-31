@@ -296,9 +296,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
         private final String mEmail;
         private final String mPassword;
-        private boolean maxIdSet = false;
-        private int maxId = 1;
-        private int currentId = 0;
 
         private boolean isFinished = false;
         UserLoginTask(String email, String password) {
@@ -317,12 +314,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                     @Override
                     public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                         AuthData authData = dataSnapshot.getValue(AuthData.class);
-                        if (authData != null) {
-                            if (authData.getLogin().equals(mEmail)) {
-                                if (authData.getPassword().equals(mPassword)) {
-                                    Controller.setLoggedIn(LoginActivity.this, authData.getId());
-                                }
-                            }
+                        if (authData != null && authData.getLogin().equals(mEmail) && authData.getPassword().equals(mPassword)) {
+                            Controller.setLoggedIn(LoginActivity.this, authData.getId());
                         }
                     }
                 });

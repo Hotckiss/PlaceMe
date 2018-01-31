@@ -417,26 +417,20 @@ public class MainActivity extends AppCompatActivity
             mLastAction = 1;
         }
 
-        if (requestCode == PLACE_PICKER_REQUEST) {
-            if (resultCode == RESULT_OK) {
-                //TODO: ?
-                Place place = getPlace(this, data);
-                placeme.ru.placemedemo.elements.Place toAdd = convertGooglePlaceToPlace(place);
+        if (requestCode == PLACE_PICKER_REQUEST && resultCode == RESULT_OK) {
+            //TODO: ?
+            Place place = getPlace(this, data);
+            placeme.ru.placemedemo.elements.Place toAdd = convertGooglePlaceToPlace(place);
 
-                Controller.saveConvertedPlace(null, toAdd);
-                String toastMsg = String.format("Place: %s", place.getName().toString());
-                Toast.makeText(this, toastMsg, Toast.LENGTH_LONG).show();
-            }
+            Controller.saveConvertedPlace(null, toAdd);
+            String toastMsg = String.format("Place: %s", place.getName().toString());
+            Toast.makeText(this, toastMsg, Toast.LENGTH_LONG).show();
         }
-        if (requestCode == CAMERA_RESULT) {
-            if (data != null) {
-                if (data.getExtras() != null) {
-                    mBitmap = (Bitmap) data.getExtras().get("data");
-                    mLastAction = 2;
+        if (requestCode == CAMERA_RESULT && data != null && data.getExtras() != null) {
+            mBitmap = (Bitmap) data.getExtras().get("data");
+            mLastAction = 2;
 
-                    mImageView.setImageBitmap(mBitmap);
-                }
-            }
+            mImageView.setImageBitmap(mBitmap);
         }
     }
 
@@ -690,7 +684,7 @@ public class MainActivity extends AppCompatActivity
             }
         }
 
-        if (tags.toString().length() > 0) {
+        if (tags.length() > 0) {
             tags.deleteCharAt(tags.lastIndexOf(","));
         }
 
@@ -699,7 +693,7 @@ public class MainActivity extends AppCompatActivity
         return destination;
     }
 
-    private void putLineToPoint(GL1Renderer renderer, final World world, GLFactory objectFactory, LatLng start, LatLng finish) {
+    private void putLineToPoint(final World world, GLFactory objectFactory, LatLng start, LatLng finish) {
         double maxx = Math.max(start.latitude, finish.latitude);
         double maxy = Math.max(start.longitude, finish.longitude);
         double minx = Math.min(start.latitude, finish.latitude);
@@ -731,26 +725,20 @@ public class MainActivity extends AppCompatActivity
         b.setOnClickListener(v -> ArActivity.startWithSetup(MainActivity.this, new MySetup() {
             @Override
             public void addObjectsTo(GL1Renderer renderer, final World world, GLFactory objectFactory) {
-
                 points = AlertDialogCreator.getPoints();
-                if (points == null) {
-                }
-                else {
-                    if (points.size() == 0) {
-                    } else {
-                        putLineToPoint(renderer, world, objectFactory, new LatLng(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude()), points.get(0));
+                if (points != null && points.size() > 0) {
+                    putLineToPoint(world, objectFactory, new LatLng(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude()), points.get(0));
 
-                        for (int i = 0; i < points.size() - 1; i++) {
-                            putLineToPoint(renderer, world, objectFactory, points.get(i), points.get(i + 1));
-                        }
-                        Location ls = new Location("");
-                        LatLng end = points.get(points.size() - 1);
-                        ls.setLatitude(end.latitude);
-                        ls.setLongitude(end.longitude);
-                        GeoObj endObj = new GeoObj(ls);
-                        endObj.setComp(objectFactory.newArrow());
-                        world.add(endObj);
+                    for (int i = 0; i < points.size() - 1; i++) {
+                        putLineToPoint(world, objectFactory, points.get(i), points.get(i + 1));
                     }
+                    Location ls = new Location("");
+                    LatLng end = points.get(points.size() - 1);
+                    ls.setLatitude(end.latitude);
+                    ls.setLongitude(end.longitude);
+                    GeoObj endObj = new GeoObj(ls);
+                    endObj.setComp(objectFactory.newArrow());
+                    world.add(endObj);
                 }
             }
         }));
@@ -847,17 +835,6 @@ public class MainActivity extends AppCompatActivity
         builder.setCancelable(true);
         builder.setView(layout);
         return builder.create();
-    }
-
-    private void checkPermission(){
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
-                ContextCompat.checkSelfPermission(this,Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                ){//Can add more as per requirement
-
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.ACCESS_COARSE_LOCATION},
-                    123);
-        }
     }
 
     private AlertDialog createNewPlace(final LatLng latLng) {

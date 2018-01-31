@@ -20,7 +20,6 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -30,7 +29,6 @@ import com.squareup.picasso.Picasso;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
 
@@ -62,7 +60,6 @@ public class DatabaseManager {
     
     private static FirebaseDatabase mBase;
     private static DatabaseReference mDatabaseReference;
-    private static ChildEventListener mChildEventListener;
 
     private static StorageReference mStorageRef;
 
@@ -171,11 +168,9 @@ public class DatabaseManager {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 User user = dataSnapshot.getValue(User.class);
-                if (user != null) {
-                    if (user.getNickname().contains(toFind)) {
-                        arrayAdapter.add(user.getName());
-                        users.add(user);
-                    }
+                if (user != null && user.getNickname().contains(toFind)) {
+                    arrayAdapter.add(user.getName());
+                    users.add(user);
                 }
             }
         });
@@ -434,7 +429,7 @@ public class DatabaseManager {
 
                     Controller.setFriendsLength(context, user.getFriendsLength());
                     Controller.setFriends(context, user.getFriends());
-                    android.support.v4.app.Fragment fragment = fragmentManager.findFragmentById(R.id.fragmentContainer);
+                    Fragment fragment = fragmentManager.findFragmentById(R.id.fragmentContainer);
 
                     if (fragment == null) {
                         fragment = new HorizontalListViewFragment();
@@ -625,10 +620,8 @@ public class DatabaseManager {
                 @Override
                 public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                     Place place = dataSnapshot.getValue(Place.class);
-                    if (place != null) {
-                        if ((place.getLatitude() == marker.getPosition().latitude) && (place.getLongitude() == marker.getPosition().longitude)) {
-                            AlertDialogCreator.createAlertDescriptionDialog(context, place, myPosition, googleMap).show();
-                        }
+                    if (place != null && (place.getLatitude() == marker.getPosition().latitude) && (place.getLongitude() == marker.getPosition().longitude)) {
+                        AlertDialogCreator.createAlertDescriptionDialog(context, place, myPosition, googleMap).show();
                     }
                 }
             });
@@ -865,10 +858,8 @@ public class DatabaseManager {
                             String[] plans = currentPlan.split(";");
                             for (String planSingle : plans) {
                                 String[] splitted = planSingle.split("\n");
-                                if (splitted.length != 0) {
-                                    if (validatePlan(splitted[splitted.length - 1])) {
-                                        adapter.add(planSingle);
-                                    }
+                                if (splitted.length != 0 && validatePlan(splitted[splitted.length - 1])) {
+                                    adapter.add(planSingle);
                                 }
                             }
                         }
@@ -945,19 +936,14 @@ public class DatabaseManager {
         Calendar calendar = Calendar.getInstance();
         String[] dateTime = planDate.split(" ");
         String[] data = dateTime[0].split("-");
-        String[] time = dateTime[1].split(":");
+
         if (calendar.get(Calendar.YEAR) > Integer.parseInt(data[2])) {
             return false;
         } else if (calendar.get(Calendar.YEAR) == Integer.parseInt(data[2])) {
             if (calendar.get(Calendar.MONTH) > Integer.parseInt(data[1])) {
                 return false;
             } else if ((calendar.get(Calendar.MONTH) + 1) == Integer.parseInt(data[1])) {
-                if (calendar.get(Calendar.DAY_OF_MONTH) > Integer.parseInt(data[0])) {
-                    return false;
-                } else {
-                    return true;
-                }
-
+                return calendar.get(Calendar.DAY_OF_MONTH) <= Integer.parseInt(data[0]);
             }
         }
         return true;
@@ -980,145 +966,5 @@ public class DatabaseManager {
         }
 
         return null;
-    }
-
-    /**
-     * Method that check existence of the user in the database
-     * @param context current context
-     * @param email user email
-     * @param password user password
-     */
-    @Deprecated
-    public static void findUserAndCheckPassword(final Context context, final String email, final String password) {
-        mDatabaseReference = getDatabaseChild(AUTH_DATA_KEY);
-
-        Controller.setLoggedIn(context, -1);
-        mChildEventListener = new AbstractChildEventListener() {
-            @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                AuthData authData = dataSnapshot.getValue(AuthData.class);
-                if (authData != null) {
-                    if (authData.getLogin().equals(email)) {
-                        if (authData.getPassword().equals(password)) {
-                            Controller.setLoggedIn(context, authData.getId());
-                        }
-                    }
-                }
-            }
-        };
-        mDatabaseReference.addChildEventListener(mChildEventListener);
-    }
-
-    /**
-     * Use findPlacesByStringV2 instead
-     * Method that searches places in database within query string
-     * @param arrayAdapter adapter with names of founded places
-     * @param places array with founded places
-     * @param toFind string which contains user query to search
-     * @param myPosition current user positions
-     * @param context current context
-     */
-    @Deprecated
-    public static void findPlacesByString(final ArrayAdapter<String> arrayAdapter, final ArrayList<Place> places, final String toFind, final LatLng myPosition, final Context context) {
-        mDatabaseReference = getDatabaseChild(PLACES_KEY);
-
-        mChildEventListener = new AbstractChildEventListener() {
-            @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                Place place = dataSnapshot.getValue(Place.class);
-                if (place != null) {
-                    boolean distanceEnabled = Controller.getDistanceSearchStatus(context);
-                    boolean distanceAccess = (!distanceEnabled) || (Controller.getKilometers(myPosition, new LatLng(place.getLatitude(), place.getLongitude())) <= Controller.getDistanceSearchValue(context));
-                    boolean ratingEnabled = Controller.getRatingSearchStatus(context);
-                    boolean ratingAccess = (!ratingEnabled) || (place.getMark() > (Controller.getRatingSearchValue(context) / 20.0));
-
-                    if (distanceAccess && ratingAccess) {
-                        if (place.getName().toLowerCase().contains(toFind.toLowerCase())) {
-                            arrayAdapter.add(place.getName());
-                            places.add(place);
-
-                        } else {
-                            for (String tag : place.getTags().split(",")) {
-                                if (toFind.toLowerCase().equals(tag.toLowerCase())) {
-                                    arrayAdapter.add(place.getName());
-                                    places.add(place);
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        };
-        mDatabaseReference.addChildEventListener(mChildEventListener);
-    }
-
-    /**
-     * Use loadUserFavouritePlacesListV2 instead
-     * Method that allows to load user favorite places from database to array adapter
-     * @param userId user id
-     * @param adapter adapter to put places
-     */
-    @Deprecated
-    public static void loadUserFavouritePlacesList(final String userId, ArrayAdapter<String> adapter) {
-        mDatabaseReference = getDatabaseChild(USERS_KEY);
-        if (mDatabaseReference != null) {
-            mDatabaseReference = mDatabaseReference.child(userId).child("favouritePlaces");
-        }
-        mDatabaseReference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                Object arrayId = dataSnapshot.getValue();
-                if (arrayId != null) {
-                    String[] idArray = arrayId.toString().split(",");
-
-                    Arrays.sort(idArray, (a, b) -> (Integer.parseInt(a) - Integer.parseInt(b)));
-                    DatabaseReference mDatabaseReferencePlaces = getDatabaseChild(PLACES_KEY);
-                    if (mDatabaseReferencePlaces != null) {
-                        mDatabaseReferencePlaces.addChildEventListener(new AbstractChildEventListener() {
-                            int position = 0;
-
-                            @Override
-                            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                                Place place = dataSnapshot.getValue(Place.class);
-                                if (place != null) {
-                                    if (position < idArray.length && (place.getIdAsString()).equals(idArray[position])) {
-                                        position++;
-                                        adapter.add(place.getName());
-
-                                    }
-                                }
-                            }
-                        });
-                    }
-                }
-            }
-        });
-    }
-
-    /**
-     * Use findUsersByStringV2 instead
-     * Method that searches places in database within query string
-     * @param arrayAdapter adapter with names of founded places
-     * @param users array with founded users
-     * @param toFind string which contains user query to search
-     */
-    @Deprecated
-    public static void findUsersByString(final ArrayAdapter<String> arrayAdapter, final ArrayList<User> users, final String toFind) {
-        mDatabaseReference = getDatabaseChild(USERS_KEY);
-
-        mChildEventListener = new AbstractChildEventListener() {
-            @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                User user = dataSnapshot.getValue(User.class);
-                if (user != null) {
-                    if (user.getNickname().contains(toFind)) {
-                        arrayAdapter.add(user.getName());
-                        users.add(user);
-                    }
-                }
-            }
-        };
-        mDatabaseReference.addChildEventListener(mChildEventListener);
     }
 }

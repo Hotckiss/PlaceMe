@@ -494,7 +494,7 @@ public class Controller {
         Thread myThread = new Thread(() -> {
             map.snapshot(Controller.getRoutePictureCallback(activity, "tmp"));
         });
-        myThread.run();
+        myThread.start();
     }
 
     /**
@@ -666,40 +666,5 @@ public class Controller {
 
     private static double degreeToRadian(double degree) {
         return degree * (Math.PI / 180);
-    }
-
-    /**
-     * Method that check existence of the user in the database
-     * @param context current context
-     * @param email user email
-     * @param password user password
-     */
-    @Deprecated
-    public static void findUserAndCheckPassword(final Context context, final String email, final String password) {
-        DatabaseManager.findUserAndCheckPassword(context, email, password);
-    }
-
-    /**
-     * Use loadUserFavouritePlacesListV2 instead
-     * Method that allows to load user favorite places from database to array adapter
-     * @param userId user id
-     * @param adapter adapter to put places
-     */
-    @Deprecated
-    public static void loadUserFavouritePlacesList(final String userId, ArrayAdapter<String> adapter) {
-        DatabaseManager.loadUserFavouritePlacesList(userId, adapter);
-    }
-
-    /**
-     * Method that searches places in database within query string
-     * @param arrayAdapter adapter with names of founded places
-     * @param places array with founded places
-     * @param toFind string which contains user query to search
-     * @param myPosition current user positions
-     * @param context current context
-     */
-    @Deprecated
-    public static void findPlacesByString(final ArrayAdapter<String> arrayAdapter, final ArrayList<Place> places, final String toFind, final LatLng myPosition, final Context context) {
-        DatabaseManager.findPlacesByString(arrayAdapter, places, toFind, myPosition, context);
     }
 }

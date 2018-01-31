@@ -97,12 +97,9 @@ public class MapManager {
         }
 
         for (int i = 0; i < placeArrayList.size(); i++) {
-            if (sp.get(i)) {
-                if (i != lastPoint) {
-                    gd.and(new LatLng(placeArrayList.get(i).getLatitude(), placeArrayList.get(i).getLongitude()));
-                }
+            if (sp.get(i) && i != lastPoint) {
+                gd.and(new LatLng(placeArrayList.get(i).getLatitude(), placeArrayList.get(i).getLongitude()));
             }
-            Log.d(((Integer)i).toString(), ((Boolean)sp.get(i)).toString());
         }
 
         gd.to(destination)
