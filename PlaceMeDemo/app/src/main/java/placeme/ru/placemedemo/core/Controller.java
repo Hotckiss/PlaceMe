@@ -34,6 +34,7 @@ import placeme.ru.placemedemo.core.utils.FavouritePlacesUtils;
 import placeme.ru.placemedemo.core.utils.FriendsDataUtils;
 import placeme.ru.placemedemo.core.utils.RoutesUtils;
 import placeme.ru.placemedemo.core.utils.SearchUtils;
+import placeme.ru.placemedemo.elements.AuthData;
 import placeme.ru.placemedemo.elements.Place;
 import placeme.ru.placemedemo.elements.User;
 
@@ -46,10 +47,11 @@ public class Controller {
 
     /**
      * Method that register new user in database with unique id
-     * @param information information that user input during registration
+     * @param newAuthData authentication data that user input during registration
+     * @param newUserData user data that user input during registration
      */
-    public static void registerUser(final String[] information) {
-        DatabaseManager.registerUser(information);
+    public static void registerUser(final AuthData newAuthData, final User newUserData) {
+        DatabaseManager.registerUser(newAuthData, newUserData);
     }
 
     /**

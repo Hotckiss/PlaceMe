@@ -9,6 +9,8 @@ import android.widget.TextView;
 
 import placeme.ru.placemedemo.R;
 import placeme.ru.placemedemo.core.Controller;
+import placeme.ru.placemedemo.elements.AuthData;
+import placeme.ru.placemedemo.elements.User;
 
 /**
  * Activity that provides user to register in the application
@@ -36,7 +38,7 @@ public class RegisterActivity extends AppCompatActivity {
 
         submit.setOnClickListener(v -> {
             if (checkLogin() && checkPassword()) {
-                Controller.registerUser(generateNewUserData());
+                Controller.registerUser(generateNewAuthData(), generateNewUserData());
                 finish();
             } else {
                 createAlertDialogProblems().show();
@@ -66,15 +68,17 @@ public class RegisterActivity extends AppCompatActivity {
         builder.setCancelable(true);
         return builder.create();
     }
-    private String[] generateNewUserData() {
-        String[] result = new String[5];
-        result[0] = mLogin.getText().toString();
-        result[1] = mPassword.getText().toString();
-        result[2] = mName.getText().toString();
-        result[3] = mSurname.getText().toString();
-        result[4] = mNickname.getText().toString();
 
-        return result;
+    private AuthData generateNewAuthData() {
+        return new AuthData(-1, getFieldValue(mLogin), getFieldValue(mName));
+    }
+
+    private User generateNewUserData() {
+        return new User(-1, getFieldValue(mName), getFieldValue(mSurname), getFieldValue(mNickname));
+    }
+
+    private String getFieldValue(final EditText editText) {
+        return editText.getText().toString();
     }
 
     private boolean checkLogin() {

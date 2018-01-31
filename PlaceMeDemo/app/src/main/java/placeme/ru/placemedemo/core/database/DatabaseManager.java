@@ -70,9 +70,10 @@ public class DatabaseManager {
 
     /**
      * Method that register new user in database with unique id
-     * @param information information that user input during registration
+     * @param newAuthData authentication data that user input during registration
+     * @param newUserData user data that user input during registration
      */
-    public static void registerUser(final String[] information) {
+    public static void registerUser(final AuthData newAuthData, final User newUserData) {
         mDatabaseReference = getDatabaseChild(MAX_ID);
 
         mDatabaseReference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
@@ -80,12 +81,13 @@ public class DatabaseManager {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 Integer id = dataSnapshot.getValue(Integer.class);
                 if (id != null) {
-                    AuthData newAuthData = new AuthData(id, information[0], information[1]);
-                    User newUser = new User(id, information[2], information[3], information[4]);
+                    newAuthData.setId(id);
+                    newUserData.setId(id);
                     DatabaseReference referenceAuth = getDatabaseChild(AUTH_DATA_KEY);
                     DatabaseReference referenceUsers = getDatabaseChild(USERS_KEY);
+
                     if (referenceUsers != null) {
-                        referenceUsers.child(id.toString()).setValue(newUser);
+                        referenceUsers.child(id.toString()).setValue(newUserData);
                     }
                     if (referenceAuth != null) {
                         referenceAuth.child(id.toString()).setValue(newAuthData);
