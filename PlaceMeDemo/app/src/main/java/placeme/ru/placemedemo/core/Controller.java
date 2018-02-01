@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import de.hdodenhof.circleimageview.CircleImageView;
 import placeme.ru.placemedemo.R;
 import placeme.ru.placemedemo.core.database.DatabaseManager;
+import placeme.ru.placemedemo.core.database.DatabaseManagerPlaces;
 import placeme.ru.placemedemo.core.map.MapManager;
 import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
 import placeme.ru.placemedemo.core.utils.ChatUtils;
@@ -62,7 +63,7 @@ public class Controller {
      * @param placeId place that user have rated
      */
     public static void updatePlaceRating(final RatingBar ratingBar, final String placeId) {
-        DatabaseManager.updatePlaceRating(ratingBar, placeId);
+        DatabaseManagerPlaces.updatePlaceRating(ratingBar, placeId);
     }
 
     /**
@@ -80,7 +81,7 @@ public class Controller {
      * @param googleMap markers destination map
      */
     public static void loadMarkersToMap(final GoogleMap googleMap) {
-        DatabaseManager.loadMarkersToMap(googleMap);
+        DatabaseManagerPlaces.loadMarkersToMap(googleMap);
     }
 
     /**
@@ -89,7 +90,7 @@ public class Controller {
      * @param query user search query
      */
     public static void addMarkersByQuery(final GoogleMap googleMap, final String query) {
-        DatabaseManager.addMarkersByQuery(googleMap, query);
+        DatabaseManagerPlaces.addMarkersByQuery(googleMap, query);
     }
 
     /**
@@ -140,7 +141,7 @@ public class Controller {
      * @param position place coordinates
      */
     public static void saveCreatedPlace(final Uri uri, final Place placeInfo, final LatLng position) {
-        DatabaseManager.saveCreatedPlace(uri, placeInfo, position);
+        DatabaseManagerPlaces.saveCreatedPlace(uri, placeInfo, position);
     }
 
     /**
@@ -188,7 +189,7 @@ public class Controller {
      * @param place place to save
      */
     public static void saveConvertedPlace(final Uri uri, final Place place) {
-       DatabaseManager.saveConvertedPlace(uri, place);
+       DatabaseManagerPlaces.saveConvertedPlace(uri, place);
     }
 
     /**
@@ -198,7 +199,7 @@ public class Controller {
      * @param marker place position
      */
     public static void runDescriptionDialog(final Context context, final Marker marker, final LatLng myPosition, final GoogleMap googleMap) {
-        DatabaseManager.runDescriptionDialog(context, marker, myPosition, googleMap);
+        DatabaseManagerPlaces.runDescriptionDialog(context, marker, myPosition, googleMap);
     }
 
 
@@ -237,7 +238,7 @@ public class Controller {
      * @param id place ID
      */
     public static void fillDescriptionPlaces(final TextView textView, final String id) {
-        DatabaseManager.fillDescriptionPlaces(textView, id);
+        DatabaseManagerPlaces.fillDescriptionPlaces(textView, id);
     }
 
     /**
@@ -257,7 +258,7 @@ public class Controller {
      * @param context current context
      */
     public static void loadDescriptionImage(final ImageView imageView, final Place place, final Context context) {
-        DatabaseManager.loadDescriptionImage(imageView, place, context);
+        DatabaseManagerPlaces.loadDescriptionImage(imageView, place, context);
     }
 
     /**
@@ -513,7 +514,7 @@ public class Controller {
      */
     public static void findPlacesByStringV2(final ArrayAdapter<String> arrayAdapter, final ArrayList<Place> places,
                                             final String toFind, final LatLng myPosition, final Context context, final Activity activity) {
-        DatabaseManager.findPlacesByString(arrayAdapter, places, toFind, myPosition, context, activity);
+        DatabaseManagerPlaces.findPlacesByString(arrayAdapter, places, toFind, myPosition, context, activity);
     }
 
     /**
@@ -572,7 +573,7 @@ public class Controller {
      * @param position place coordinates
      */
     public static void saveCreatedPlace2(final Bitmap bitmap, final Place placeInfo, final LatLng position) {
-        DatabaseManager.saveCreatedPlace2(bitmap, placeInfo, position);
+        DatabaseManagerPlaces.saveCreatedPlace2(bitmap, placeInfo, position);
     }
 
     /**
