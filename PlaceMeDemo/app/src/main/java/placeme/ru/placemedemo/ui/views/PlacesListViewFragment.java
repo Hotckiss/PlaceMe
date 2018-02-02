@@ -111,7 +111,7 @@ public class PlacesListViewFragment extends Fragment {
     }
 
     public class MyAdapter extends RecyclerView.Adapter<MyViewHolder> {
-        String[] data;
+        private String[] data;
         public MyAdapter(String[] places) {
             data = places;
         }
@@ -119,8 +119,7 @@ public class PlacesListViewFragment extends Fragment {
         @Override
         public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.place_item, parent, false);
-            MyViewHolder holder = new MyViewHolder(view);
-            return holder;
+            return new MyViewHolder(view);
         }
 
         @Override
@@ -139,7 +138,7 @@ public class PlacesListViewFragment extends Fragment {
             if (isNullLength) {
                 return 0;
             }
-            return places.length;
+            return data.length;
         }
     }
 
