@@ -22,15 +22,15 @@ import placeme.ru.placemedemo.elements.Place;
  * Class that contains common utils to database managers
  * Created by Андрей on 01.02.2018.
  */
-public class DatabaseUtils {
-    public static final String DATABASE_DELIMITER = ",";
-    public static final String PLACE_PHOTO_SUFFIX = "place_photo";
+class DatabaseUtils {
+    static final String PLACE_PHOTO_SUFFIX = "place_photo";
+    private static final String DATABASE_DELIMITER = ",";
     private static final String PLACES_KEY = "places";
     private static final String SPACE_DELIMITER = " ";
     private static final String DASH_DELIMITER = "-";
     private static final double PERCENT_TO_RATING = 20.0;
 
-    public static boolean checkAccess(final Place place, final LatLng myPosition, final Context context) {
+    static boolean checkAccess(final Place place, final LatLng myPosition, final Context context) {
         boolean distanceEnabled = Controller.getDistanceSearchStatus(context);
         boolean ratingEnabled = Controller.getRatingSearchStatus(context);
         boolean distanceAccess = (!distanceEnabled) ||
@@ -41,29 +41,16 @@ public class DatabaseUtils {
         return distanceAccess && ratingAccess;
     }
 
-    public static boolean isAppropriate(final Place place, final String toFind) {
+    static boolean isAppropriate(final Place place, final String toFind) {
         return containsIgnoreCase(place.getName(), toFind) || containsTag(place, toFind);
     }
 
-    public static boolean containsIgnoreCase(final String text, final String word) {
-        return text.toLowerCase().contains(word.toLowerCase());
-    }
-
-    public static boolean containsTag(final Place place, final String tagToSearch) {
-        for (String tag : place.getTags().split(DATABASE_DELIMITER)) {
-            if (tagToSearch.equalsIgnoreCase(tag)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public static void addPlaceToList(final ArrayAdapter<String> arrayAdapter, final ArrayList<Place> places, final Place place) {
+    static void addPlaceToList(final ArrayAdapter<String> arrayAdapter, final ArrayList<Place> places, final Place place) {
         arrayAdapter.add(place.getName());
         places.add(place);
     }
 
-    public static boolean isAlreadyFavourite(final String places, final String favouritePlaceId) {
+    static boolean isAlreadyFavourite(final String places, final String favouritePlaceId) {
         for (String placeId : places.split(DATABASE_DELIMITER)) {
             if (placeId.equals(favouritePlaceId)) {
                 return true;
@@ -72,7 +59,7 @@ public class DatabaseUtils {
         return false;
     }
 
-    public static boolean validatePlan(final String planDate) {
+    static boolean validatePlan(final String planDate) {
         Calendar calendar = Calendar.getInstance();
         String[] dateTime = planDate.split(SPACE_DELIMITER);
         String[] data = dateTime[0].split(DASH_DELIMITER);
@@ -80,7 +67,7 @@ public class DatabaseUtils {
         if (calendar.get(Calendar.YEAR) > Integer.parseInt(data[2])) {
             return false;
         } else if (calendar.get(Calendar.YEAR) == Integer.parseInt(data[2])) {
-            if (calendar.get(Calendar.MONTH) > Integer.parseInt(data[1])) {
+            if ((calendar.get(Calendar.MONTH) + 1) > Integer.parseInt(data[1])) {
                 return false;
             } else if ((calendar.get(Calendar.MONTH) + 1) == Integer.parseInt(data[1])) {
                 return calendar.get(Calendar.DAY_OF_MONTH) <= Integer.parseInt(data[0]);
@@ -89,7 +76,7 @@ public class DatabaseUtils {
         return true;
     }
 
-    public static void uploadPicture(final Uri uri, final StorageReference storageReference, final Integer placeId) {
+    static void uploadPicture(final Uri uri, final StorageReference storageReference, final Integer placeId) {
         StorageReference child = storageReference.child(PLACES_KEY).child(placeId.toString() + PLACE_PHOTO_SUFFIX);
 
         if (uri != null) {
@@ -97,7 +84,7 @@ public class DatabaseUtils {
         }
     }
 
-    public static void uploadBitmap(final Bitmap bitmap, final StorageReference storageReference, final Integer placeId) {
+    static void uploadBitmap(final Bitmap bitmap, final StorageReference storageReference, final Integer placeId) {
         StorageReference child = storageReference.child(PLACES_KEY).child(placeId.toString() + PLACE_PHOTO_SUFFIX);
 
         if (bitmap != null) {
@@ -109,7 +96,7 @@ public class DatabaseUtils {
     }
 
     @Nullable
-    public static DatabaseReference getDatabaseChild(FirebaseDatabase database, String childName) {
+    static DatabaseReference getDatabaseChild(FirebaseDatabase database, String childName) {
         DatabaseReference databaseReference = getDatabaseReference(database);
         if (databaseReference != null) {
             return databaseReference.child(childName);
@@ -118,8 +105,21 @@ public class DatabaseUtils {
         return null;
     }
 
+    private static boolean containsIgnoreCase(final String text, final String word) {
+        return text.toLowerCase().contains(word.toLowerCase());
+    }
+
+    private static boolean containsTag(final Place place, final String tagToSearch) {
+        for (String tag : place.getTags().split(DATABASE_DELIMITER)) {
+            if (tagToSearch.equalsIgnoreCase(tag)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     @Nullable
-    public static DatabaseReference getDatabaseReference(FirebaseDatabase database) {
+    private static DatabaseReference getDatabaseReference(FirebaseDatabase database) {
         if (database != null) {
             return database.getReference();
         }

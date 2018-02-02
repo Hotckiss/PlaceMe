@@ -25,8 +25,9 @@ import java.util.ArrayList;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 import placeme.ru.placemedemo.R;
-import placeme.ru.placemedemo.core.database.DatabaseManager;
+import placeme.ru.placemedemo.core.database.DatabaseManagerPlans;
 import placeme.ru.placemedemo.core.database.DatabaseManagerPlaces;
+import placeme.ru.placemedemo.core.database.DatabaseManagerRoutes;
 import placeme.ru.placemedemo.core.database.DatabaseManagerUsers;
 import placeme.ru.placemedemo.core.map.MapManager;
 import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
@@ -151,7 +152,7 @@ public class Controller {
      * @param context current context
      */
     public static void saveRoute(final Uri uri, final String userId, final Context context) {
-        DatabaseManager.saveRoute(uri, userId, context);
+        DatabaseManagerRoutes.saveRoute(uri, userId, context);
     }
 
     /**
@@ -160,7 +161,7 @@ public class Controller {
      * @param length current last added route ID
      */
     public static void updateRoutesLength(final String userId, final long length) {
-        DatabaseManager.updateRoutesLength(userId, length);
+        DatabaseManagerRoutes.updateRoutesLength(userId, length);
     }
 
     /**
@@ -171,7 +172,7 @@ public class Controller {
      * @param fragment output fragment
      */
     public static void getUserRoutesLength(final String userId, final Context context, final FragmentManager fragmentManager, final Fragment fragment) {
-        DatabaseManager.getUserRoutesLength(userId, context, fragmentManager, fragment);
+        DatabaseManagerRoutes.getUserRoutesLength(userId, context, fragmentManager, fragment);
     }
 
     /**
@@ -180,7 +181,7 @@ public class Controller {
      * @param context current context
      */
     public static void getUserRoutesLength2(final String userId, final Context context) {
-        DatabaseManager.getUserRoutesLength2(userId, context);
+        DatabaseManagerRoutes.getUserRoutesLength2(userId, context);
     }
 
     /**
@@ -209,7 +210,7 @@ public class Controller {
      * @param route route to save
      */
     public static void saveRoute(final String userId, final ArrayList<LatLng> route) {
-        DatabaseManager.saveRoute(userId, route);
+        DatabaseManagerRoutes.saveRoute(userId, route);
     }
 
     /**
@@ -219,7 +220,7 @@ public class Controller {
      * @param description string that contains all description
      */
     public static void saveRouteInfo(final String userId, final Long descriptionId, final String description) {
-        DatabaseManager.saveRouteInfo(userId, descriptionId, description);
+        DatabaseManagerRoutes.saveRouteInfo(userId, descriptionId, description);
     }
 
     /**
@@ -229,7 +230,7 @@ public class Controller {
      * @param userId user ID
      */
     public static void fillDescription(final TextView textView, final Integer id, final String userId) {
-        DatabaseManager.fillDescription(textView, id, userId);
+        DatabaseManagerRoutes.fillDescription(textView, id, userId);
     }
 
     /**
@@ -248,7 +249,7 @@ public class Controller {
      * @param userId id of the user
      */
     public static void loadAvatar(CircleImageView circleImageView, final Context context, final String userId) {
-       DatabaseManager.loadAvatar(circleImageView, context, userId);
+       DatabaseManagerPlans.loadAvatar(circleImageView, context, userId);
     }
 
     /**
@@ -267,7 +268,7 @@ public class Controller {
      * @param uri uri of new avatar image
      */
     public static void setNewAvatar(final String userId, final Uri uri) {
-        DatabaseManager.setNewAvatar(userId, uri);
+        DatabaseManagerPlans.setNewAvatar(userId, uri);
     }
 
     /**
@@ -482,7 +483,7 @@ public class Controller {
      * @param review user review text
      */
     public static void addReview(final String placeId, final String review) {
-        DatabaseManager.addReview(placeId, review);
+        DatabaseManagerPlans.addReview(placeId, review);
     }
 
     /**
@@ -491,7 +492,7 @@ public class Controller {
      * @param adapter destination adapter to load reviews
      */
     public static void findReviews(final String placeId, ArrayAdapter<String> adapter) {
-        DatabaseManager.findReviews(placeId, adapter);
+        DatabaseManagerPlans.findReviews(placeId, adapter);
     }
 
     /**
@@ -501,7 +502,7 @@ public class Controller {
      * @param date date of planned visit
      */
     public static void addPlan(final String placeName, final String userId, final String date) {
-        DatabaseManager.addPlan(placeName, userId, date);
+        DatabaseManagerPlans.addPlan(placeName, userId, date);
     }
 
     /**
@@ -541,7 +542,7 @@ public class Controller {
      * @param adapter adapter with plans list
      */
     public static void loadPlan(final String userId, final ArrayAdapter<String> adapter) {
-        DatabaseManager.loadPlan(userId, adapter);
+        DatabaseManagerPlans.loadPlan(userId, adapter);
     }
 
     /**
@@ -651,8 +652,8 @@ public class Controller {
                             null);
 
                     Uri attachment = Uri.fromFile(outputFile);
-                    DatabaseManager.getUserRoutesLength2(AuthorizationUtils.getLoggedInAsString(instance.getBaseContext()), instance.getBaseContext());
-                    DatabaseManager.saveRoute(attachment, AuthorizationUtils.getLoggedInAsString(instance.getBaseContext()), instance.getBaseContext());
+                    Controller.getUserRoutesLength2(AuthorizationUtils.getLoggedInAsString(instance.getBaseContext()), instance.getBaseContext());
+                    Controller.saveRoute(attachment, AuthorizationUtils.getLoggedInAsString(instance.getBaseContext()), instance.getBaseContext());
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

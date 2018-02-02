@@ -31,7 +31,7 @@ import placeme.ru.placemedemo.elements.Place;
 import placeme.ru.placemedemo.ui.dialogs.AlertDialogCreator;
 
 /**
- * Class that have all methods connected with working with places in database
+ * Class that have all methods connected with places in database
  * Created by Андрей on 01.02.2018.
  */
 
