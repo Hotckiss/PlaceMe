@@ -3,3 +3,4 @@ exclude_patterns:
 - "UI/*"
 - "PlaceMeDemo/droidAR/*"
 - "PlaceMe/PlaceMeDemo/app/src/main/res/*"
+- "PlaceMe/PlaceMeDemo/app/src/main/java/placeme/ru/placemedemo/core/Controller.java"

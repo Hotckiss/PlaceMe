@@ -1,13 +1,17 @@
 package placeme.ru.placemedemo.core.database;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.net.Uri;
 import android.support.annotation.Nullable;
 import android.widget.ArrayAdapter;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.storage.StorageReference;
 
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
 
@@ -15,11 +19,13 @@ import placeme.ru.placemedemo.core.Controller;
 import placeme.ru.placemedemo.elements.Place;
 
 /**
+ * Class that contains common utils to database managers
  * Created by Андрей on 01.02.2018.
  */
-
 public class DatabaseUtils {
     public static final String DATABASE_DELIMITER = ",";
+    public static final String PLACE_PHOTO_SUFFIX = "place_photo";
+    private static final String PLACES_KEY = "places";
     private static final String SPACE_DELIMITER = " ";
     private static final String DASH_DELIMITER = "-";
     private static final double PERCENT_TO_RATING = 20.0;
@@ -81,6 +87,25 @@ public class DatabaseUtils {
             }
         }
         return true;
+    }
+
+    public static void uploadPicture(final Uri uri, final StorageReference storageReference, final Integer placeId) {
+        StorageReference child = storageReference.child(PLACES_KEY).child(placeId.toString() + PLACE_PHOTO_SUFFIX);
+
+        if (uri != null) {
+            child.putFile(uri);
+        }
+    }
+
+    public static void uploadBitmap(final Bitmap bitmap, final StorageReference storageReference, final Integer placeId) {
+        StorageReference child = storageReference.child(PLACES_KEY).child(placeId.toString() + PLACE_PHOTO_SUFFIX);
+
+        if (bitmap != null) {
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);
+            byte[] data = byteArrayOutputStream.toByteArray();
+            child.putBytes(data);
+        }
     }
 
     @Nullable

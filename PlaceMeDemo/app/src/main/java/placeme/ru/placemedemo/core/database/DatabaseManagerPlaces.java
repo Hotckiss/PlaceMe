@@ -23,7 +23,6 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.squareup.picasso.Picasso;
 
-import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -32,6 +31,7 @@ import placeme.ru.placemedemo.elements.Place;
 import placeme.ru.placemedemo.ui.dialogs.AlertDialogCreator;
 
 /**
+ * Class that have all methods connected with working with places in database
  * Created by Андрей on 01.02.2018.
  */
 
@@ -41,7 +41,6 @@ public class DatabaseManagerPlaces {
     private static final String MARKS_COUNT = "numberOfRatings";
     private static final String MAX_PLACE_ID = "maxidplaces";
     private static final String DESCRIPTION_KEY = "description";
-    private static final String PLACE_PHOTO_SUFFIX = "place_photo";
     private static final String PHOTOS_KEY = "photos";
     private static final String PLACE_NAME_KEY = "name";
     private static final char END_LINE = '\n';
@@ -141,10 +140,31 @@ public class DatabaseManagerPlaces {
                         mDatabaseReference.setValue(id + 1);
                     }
 
-                    StorageReference child = mStorageRef.child(PLACES_KEY).child(id.toString() + PLACE_PHOTO_SUFFIX);
+                    DatabaseUtils.uploadPicture(uri, mStorageRef, id);
+                }
+            }
+        });
+    }
 
-                    if (uri != null) {
-                        child.putFile(uri);
+    /**
+     * Method that loads place that was converted from Google Places to database
+     * @param uri picture uri
+     * @param place place to save
+     */
+    public static void saveConvertedPlace(final Uri uri, final Place place) {
+        mDatabaseReference = DatabaseUtils.getDatabaseChild(mBase, MAX_PLACE_ID);
+        mDatabaseReference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                final Integer id = dataSnapshot.getValue(Integer.class);
+                if (id != null) {
+                    place.setId(id);
+
+                    DatabaseReference reference = DatabaseUtils.getDatabaseChild(mBase, PLACES_KEY);
+                    if (reference != null) {
+                        reference.child(id.toString()).setValue(place);
+                        mDatabaseReference.setValue(id + 1);
+                        DatabaseUtils.uploadPicture(uri, mStorageRef, id);
                     }
                 }
             }
@@ -169,44 +189,7 @@ public class DatabaseManagerPlaces {
                         mDatabaseReference.setValue(id + 1);
                     }
 
-                    StorageReference child = mStorageRef.child(PLACES_KEY).child(id.toString() + PLACE_PHOTO_SUFFIX);
-
-                    if (bitmap != null) {
-                        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);
-                        byte[] data = byteArrayOutputStream.toByteArray();
-                        child.putBytes(data);
-                    }
-                }
-            }
-        });
-    }
-
-    /**
-     * Method that loads place that was converted from Google Places to database
-     * @param uri picture uri
-     * @param place place to save
-     */
-    public static void saveConvertedPlace(final Uri uri, final Place place) {
-        mDatabaseReference = DatabaseUtils.getDatabaseChild(mBase, MAX_PLACE_ID);
-        mDatabaseReference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                final Integer id = dataSnapshot.getValue(Integer.class);
-                if (id != null) {
-                    place.setId(id);
-
-                    DatabaseReference reference = DatabaseUtils.getDatabaseChild(mBase, PLACES_KEY);
-                    if (reference != null) {
-                        reference.child(id.toString()).setValue(place);
-                        mDatabaseReference.setValue(id + 1);
-
-                        StorageReference child = mStorageRef.child(PHOTOS_KEY).child(id.toString() + PLACE_PHOTO_SUFFIX);
-
-                        if (uri != null) {
-                            child.putFile(uri);
-                        }
-                    }
+                    DatabaseUtils.uploadBitmap(bitmap, mStorageRef, id);
                 }
             }
         });
@@ -244,6 +227,8 @@ public class DatabaseManagerPlaces {
     public static void fillDescriptionPlaces(final TextView textView, final String id) {
         final StringBuilder stringBuilder = new StringBuilder();
         DatabaseReference referenceName = DatabaseUtils.getDatabaseChild(mBase, PLACES_KEY);
+        DatabaseReference referenceDescription = DatabaseUtils.getDatabaseChild(mBase, PLACES_KEY);
+
         if (referenceName != null) {
             referenceName.child(id).child(PLACE_NAME_KEY).addListenerForSingleValueEvent(new AbstractValueEventListener() {
                 @Override
@@ -255,7 +240,7 @@ public class DatabaseManagerPlaces {
                 }
             });
         }
-        DatabaseReference referenceDescription = DatabaseUtils.getDatabaseChild(mBase, PLACES_KEY);
+
         if (referenceDescription != null) {
             referenceDescription.child(id).child(DESCRIPTION_KEY).addListenerForSingleValueEvent(new AbstractValueEventListener() {
                 @Override
@@ -276,7 +261,7 @@ public class DatabaseManagerPlaces {
      * @param context current context
      */
     public static void loadDescriptionImage(final ImageView imageView, final Place place, final Context context) {
-        mStorageRef.child(PHOTOS_KEY).child(place.getIdAsString() + PLACE_PHOTO_SUFFIX)
+        mStorageRef.child(PHOTOS_KEY).child(place.getIdAsString() + DatabaseUtils.PLACE_PHOTO_SUFFIX)
                 .getDownloadUrl().addOnSuccessListener(uri -> Picasso.with(context).load(uri)
                 .placeholder(R.drawable.noimage)
                 .error(R.drawable.noimage)

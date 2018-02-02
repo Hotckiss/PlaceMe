@@ -828,7 +828,7 @@ public class MainActivity extends AppCompatActivity
                 description = "No description given.";
             }
             Controller.saveRouteInfo(Controller.getLoggedInAsString(MainActivity.this), Controller.getRoutesLength(MainActivity.this), description);
-            Controller.sendRoute(mGoogleMap, "tmp", MainActivity.this);
+            Controller.sendRoute(mGoogleMap, MainActivity.this);
             Controller.updateRoutesLength(Controller.getLoggedInAsString(MainActivity.this), Controller.getRoutesLength(MainActivity.this));
         }).setNegativeButton(R.string.answer_back, (dialog, arg1) -> {});
 

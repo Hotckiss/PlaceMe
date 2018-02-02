@@ -27,6 +27,7 @@ import de.hdodenhof.circleimageview.CircleImageView;
 import placeme.ru.placemedemo.R;
 import placeme.ru.placemedemo.core.database.DatabaseManager;
 import placeme.ru.placemedemo.core.database.DatabaseManagerPlaces;
+import placeme.ru.placemedemo.core.database.DatabaseManagerUsers;
 import placeme.ru.placemedemo.core.map.MapManager;
 import placeme.ru.placemedemo.core.utils.AuthorizationUtils;
 import placeme.ru.placemedemo.core.utils.ChatUtils;
@@ -41,10 +42,9 @@ import placeme.ru.placemedemo.elements.UserDataFields;
 import placeme.ru.placemedemo.elements.UserProfileFields;
 
 /**
+ * Class that provides connectivity between all parts of application
  * Created by Андрей on 25.12.2017.
  */
-
-//TODO: make all here
 public class Controller {
 
     /**
@@ -53,7 +53,7 @@ public class Controller {
      * @param newUserData user data that user input during registration
      */
     public static void registerUser(final AuthData newAuthData, final User newUserData) {
-        DatabaseManager.registerUser(newAuthData, newUserData);
+        DatabaseManagerUsers.registerUser(newAuthData, newUserData);
     }
 
     /**
@@ -73,7 +73,7 @@ public class Controller {
      * @param placeId id of place that should be added
      */
     public static void addPlaceToFavourite(final String userId, final String placeId) {
-       DatabaseManager.addPlaceToFavourite(userId, placeId);
+       DatabaseManagerUsers.addPlaceToFavourite(userId, placeId);
     }
 
     /**
@@ -99,7 +99,7 @@ public class Controller {
      * @param userId user id to search in database
      */
     public static void loadUserDataForEdit(final UserDataFields toLoad, String userId) {
-        DatabaseManager.loadUserDataForEdit(toLoad, userId);
+        DatabaseManagerUsers.loadUserDataForEdit(toLoad, userId);
     }
 
     /**
@@ -109,7 +109,7 @@ public class Controller {
      * @param newUserData user data that user input during editing profile
      */
     public static void saveProfileChanges(final String userId, final AuthData newAuthData, final User newUserData) {
-        DatabaseManager.saveProfileChanges(userId, newAuthData, newUserData);
+        DatabaseManagerUsers.saveProfileChanges(userId, newAuthData, newUserData);
     }
 
     /**
@@ -120,7 +120,7 @@ public class Controller {
      * @param fragment output fragment
      */
     public static void loadUserFavouritePlacesListV2(final String userId, final Context context, final FragmentManager fragmentManager, final Fragment fragment) {
-        DatabaseManager.loadUserFavouritePlacesList(userId, context, fragmentManager, fragment);
+        DatabaseManagerUsers.loadUserFavouritePlacesList(userId, context, fragmentManager, fragment);
     }
 
     /**
@@ -131,7 +131,7 @@ public class Controller {
      * @param fragmentManager fragment manager to load friends list
      */
     public static void loadUserProfile(final Context context, final int userId, final UserProfileFields userProfileInfo, final FragmentManager fragmentManager) {
-        DatabaseManager.loadUserProfile(context, userId, userProfileInfo, fragmentManager);
+        DatabaseManagerUsers.loadUserProfile(context, userId, userProfileInfo, fragmentManager);
     }
 
     /**
@@ -449,55 +449,14 @@ public class Controller {
     }
 
     /**
-     * Method that prepares map screenshot for saving to database
-     * @param instance current activity
-     * @param routeName route name
-     * @return returns callback that can do a map screenshot
-     */
-    public static GoogleMap.SnapshotReadyCallback getRoutePictureCallback(final Activity instance, final String routeName) {
-        GoogleMap.SnapshotReadyCallback callback = new GoogleMap.SnapshotReadyCallback() {
-            Bitmap bitmap;
-
-            @Override
-            public void onSnapshotReady(Bitmap snapshot) {
-                try {
-                    bitmap = snapshot;
-                    File outputDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), instance.getString(R.string.app_name));
-
-                    if (!outputDir.exists()) {
-                        outputDir.mkdir();
-                    }
-
-                    File outputFile = new File(outputDir, routeName + ".png");
-                    FileOutputStream fileOutputStream = new FileOutputStream(outputFile);
-                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, fileOutputStream);
-                    MediaScannerConnection.scanFile(instance,
-                            new String[] { outputFile.getPath() },
-                            new String[] { "image/png" },
-                            null);
-
-                    Uri attachment = Uri.fromFile(outputFile);
-                    DatabaseManager.getUserRoutesLength2(AuthorizationUtils.getLoggedInAsString(instance.getBaseContext()), instance.getBaseContext());
-                    DatabaseManager.saveRoute(attachment, AuthorizationUtils.getLoggedInAsString(instance.getBaseContext()), instance.getBaseContext());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        };
-
-        return callback;
-    }
-
-    /**
      * Method that make a snapshot of the map
      * @param map map to take screenshot
-     * @param routeName route title
      * @param activity current activity
      */
-    public static void sendRoute(GoogleMap map, final String routeName, final Activity activity) {
+    public static void sendRoute(GoogleMap map, final Activity activity) {
 
         Thread myThread = new Thread(() -> {
-            map.snapshot(Controller.getRoutePictureCallback(activity, "tmp"));
+            map.snapshot(Controller.getRoutePictureCallback(activity));
         });
         myThread.start();
     }
@@ -554,7 +513,7 @@ public class Controller {
      * @param activity UI activity that calls method
      */
     public static void findUsersByStringV2(final ArrayAdapter<String> arrayAdapter, final ArrayList<User> users, final String toFind, final Context context, final Activity activity) {
-        DatabaseManager.findUsersByString(arrayAdapter, users, toFind, context, activity);
+        DatabaseManagerUsers.findUsersByString(arrayAdapter, users, toFind, context, activity);
     }
 
     /**
@@ -563,7 +522,7 @@ public class Controller {
      * @param friendId id of friend to be added
      */
     public static void addFriend(final String userId, final String friendId) {
-        DatabaseManager.addFriend(userId, friendId);
+        DatabaseManagerUsers.addFriend(userId, friendId);
     }
 
     /**
@@ -667,6 +626,38 @@ public class Controller {
         double a = Math.sin(dLatitude / 2) * Math.sin(dLatitude / 2) + Math.cos(degreeToRadian(start.latitude)) * Math.cos(degreeToRadian(finish.latitude)) * Math.sin(dLongitude / 2) * Math.sin(dLongitude / 2);
         double b = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
         return radius * b;
+    }
+
+    private static GoogleMap.SnapshotReadyCallback getRoutePictureCallback(final Activity instance) {
+        return new GoogleMap.SnapshotReadyCallback() {
+            Bitmap bitmap;
+
+            @Override
+            public void onSnapshotReady(Bitmap snapshot) {
+                try {
+                    bitmap = snapshot;
+                    File outputDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), instance.getString(R.string.app_name));
+
+                    if (!outputDir.exists()) {
+                        outputDir.mkdir();
+                    }
+
+                    File outputFile = new File(outputDir, "tmp.png");
+                    FileOutputStream fileOutputStream = new FileOutputStream(outputFile);
+                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, fileOutputStream);
+                    MediaScannerConnection.scanFile(instance,
+                            new String[] { outputFile.getPath() },
+                            new String[] { "image/png" },
+                            null);
+
+                    Uri attachment = Uri.fromFile(outputFile);
+                    DatabaseManager.getUserRoutesLength2(AuthorizationUtils.getLoggedInAsString(instance.getBaseContext()), instance.getBaseContext());
+                    DatabaseManager.saveRoute(attachment, AuthorizationUtils.getLoggedInAsString(instance.getBaseContext()), instance.getBaseContext());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
     }
 
     private static double degreeToRadian(double degree) {
