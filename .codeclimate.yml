@@ -4,3 +4,4 @@ exclude_patterns:
 - "PlaceMeDemo/droidAR/*"
 - "PlaceMeDemo/app/src/main/res/*"
 - "PlaceMeDemo/app/src/main/java/placeme/ru/placemedemo/core/Controller.java"
+- "PlaceMeDemo/app/src/main/java/placeme/ru/placemedemo/core/utils/ConverterToPlace.java"
