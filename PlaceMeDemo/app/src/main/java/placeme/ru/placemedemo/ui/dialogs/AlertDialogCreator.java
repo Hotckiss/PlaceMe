@@ -30,12 +30,9 @@ import placeme.ru.placemedemo.elements.Place;
 import placeme.ru.placemedemo.elements.User;
 
 /**
- * Created by Андрей on 21.11.2017.
- */
-
-/**
  * Class that contains methods to create most of the dialogs
  * between user and application
+ * Created by Андрей on 21.11.2017.
  */
 public class AlertDialogCreator {
     private static ArrayList<LatLng> points = new ArrayList<>();

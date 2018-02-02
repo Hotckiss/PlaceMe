@@ -6,14 +6,11 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.widget.TextView;
 
-import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
-
-import java.util.ArrayList;
 
 import placeme.ru.placemedemo.R;
 import placeme.ru.placemedemo.core.Controller;
@@ -24,15 +21,12 @@ import static placeme.ru.placemedemo.core.database.DatabaseUtils.getDatabaseChil
  * Class that have all methods connected with routes in database
  * Created by Андрей on 02.02.2018.
  */
-
 public class DatabaseManagerRoutes {
     private static final String USERS_KEY = "users";
     private static final String ROUTES_KEY = "routes";
     private static final String ROUTES_LENGTH_KEY = "routesLength";
     private static final String ROUTES_DESCRIPTION_KEY = "routes_descriptions";
     private static final String DEFAULT_DESCRIPTION = "No description given.";
-    private static final String TUPLE_DELIMITER = ";";
-    private static final String POINT_DELIMITER = ":";
     private static final String NAME_DELIMITER = "_";
     private static FirebaseDatabase mBase = FirebaseDatabase.getInstance();
 
@@ -109,33 +103,6 @@ public class DatabaseManagerRoutes {
                 }
 
             });
-        }
-    }
-
-    /**
-     * Method that loads route to database as sequence of points
-     * @param userId user ID who owns this route
-     * @param route route to save
-     */
-    public static void saveRoute(final String userId, final ArrayList<LatLng> route) {
-        StringBuilder routeString = new StringBuilder();
-        for (LatLng ll : route) {
-            if (ll != null) {
-                routeString.append(ll.latitude);
-                routeString.append(TUPLE_DELIMITER);
-                routeString.append(ll.longitude);
-                routeString.append(POINT_DELIMITER);
-            }
-        }
-
-        if (route.size() > 0) {
-            routeString.deleteCharAt(routeString.lastIndexOf(POINT_DELIMITER));
-        }
-
-        DatabaseReference reference = getDatabaseChild(mBase, ROUTES_KEY);
-
-        if (reference != null) {
-            reference.child(userId).push().setValue(routeString.toString());
         }
     }
 

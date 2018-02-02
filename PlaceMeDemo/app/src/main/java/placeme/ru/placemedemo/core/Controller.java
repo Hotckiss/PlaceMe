@@ -78,23 +78,6 @@ public class Controller {
     }
 
     /**
-     * Method that loads all markers from database to the map
-     * @param googleMap markers destination map
-     */
-    public static void loadMarkersToMap(final GoogleMap googleMap) {
-        DatabaseManagerPlaces.loadMarkersToMap(googleMap);
-    }
-
-    /**
-     * Method that loads markers founded by query from database to the map
-     * @param googleMap markers destination map
-     * @param query user search query
-     */
-    public static void addMarkersByQuery(final GoogleMap googleMap, final String query) {
-        DatabaseManagerPlaces.addMarkersByQuery(googleMap, query);
-    }
-
-    /**
      * Method that loads user information from the database to the edit fields
      * @param toLoad array of fields to init
      * @param userId user id to search in database
@@ -146,16 +129,6 @@ public class Controller {
     }
 
     /**
-     * Method that saves map screenshot with route to database
-     * @param uri screenshot uri
-     * @param userId user ID
-     * @param context current context
-     */
-    public static void saveRoute(final Uri uri, final String userId, final Context context) {
-        DatabaseManagerRoutes.saveRoute(uri, userId, context);
-    }
-
-    /**
      * Method that called after adding new route, that means that ID of next route will be other
      * @param userId user ID
      * @param length current last added route ID
@@ -201,16 +174,6 @@ public class Controller {
      */
     public static void runDescriptionDialog(final Context context, final Marker marker, final LatLng myPosition, final GoogleMap googleMap) {
         DatabaseManagerPlaces.runDescriptionDialog(context, marker, myPosition, googleMap);
-    }
-
-
-    /**
-     * Method that loads route to database as sequence of points
-     * @param userId user ID who owns this route
-     * @param route route to save
-     */
-    public static void saveRoute(final String userId, final ArrayList<LatLng> route) {
-        DatabaseManagerRoutes.saveRoute(userId, route);
     }
 
     /**
@@ -274,7 +237,7 @@ public class Controller {
     /**
      * Method that sets user with userId logged in
      * @param context current context
-     * @param userId id od uset that should be logged in
+     * @param userId id od used that should be logged in
      */
     public static void setLoggedIn(Context context, int userId) {
         AuthorizationUtils.setLoggedIn(context, userId);
@@ -446,6 +409,7 @@ public class Controller {
      * @param points storage of route points which is important for route in augmented reality
      */
     public static void makeSingleRoute(final LatLng myPosition, final LatLng destination, final Context context, final GoogleMap googleMap, final ArrayList<LatLng> points) {
+        MapManager.refreshMarkers(googleMap);
         MapManager.makeSingleRoute(myPosition, destination, context, googleMap, points);
     }
 
@@ -456,9 +420,7 @@ public class Controller {
      */
     public static void sendRoute(GoogleMap map, final Activity activity) {
 
-        Thread myThread = new Thread(() -> {
-            map.snapshot(Controller.getRoutePictureCallback(activity));
-        });
+        Thread myThread = new Thread(() -> map.snapshot(Controller.getRoutePictureCallback(activity)));
         myThread.start();
     }
 
@@ -627,6 +589,33 @@ public class Controller {
         double a = Math.sin(dLatitude / 2) * Math.sin(dLatitude / 2) + Math.cos(degreeToRadian(start.latitude)) * Math.cos(degreeToRadian(finish.latitude)) * Math.sin(dLongitude / 2) * Math.sin(dLongitude / 2);
         double b = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
         return radius * b;
+    }
+
+    /**
+     * Method that loads all markers from database to the map
+     * @param googleMap markers destination map
+     */
+    public static void loadMarkersToMap(final GoogleMap googleMap) {
+        DatabaseManagerPlaces.loadMarkersToMap(googleMap);
+    }
+
+    /**
+     * Method that loads markers founded by query from database to the map
+     * @param googleMap markers destination map
+     * @param query user search query
+     */
+    public static void addMarkersByQuery(final GoogleMap googleMap, final String query) {
+        MapManager.addFoundedMarkers(googleMap, query);
+    }
+
+    /**
+     * Method that saves map screenshot with route to database
+     * @param uri screenshot uri
+     * @param userId user ID
+     * @param context current context
+     */
+    private static void saveRoute(final Uri uri, final String userId, final Context context) {
+        DatabaseManagerRoutes.saveRoute(uri, userId, context);
     }
 
     private static GoogleMap.SnapshotReadyCallback getRoutePictureCallback(final Activity instance) {

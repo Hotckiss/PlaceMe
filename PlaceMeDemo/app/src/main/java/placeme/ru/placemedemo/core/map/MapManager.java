@@ -24,73 +24,39 @@ import java.util.ArrayList;
 import java.util.List;
 
 import placeme.ru.placemedemo.core.Controller;
+import placeme.ru.placemedemo.core.database.DatabaseManagerPlaces;
 import placeme.ru.placemedemo.elements.Place;
 
 /**
- * Created by Андрей on 21.11.2017.
- */
-
-/**
  * Class that allows application to work with google maps
+ * Created by Андрей on 21.11.2017.
  */
 public class MapManager {
     private static final String MAPS_API_KEY = "AIzaSyD_WcUAMqVEVW0H84GsXLKBr0HokiO-v_4";
-
-    /**
-     * Method that loads all markers from to the map
-     * @param googleMap markers destination map
-     */
-    public static void addAllMarkers(final GoogleMap googleMap) {
-        Controller.loadMarkersToMap(googleMap);
-    }
-
-    /**
-     * Method that cleans map and loads all markers after that
-     * @param googleMap markers destination map
-     */
-    public static void refreshMarkers(final GoogleMap googleMap) {
-        if (googleMap != null) {
-            googleMap.clear();
-            Controller.loadMarkersToMap(googleMap);
-        }
-    }
-
-    /**
-     * Method that loads all markers by user query to the map
-     * @param googleMap markers destination map
-     * @param toFind user search query
-     */
-    public static void addFoundedMarkers(final GoogleMap googleMap, final String toFind) {
-        Controller.addMarkersByQuery(googleMap, toFind);
-    }
 
     /**
      * Method that builds multi route between many points and places it to the map.
      * Furthermore it saves it to database immediately and moves camera to the destination point
      * @param listView list with the results of query, where user choose places to visit
      * @param myPosition current user position
-     * @param placeArrayList arrau list with descriptions of places
+     * @param placeArrayList array list with descriptions of places
      * @param context current context
      * @param googleMap map where route will be possibly build
      * @param points storage of route points which is important for route in augmented reality
      */
-    public static void makeRoute(final ListView listView, final LatLng myPosition, final ArrayList<Place> placeArrayList, final Context context, final GoogleMap googleMap, final ArrayList<LatLng> points) {
+    public static void makeRoute(final ListView listView, final LatLng myPosition, final ArrayList<Place> placeArrayList,
+                                 final Context context, final GoogleMap googleMap, final ArrayList<LatLng> points) {
         SparseBooleanArray sp = listView.getCheckedItemPositions();
-
-        final LatLng origin = myPosition;
         LatLng destination = myPosition;
-        DirectionDestinationRequest gd = GoogleDirection.withServerKey(MAPS_API_KEY).from(origin);
-        ArrayList<LatLng> route = new ArrayList<>();
-        route.add(myPosition);
+        DirectionDestinationRequest gd = GoogleDirection.withServerKey(MAPS_API_KEY).from(myPosition);
         int lastPoint = -1;
+
         for (int i = 0; i < placeArrayList.size(); i++) {
             if (sp.get(i)) {
                 lastPoint = i;
-                route.add(new LatLng(placeArrayList.get(i).getLatitude(), placeArrayList.get(i).getLongitude()));
             }
         }
 
-        Controller.saveRoute(Controller.getLoggedInAsString(context), route);
         if (lastPoint != -1) {
             destination = new LatLng(placeArrayList.get(lastPoint).getLatitude(), placeArrayList.get(lastPoint).getLongitude());
         }
@@ -101,36 +67,7 @@ public class MapManager {
             }
         }
 
-        gd.to(destination)
-                .transportMode(TransportMode.WALKING)
-                .execute(new DirectionCallback() {
-                    @Override
-                    public void onDirectionSuccess(Direction direction, String rawBody) {
-                        if (direction.isOK()) {
-
-                            Route route = direction.getRouteList().get(0);
-                            int legCount = route.getLegList().size();
-                            for (int index = 0; index < legCount; index++) {
-                                Leg leg = route.getLegList().get(index);
-                                googleMap.addMarker(new MarkerOptions().position(leg.getStartLocation().getCoordination()));
-                                if (index == legCount - 1) {
-                                    googleMap.addMarker(new MarkerOptions().position(leg.getEndLocation().getCoordination()));
-                                }
-                                List<Step> stepList = leg.getStepList();
-                                ArrayList<PolylineOptions> polylineOptionList = DirectionConverter.createTransitPolyline(context, stepList, 5, Color.RED, 3, Color.BLUE);
-
-                                for (PolylineOptions polylineOption : polylineOptionList) {
-                                    points.addAll(polylineOption.getPoints());
-                                    googleMap.addPolyline(polylineOption);
-                                }
-                            }
-                        }
-                    }
-
-                    @Override
-                    public void onDirectionFailure(Throwable t) {}
-                });
-        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(destination, 15.0f));
+        plotRoute(gd, destination, googleMap, points, context);
     }
 
     /**
@@ -141,45 +78,73 @@ public class MapManager {
      * @param googleMap map where route should be build
      * @param points storage of route points which is important for route in augmented reality
      */
-    public static void makeSingleRoute(final LatLng myPosition, final LatLng destination, final Context context, final GoogleMap googleMap, final ArrayList<LatLng> points) {
+    public static void makeSingleRoute(final LatLng myPosition, final LatLng destination,
+                                       final Context context, final GoogleMap googleMap, final ArrayList<LatLng> points) {
 
-        final LatLng origin = myPosition;
-        DirectionDestinationRequest gd = GoogleDirection.withServerKey(MAPS_API_KEY).from(origin);
-        ArrayList<LatLng> route = new ArrayList<>();
-        route.add(myPosition);
-        route.add(destination);
+        DirectionDestinationRequest gd = GoogleDirection.withServerKey(MAPS_API_KEY).from(myPosition);
 
-        Controller.saveRoute(Controller.getLoggedInAsString(context), route);
+        plotRoute(gd, destination, googleMap, points, context);
+    }
 
-        gd.to(destination)
-                .transportMode(TransportMode.WALKING)
-                .execute(new DirectionCallback() {
-                    @Override
-                    public void onDirectionSuccess(Direction direction, String rawBody) {
-                        if (direction.isOK()) {
+    /**
+     * Method that cleans map and loads all markers after that
+     * @param googleMap markers destination map
+     */
+    public static void refreshMarkers(final GoogleMap googleMap) {
+        if (googleMap != null) {
+            googleMap.clear();
+            addAllMarkers(googleMap);
+        }
+    }
 
-                            Route route = direction.getRouteList().get(0);
-                            int legCount = route.getLegList().size();
-                            for (int index = 0; index < legCount; index++) {
-                                Leg leg = route.getLegList().get(index);
-                                googleMap.addMarker(new MarkerOptions().position(leg.getStartLocation().getCoordination()));
-                                if (index == legCount - 1) {
-                                    googleMap.addMarker(new MarkerOptions().position(leg.getEndLocation().getCoordination()));
-                                }
-                                List<Step> stepList = leg.getStepList();
-                                ArrayList<PolylineOptions> polylineOptionList = DirectionConverter.createTransitPolyline(context, stepList, 5, Color.RED, 3, Color.BLUE);
+    /**
+     * Method that loads all markers by user query to the map
+     * @param googleMap markers destination map
+     * @param toFind user search query
+     */
+    public static void addFoundedMarkers(final GoogleMap googleMap, final String toFind) {
+        DatabaseManagerPlaces.addMarkersByQuery(googleMap, toFind);
+    }
 
-                                for (PolylineOptions polylineOption : polylineOptionList) {
-                                    points.addAll(polylineOption.getPoints());
-                                    googleMap.addPolyline(polylineOption);
-                                }
-                            }
+    private static DirectionCallback buildDirectionCallback(final GoogleMap googleMap, final ArrayList<LatLng> points, final Context context) {
+        return new DirectionCallback() {
+            @Override
+            public void onDirectionSuccess(Direction direction, String rawBody) {
+                if (direction.isOK()) {
+                    Route route = direction.getRouteList().get(0);
+                    int legCount = route.getLegList().size();
+                    for (int index = 0; index < legCount; index++) {
+                        Leg leg = route.getLegList().get(index);
+                        googleMap.addMarker(new MarkerOptions().position(leg.getStartLocation().getCoordination()));
+                        if (index == legCount - 1) {
+                            googleMap.addMarker(new MarkerOptions().position(leg.getEndLocation().getCoordination()));
+                        }
+                        List<Step> stepList = leg.getStepList();
+                        ArrayList<PolylineOptions> polylineOptionList = DirectionConverter.createTransitPolyline(context, stepList, 5, Color.RED, 3, Color.BLUE);
+
+                        for (PolylineOptions polylineOption : polylineOptionList) {
+                            points.addAll(polylineOption.getPoints());
+                            googleMap.addPolyline(polylineOption);
                         }
                     }
+                }
+            }
 
-                    @Override
-                    public void onDirectionFailure(Throwable t) {}
-                });
+            @Override
+            public void onDirectionFailure(Throwable t) {
+                t.printStackTrace();
+            }
+        };
+    }
+
+    private static void plotRoute(DirectionDestinationRequest gd, final LatLng destination, final GoogleMap googleMap, final ArrayList<LatLng> points, final Context context) {
+        gd.to(destination)
+                .transportMode(TransportMode.WALKING)
+                .execute(buildDirectionCallback(googleMap, points, context));
         googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(destination, 15.0f));
+    }
+
+    private static void addAllMarkers(final GoogleMap googleMap) {
+        Controller.loadMarkersToMap(googleMap);
     }
 }
