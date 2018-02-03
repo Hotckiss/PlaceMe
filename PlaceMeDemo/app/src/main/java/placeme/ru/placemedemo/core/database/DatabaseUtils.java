@@ -1,20 +1,24 @@
 package placeme.ru.placemedemo.core.database;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.support.annotation.Nullable;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.StorageReference;
+import com.squareup.picasso.Picasso;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
 
+import placeme.ru.placemedemo.R;
 import placeme.ru.placemedemo.core.Controller;
 import placeme.ru.placemedemo.elements.Place;
 
@@ -30,6 +34,16 @@ public class DatabaseUtils {
     private static final String DASH_DELIMITER = "-";
     private static final double PERCENT_TO_RATING = 20.0;
 
+    public static void loadFavouritePicture(final StorageReference storageReference,
+                                            final ImageView imageView, final Activity activity) {
+        if (activity != null) {
+            storageReference.getDownloadUrl().addOnSuccessListener(uri -> Picasso.with(activity.getBaseContext()).load(uri)
+                    .placeholder(R.drawable.grey)
+                    .error(R.drawable.noimage)
+                    .into(imageView));
+        }
+    }
+
     /**
      * method that checks place with current search parameters
      * @param place place to check
@@ -41,7 +55,8 @@ public class DatabaseUtils {
         boolean distanceEnabled = Controller.getDistanceSearchStatus(context);
         boolean ratingEnabled = Controller.getRatingSearchStatus(context);
         boolean distanceAccess = (!distanceEnabled) ||
-                (Controller.getKilometers(myPosition, new LatLng(place.getLatitude(), place.getLongitude())) <= Controller.getDistanceSearchValue(context));
+                (Controller.getKilometers(myPosition, new LatLng(place.getLatitude(), place.getLongitude())) <=
+                        Controller.getDistanceSearchValue(context));
         boolean ratingAccess = (!ratingEnabled) ||
                 (place.getMark() > (Controller.getRatingSearchValue(context) / PERCENT_TO_RATING));
 

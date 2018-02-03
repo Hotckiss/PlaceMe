@@ -33,6 +33,17 @@ public class DatabaseManagerRoutes {
     private static StorageReference mStorageRef  = FirebaseStorage.getInstance().getReference();
 
     /**
+     * Method that returns reference to the specific favourite route of the user
+     * @param userId user id
+     * @param position route id
+     * @return reference to the route
+     */
+    public static StorageReference getFavouriteRoutesReference(final String userId, final int position) {
+        return mStorageRef.child(ROUTES_KEY).child(userId)
+                .child(userId + NAME_DELIMITER + String.valueOf(position));
+    }
+
+    /**
      * Method that saves map screenshot with route to database
      * @param uri screenshot uri
      * @param userId user ID

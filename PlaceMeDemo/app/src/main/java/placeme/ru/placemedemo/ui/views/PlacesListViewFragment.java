@@ -1,16 +1,8 @@
 package placeme.ru.placemedemo.ui.views;
 
-/**
- * Created by Андрей on 20.12.2017.
- */
-
+import android.app.Activity;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
-import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
@@ -25,18 +17,22 @@ import android.widget.Toast;
 
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
-import com.squareup.picasso.Picasso;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.Arrays;
 
 import placeme.ru.placemedemo.R;
 import placeme.ru.placemedemo.core.Controller;
+import placeme.ru.placemedemo.core.database.DatabaseUtils;
+
+import static placeme.ru.placemedemo.core.database.DatabaseUtils.PLACE_PHOTO_SUFFIX;
+import static placeme.ru.placemedemo.ui.views.ShareImageUtility.MESSAGE_DELETE;
+import static placeme.ru.placemedemo.ui.views.ShareImageUtility.SHARE_TITLE;
+import static placeme.ru.placemedemo.ui.views.ShareImageUtility.STORAGE_DELIMITER;
+import static placeme.ru.placemedemo.ui.views.ShareImageUtility.shareImage;
 
 /**
  * Fragment that represents information about favourite places
+ * Created by Андрей on 20.12.2017.
  */
 public class PlacesListViewFragment extends Fragment {
     private String[] places;
@@ -49,7 +45,7 @@ public class PlacesListViewFragment extends Fragment {
         if (list.length() == 0) {
             isNullLength = true;
         } else {
-            places = Controller.getPlaces(getContext()).split(",");
+            places = Controller.getPlaces(getContext()).split(STORAGE_DELIMITER);
 
             if (places.length > 1) {
                 Arrays.sort(places, (a, b) -> (Integer.parseInt(a) - Integer.parseInt(b)));
@@ -66,11 +62,7 @@ public class PlacesListViewFragment extends Fragment {
 
         LinearLayoutManager MyLayoutManager = new LinearLayoutManager(getActivity());
         MyLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
-
-        if (mRecyclerView != null) {
-            mRecyclerView.setAdapter(new MyAdapter(places));
-        }
-
+        mRecyclerView.setAdapter(new MyAdapter(places));
         mRecyclerView.setLayoutManager(MyLayoutManager);
 
         return view;
@@ -80,34 +72,6 @@ public class PlacesListViewFragment extends Fragment {
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-    }
-
-    private Uri getLocalBitmapUri(ImageView imageView) throws IOException {
-        // Extract Bitmap from ImageView drawable
-        Drawable drawable = imageView.getDrawable();
-        Bitmap bmp = null;
-
-        if (drawable instanceof BitmapDrawable){
-            bmp = ((BitmapDrawable)imageView.getDrawable()).getBitmap();
-        } else {
-            return null;
-        }
-
-        // Store image to default external storage directory
-        Uri bmpUri = null;
-        try {
-            File file =  new File(Environment.getExternalStoragePublicDirectory(
-                    Environment.DIRECTORY_DOWNLOADS), "share_image_" + System.currentTimeMillis() + ".png");
-
-            file.getParentFile().mkdirs();
-            FileOutputStream out = new FileOutputStream(file);
-            bmp.compress(Bitmap.CompressFormat.PNG, 90, out);
-            out.close();
-            bmpUri = Uri.fromFile(file);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return bmpUri;
     }
 
     public class MyAdapter extends RecyclerView.Adapter<MyViewHolder> {
@@ -124,12 +88,9 @@ public class PlacesListViewFragment extends Fragment {
 
         @Override
         public void onBindViewHolder(final MyViewHolder holder, final int position) {
-            StorageReference child = FirebaseStorage.getInstance().getReference().child("photos").child(places[position]+"place_photo");
-            child.getDownloadUrl().addOnSuccessListener(uri -> Picasso.with(getActivity().getBaseContext()).load(uri)
-                    .placeholder(R.drawable.grey)
-                    .error(R.drawable.noimage)
-                    .into(holder.iv));
-
+            Activity activity = getActivity();
+            StorageReference child = FirebaseStorage.getInstance().getReference().child("photos").child(places[position] + PLACE_PHOTO_SUFFIX);
+            DatabaseUtils.loadFavouritePicture(child, holder.iv, activity);
             Controller.fillDescriptionPlaces(holder.tv, places[position]);
         }
 
@@ -154,23 +115,10 @@ public class PlacesListViewFragment extends Fragment {
             iv = v.findViewById(R.id.place_photo);
 
             b2 = v.findViewById(R.id.place_button_share);
-            b2.setOnClickListener(view -> {
-                final Intent shareIntent = new Intent(Intent.ACTION_SEND);
-                shareIntent.setType("image/*");
-
-                Uri bmpUri = null;
-                try {
-                    bmpUri = getLocalBitmapUri(iv);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-                shareIntent.putExtra(Intent.EXTRA_STREAM, bmpUri);
-                startActivity(Intent.createChooser(shareIntent, "Share image using"));
-            });
+            b2.setOnClickListener(view -> startActivity(Intent.createChooser(shareImage(iv), SHARE_TITLE)));
 
             b3 = v.findViewById(R.id.place_button_close);
-            b3.setOnClickListener(v1 -> Toast.makeText(getContext(), "Successfully deleted", Toast.LENGTH_LONG).show());
+            b3.setOnClickListener(v1 -> Toast.makeText(getContext(), MESSAGE_DELETE, Toast.LENGTH_LONG).show());
         }
     }
 }
