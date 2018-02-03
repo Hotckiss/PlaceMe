@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.Build;
+import android.support.annotation.RequiresApi;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ArrayAdapter;
@@ -218,7 +220,7 @@ public class DatabaseManagerPlaces {
 
         if (reference != null) {
             reference.addChildEventListener(new AbstractChildEventListener() {
-
+                @RequiresApi(api = Build.VERSION_CODES.M)
                 @Override
                 public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                     Place place = dataSnapshot.getValue(Place.class);

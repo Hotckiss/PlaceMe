@@ -3,7 +3,6 @@ package placeme.ru.placemedemo.ui;
 import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
-import android.annotation.TargetApi;
 import android.app.LoaderManager.LoaderCallbacks;
 import android.content.CursorLoader;
 import android.content.Intent;
@@ -29,18 +28,16 @@ import android.widget.EditText;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import placeme.ru.placemedemo.R;
 import placeme.ru.placemedemo.core.Controller;
-import placeme.ru.placemedemo.core.database.AbstractChildEventListener;
 import placeme.ru.placemedemo.core.database.AbstractValueEventListener;
-import placeme.ru.placemedemo.elements.AuthData;
 
 import static android.Manifest.permission.READ_CONTACTS;
+import static placeme.ru.placemedemo.core.database.DatabaseManagerUsers.generateLoginReference;
 
 /**
  * A login screen that offers login via email/password.
@@ -139,7 +136,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         }
     }
 
-
     /**
      * Attempts to sign in or register the account specified by the login form.
      * If there are form errors (invalid email, missing fields, etc.), the
@@ -191,49 +187,39 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     }
 
     private boolean isEmailValid(String email) {
-        //TODO: read mail?
         return email.contains("@");
     }
 
     private boolean isPasswordValid(String password) {
-        //TODO: better?
         return password.length() > 4;
     }
 
     /**
      * Shows the progress UI and hides the login form.
      */
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
     private void showProgress(final boolean show) {
         // On Honeycomb MR2 we have the ViewPropertyAnimator APIs, which allow
         // for very easy animations. If available, use these APIs to fade-in
         // the progress spinner.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
-            int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
+        int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
 
-            mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
-            mLoginFormView.animate().setDuration(shortAnimTime).alpha(
-                    show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
-                }
-            });
+        mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
+        mLoginFormView.animate().setDuration(shortAnimTime).alpha(
+                show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
+            }
+        });
 
-            mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-            mProgressView.animate().setDuration(shortAnimTime).alpha(
-                    show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-                }
-            });
-        } else {
-            // The ViewPropertyAnimator APIs are not available, so simply show
-            // and hide the relevant UI components.
-            mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-            mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
-        }
+        mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+        mProgressView.animate().setDuration(shortAnimTime).alpha(
+                show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+            }
+        });
     }
 
     @Override
@@ -308,7 +294,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
             if ((mEmail != null) && (mPassword != null)) {
                 isFinished = false;
-                DatabaseReference reference = FirebaseDatabase.getInstance().getReference().child("authdata");
+                DatabaseReference reference = generateLoginReference(LoginActivity.this, mEmail, mPassword);
+                /*DatabaseReference reference = FirebaseDatabase.getInstance().getReference().child("authdata");
 
                 reference.addChildEventListener(new AbstractChildEventListener() {
                     @Override
@@ -318,7 +305,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                             Controller.setLoggedIn(LoginActivity.this, authData.getId());
                         }
                     }
-                });
+                });*/
 
                 reference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
                     @Override
@@ -334,56 +321,10 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                         e.printStackTrace();
                     }
                 }
-                if (Controller.getLoggedIn(LoginActivity.this) == -1) {
-                    return false;
-                } else {
-                    return true;
-                }
+                return Controller.getLoggedIn(LoginActivity.this) != -1;
             } else {
                 return false;
             }
-            /*if ((mEmail != null) && (mPassword != null)) {
-                DatabaseReference reference = FirebaseDatabase.getInstance().getReference().child("maxid");
-
-                reference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        Long maxid = (Long) dataSnapshot.getValue();
-                        maxIdSet = true;
-                        maxId = maxid.intValue();
-                        DatabaseReference reference1 = FirebaseDatabase.getInstance().getReference().child("authdata");
-                        reference1.addChildEventListener(new AbstractChildEventListener() {
-                            @Override
-                            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                                AuthData authData = dataSnapshot.getValue(AuthData.class);
-                                if (authData != null) {
-                                    if (authData.getLogin().equals(mEmail)) {
-                                        if (authData.getPassword().equals(mPassword)) {
-                                            Controller.setLoggedIn(LoginActivity.this, authData.getId());
-                                        }
-                                    }
-                                }
-                                currentId++;
-                            }
-                        });
-                    }
-                });
-
-                while (!maxIdSet || currentId < (maxId - 1)) {
-                    try {
-                        Thread.sleep(10);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-                if (Controller.getLoggedIn(LoginActivity.this) == -1) {
-                    return false;
-                } else {
-                    return true;
-                }
-            } else {
-                return false;
-            }*/
         }
 
         @Override

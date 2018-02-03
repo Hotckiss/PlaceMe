@@ -39,6 +39,13 @@ import static placeme.ru.placemedemo.ui.dialogs.DialogUtils.initSeekBarRating;
  * Created by Андрей on 21.11.2017.
  */
 public class AlertDialogCreator {
+    private static final String GREATER = "> ";
+    private static final String RATING_SUFFIX = " stars";
+    private static final String DATE_DASH = "-";
+    private static final String TIME_DOTS = ":";
+    private static final String DATE_DELIMITER = " ";
+    private static final double CONVERT_TO_RATING = 20.0;
+
     private static ArrayList<LatLng> points = new ArrayList<>();
 
     /**
@@ -73,25 +80,15 @@ public class AlertDialogCreator {
         final ArrayList<Place> placeArrayList = new ArrayList<>();
 
         Controller.findPlacesByStringV2(arrayAdapter, placeArrayList, toFind, myPosition, context, activity);
-        builder.setNegativeButton(R.string.answer_cancel, (dialog, which) -> dialog.dismiss());
         initResultsList(listView, arrayAdapter, placeArrayList, context);
 
+        builder.setNegativeButton(R.string.answer_cancel, (dialog, which) -> dialog.dismiss());
         builder.setPositiveButton(R.string.answer_make_route, (dialog, which) -> {
             Controller.makeRoute(listView, myPosition, placeArrayList, context, googleMap, points);
             dialog.dismiss();
         });
 
         return setUpDialog(builder, layout);
-    }
-
-    private static void initResultsList(final ListView listView, final ArrayAdapter<String> arrayAdapter,
-                                        final ArrayList<Place> placeArrayList, final Context context) {
-        listView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
-        listView.setAdapter(arrayAdapter);
-        listView.setOnItemLongClickListener((parent, view, position, id) -> {
-            createInnerDescriptionDialog(position, context, placeArrayList).show();
-            return false;
-        });
     }
 
     /**
@@ -125,6 +122,101 @@ public class AlertDialogCreator {
                 createReviewDialog(place, context).show());
 
         return setUpDialog(builder, layout);
+    }
+
+    /**
+     * Method that creates dialog with settings of search parameters
+     * @param context current context
+     * @return created dialog with settings
+     */
+    public static AlertDialog createSearchParametersDialog(final Context context) {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        final View layout = inflater.inflate(R.layout.dialog_search_parameters, null);
+        final SeekBar seekBarDistance = layout.findViewById(R.id.seek_bar_distance);
+        final SeekBar seekBarRating = layout.findViewById(R.id.seek_bar_rating);
+        final Switch distanceSwitch = layout.findViewById(R.id.switch_dist);
+        final Switch ratingSwitch = layout.findViewById(R.id.switch_rating);
+
+        String currentRating = GREATER +
+                String.valueOf(Controller.getRatingSearchValue(context) / CONVERT_TO_RATING) + RATING_SUFFIX;
+        ((TextView)layout.findViewById(R.id.distance_param))
+                .setText(String.valueOf(Controller.getDistanceSearchValue(context)));
+        ((TextView)layout.findViewById(R.id.rating_param))
+                .setText(currentRating);
+        initDistanceSwitch(distanceSwitch, context, seekBarDistance);
+        initRatingSwitch(ratingSwitch, context, seekBarRating);
+        initSeekBarDistance(seekBarDistance, context, layout);
+        initSeekBarRating(seekBarRating, context, layout);
+        builder.setNegativeButton(R.string.answer_ok, (dialog, arg) -> dialog.cancel());
+
+        return setUpDialog(builder, layout);
+    }
+
+    /**
+     * Method that creates alert dialog with the results of user query
+     * @param context current context
+     * @param toFind user query
+     * @return returns created alert dialog
+     */
+    public static AlertDialog createAlertDialogFoundedFriends(final Context context, final String toFind, final Activity activity) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        final View layout = inflater.inflate(R.layout.list, null);
+
+        builder.setIcon(R.drawable.icon);
+        builder.setTitle(R.string.query_result);
+
+        final ListView listView = layout.findViewById(R.id.lv);
+        final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(context, android.R.layout.select_dialog_multichoice);
+        final ArrayList<User> users = new ArrayList<>();
+
+        Controller.findUsersByStringV2(arrayAdapter, users, toFind, context, activity);
+        listView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
+        listView.setAdapter(arrayAdapter);
+        listView.setOnItemLongClickListener((parent, view, position, id) -> {
+            createInnerDescriptionDialogUser(position, context, users).show();
+            return false;
+        });
+
+        builder.setNegativeButton(R.string.answer_cancel, (dialog, which) -> dialog.dismiss());
+        builder.setPositiveButton(R.string.add_friend, (dialog, which) -> {
+            int position = listView.getCheckedItemPosition();
+            if (position != -1) {
+                Controller.addFriend(Controller.getLoggedInAsString(context), String.valueOf(users.get(position).getId()));
+            }
+            dialog.dismiss();
+        });
+
+        return setUpDialog(builder, layout);
+    }
+
+    private static AlertDialog createInnerDescriptionDialogUser(final int position, final Context context, final ArrayList<User> users) {
+        AlertDialog.Builder builderInner = new AlertDialog.Builder(context);
+        builderInner.setMessage(users.get(position).getName() + DATE_DELIMITER + users.get(position).getSurname());
+        builderInner.setTitle(R.string.user_info);
+        builderInner.setPositiveButton(R.string.answer_ok, (dialog, which) -> dialog.dismiss());
+
+        return builderInner.create();
+    }
+
+    private static AlertDialog createInnerDescriptionDialog(final int position, final Context context, final ArrayList<Place> placeArrayList) {
+        AlertDialog.Builder builderInner = new AlertDialog.Builder(context);
+        builderInner.setMessage(placeArrayList.get(position).getDescription());
+        builderInner.setTitle(placeArrayList.get(position).getName());
+        builderInner.setPositiveButton(R.string.answer_ok, (dialog, which) -> dialog.dismiss());
+
+        return builderInner.create();
+    }
+
+    private static void initResultsList(final ListView listView, final ArrayAdapter<String> arrayAdapter,
+                                        final ArrayList<Place> placeArrayList, final Context context) {
+        listView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
+        listView.setAdapter(arrayAdapter);
+        listView.setOnItemLongClickListener((parent, view, position, id) -> {
+            createInnerDescriptionDialog(position, context, placeArrayList).show();
+            return false;
+        });
     }
 
     private static AlertDialog createReviewDialog(final Place place, final Context context) {
@@ -172,19 +264,23 @@ public class AlertDialogCreator {
     private static AlertDialog setUpDialog(AlertDialog.Builder builder, View view) {
         builder.setCancelable(true);
         builder.setView(view);
+
         return builder.create();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     private static AlertDialog createAlertRateDialog(final Place place, final Context context) {
         final AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        LayoutInflater inflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
+        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         final View layout = inflater.inflate(R.layout.dialog_rate_place, null);
         final RatingBar rb = layout.findViewById(R.id.rate_place);
 
-        builder.setPositiveButton(R.string.answer_rate, (dialog, arg1) -> Controller.updatePlaceRating(rb, place.getIdAsString()));
-        builder.setNeutralButton(R.string.answer_add, (dialog, id) -> Controller.addPlaceToFavourite(Controller.getLoggedInAsString(context), place.getIdAsString()));
-        builder.setNegativeButton(R.string.plan_visit, (dialog, which) -> createDatePickDialog(place, context).show());
+        builder.setPositiveButton(R.string.answer_rate, (dialog, arg1) ->
+                Controller.updatePlaceRating(rb, place.getIdAsString()));
+        builder.setNeutralButton(R.string.answer_add, (dialog, id) ->
+                Controller.addPlaceToFavourite(Controller.getLoggedInAsString(context), place.getIdAsString()));
+        builder.setNegativeButton(R.string.plan_visit, (dialog, which) ->
+                createDatePickDialog(place, context).show());
 
         return setUpDialog(builder, layout);
     }
@@ -204,7 +300,8 @@ public class AlertDialogCreator {
             Integer month = datePicker.getMonth() + 1;
             Integer year = datePicker.getYear();
 
-            createTimePickDialog(place, context, day.toString() + "-" + month.toString() + "-" + year.toString()).show();
+            createTimePickDialog(place, context, day.toString() + DATE_DASH +
+                    month.toString() + DATE_DASH + year.toString()).show();
             dialog.dismiss();
         });
 
@@ -226,98 +323,11 @@ public class AlertDialogCreator {
             Integer hours = timePicker.getHour();
             Integer minutes = timePicker.getMinute();
 
-            Controller.addPlan(place.getName(), Controller.getLoggedInAsString(context), date + " "
-                    + hours.toString() + ":" + minutes.toString());
+            Controller.addPlan(place.getName(), Controller.getLoggedInAsString(context), date + DATE_DELIMITER
+                    + hours.toString() + TIME_DOTS + minutes.toString());
             dialog.dismiss();
         });
 
         return setUpDialog(timePick, layoutInnerTime);
-    }
-
-    /**
-     * Method that creates dialog with settings of search parameters
-     * @param context current context
-     * @return created dialog with settings
-     */
-    public static AlertDialog createSearchParametersDialog(final Context context) {
-        final AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        LayoutInflater inflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
-        final View layout = inflater.inflate(R.layout.dialog_search_parameters, null);
-
-        builder.setNegativeButton(R.string.answer_ok, (dialog, arg1) -> dialog.cancel());
-
-        ((TextView)layout.findViewById(R.id.distance_param)).setText(String.valueOf(Controller.getDistanceSearchValue(context)));
-        ((TextView)layout.findViewById(R.id.rating_param)).setText("> " + String.valueOf(Controller.getRatingSearchValue(context) / 20.0) + " stars");
-
-        final SeekBar seekBarDistance = layout.findViewById(R.id.seek_bar_distance);
-        final SeekBar seekBarRating = layout.findViewById(R.id.seek_bar_rating);
-        final Switch distanceSwitch = layout.findViewById(R.id.switch_dist);
-        final Switch ratingSwitch = layout.findViewById(R.id.switch_rating);
-
-        initDistanceSwitch(distanceSwitch, context, seekBarDistance);
-        initRatingSwitch(ratingSwitch, context, seekBarRating);
-        initSeekBarDistance(seekBarDistance, context, layout);
-        initSeekBarRating(seekBarRating, context, layout);
-
-        return setUpDialog(builder, layout);
-    }
-
-    /**
-     * Method that creates alert dialog with the results of user query
-     * @param context current context
-     * @param toFind user query
-     * @return returns created alert dialog
-     */
-    public static AlertDialog createAlertDialogFoundedFriends(final Context context, final String toFind, final Activity activity) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        LayoutInflater inflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
-        final View layout = inflater.inflate(R.layout.list, null);
-
-        builder.setIcon(R.drawable.icon);
-        builder.setTitle(R.string.query_result);
-
-        final ListView lv = layout.findViewById(R.id.lv);
-        lv.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
-
-        final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(context, android.R.layout.select_dialog_multichoice);
-        final ArrayList<User> users = new ArrayList<>();
-
-        Controller.findUsersByStringV2(arrayAdapter, users, toFind, context, activity);
-
-        builder.setNegativeButton(R.string.answer_cancel, (dialog, which) -> dialog.dismiss());
-
-        lv.setAdapter(arrayAdapter);
-
-        lv.setOnItemLongClickListener((parent, view, position, id) -> {
-            AlertDialog alertDialog = createInnerDescriptionDialogUser(position, context, users);
-            alertDialog.show();
-            return false;
-        });
-
-        builder.setPositiveButton("Add to friends!", (dialog, which) -> {
-            int position = lv.getCheckedItemPosition();
-            if (position != -1) {
-                Controller.addFriend(Controller.getLoggedInAsString(context), String.valueOf(users.get(position).getId()));
-            }
-            dialog.dismiss();
-        });
-
-        return setUpDialog(builder, layout);
-    }
-
-    private static AlertDialog createInnerDescriptionDialogUser(final int position, final Context context, final ArrayList<User> users) {
-        AlertDialog.Builder builderInner = new AlertDialog.Builder(context);
-        builderInner.setMessage(users.get(position).getName() + " " + users.get(position).getSurname());
-        builderInner.setTitle("User info");
-        builderInner.setPositiveButton(R.string.answer_ok, (dialog, which) -> dialog.dismiss());
-        return builderInner.create();
-    }
-
-    private static AlertDialog createInnerDescriptionDialog(final int position, final Context context, final ArrayList<Place> placeArrayList) {
-        AlertDialog.Builder builderInner = new AlertDialog.Builder(context);
-        builderInner.setMessage(placeArrayList.get(position).getDescription());
-        builderInner.setTitle(placeArrayList.get(position).getName());
-        builderInner.setPositiveButton(R.string.answer_ok, (dialog, which) -> dialog.dismiss());
-        return builderInner.create();
     }
 }

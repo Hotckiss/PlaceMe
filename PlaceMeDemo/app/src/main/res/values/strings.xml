@@ -147,6 +147,8 @@
     <string name="date_select">Select date</string>
     <string name="time_select">Select time</string>
     <string name="button_select">Select</string>
+    <string name="user_info">User info</string>
+    <string name="add_friend">Add to friends!</string>
 
     <!--- Profile activity -->
     <string name="profile_changing_avatar">Changing avatar</string>

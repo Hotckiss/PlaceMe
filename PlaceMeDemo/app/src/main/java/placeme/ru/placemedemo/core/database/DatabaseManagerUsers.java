@@ -147,6 +147,30 @@ public class DatabaseManagerUsers {
     }
 
     /**
+     * Method that generates reference to user auth data
+     * @param context current context
+     * @param email user email
+     * @param password user password
+     * @return reference to user auth data
+     */
+    public static DatabaseReference generateLoginReference(final Context context, final String email, final String password) {
+        DatabaseReference reference = getDatabaseChild(mBase, AUTH_DATA_KEY);
+
+        if (reference != null) {
+            reference.addChildEventListener(new AbstractChildEventListener() {
+                @Override
+                public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                    AuthData authData = dataSnapshot.getValue(AuthData.class);
+                    if (authData != null && authData.getLogin().equals(email) && authData.getPassword().equals(password)) {
+                        Controller.setLoggedIn(context, authData.getId());
+                    }
+                }
+            });
+        }
+        return reference;
+    }
+
+    /**
      * Method that loads user information from the database to the edit fields
      * @param toLoad array of fields to init
      * @param userId user id to search in database
