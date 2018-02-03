@@ -55,39 +55,39 @@ public class AlertDialogCreator {
      * @param myPosition current user position
      * @return returns created alert dialog
      */
-    public static AlertDialog createAlertDialogFounded(final Context context, final String toFind, final GoogleMap googleMap, final LatLng myPosition, final Activity activity) {
+    public static AlertDialog createAlertDialogFounded(final Context context, final String toFind,
+                                                       final GoogleMap googleMap, final LatLng myPosition, final Activity activity) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         LayoutInflater inflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
         final View layout = inflater.inflate(R.layout.list, null);
 
-        builder.setView(layout);
         builder.setIcon(R.drawable.icon);
         builder.setTitle(R.string.query_result);
 
-        final ListView lv = layout.findViewById(R.id.lv);
-        lv.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
-
+        final ListView listView = layout.findViewById(R.id.lv);
         final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(context, android.R.layout.select_dialog_multichoice);
         final ArrayList<Place> placeArrayList = new ArrayList<>();
 
-        //Controller.findPlacesByString(arrayAdapter, placeArrayList, toFind, myPosition, context);
         Controller.findPlacesByStringV2(arrayAdapter, placeArrayList, toFind, myPosition, context, activity);
         builder.setNegativeButton(R.string.answer_cancel, (dialog, which) -> dialog.dismiss());
-
-        lv.setAdapter(arrayAdapter);
-
-        lv.setOnItemLongClickListener((parent, view, position, id) -> {
-            AlertDialog alertDialog = createInnerDescriptionDialog(position, context, placeArrayList);
-            alertDialog.show();
-            return false;
-        });
+        initResultsList(listView, arrayAdapter, placeArrayList, context);
 
         builder.setPositiveButton(R.string.answer_make_route, (dialog, which) -> {
-            Controller.makeRoute(lv, myPosition, placeArrayList, context, googleMap, points);
+            Controller.makeRoute(listView, myPosition, placeArrayList, context, googleMap, points);
             dialog.dismiss();
         });
 
-        return builder.create();
+        return setUpDialog(builder, layout);
+    }
+
+    private static void initResultsList(final ListView listView, final ArrayAdapter<String> arrayAdapter,
+                                        final ArrayList<Place> placeArrayList, final Context context) {
+        listView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
+        listView.setAdapter(arrayAdapter);
+        listView.setOnItemLongClickListener((parent, view, position, id) -> {
+            createInnerDescriptionDialog(position, context, placeArrayList).show();
+            return false;
+        });
     }
 
     /**
@@ -99,101 +99,80 @@ public class AlertDialogCreator {
      * @param googleMap map where route will be possibly build
      * @return created alert dialog
      */
+    @RequiresApi(api = Build.VERSION_CODES.M)
     public static AlertDialog createAlertDescriptionDialog(final Context context, final Place place, final LatLng myPosition, final GoogleMap googleMap) {
         final AlertDialog.Builder builder = new AlertDialog.Builder(context);
         LayoutInflater inflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
         final View layout = inflater.inflate(R.layout.dialog_description, null);
+        final ImageView imageView = layout.findViewById(R.id.description_picture);
+        RatingBar ratingBar = layout.findViewById(R.id.total_rating);
 
         builder.setTitle(place.getName());
         TextView descriptionText = layout.findViewById(R.id.descriptionText);
         descriptionText.setText(place.getDescription());
-
-        final ImageView imageView = layout.findViewById(R.id.description_picture);
         Controller.loadDescriptionImage(imageView, place, context);
-
-        RatingBar ratingBar = layout.findViewById(R.id.total_rating);
         ratingBar.setRating(place.getMark());
 
-        builder.setPositiveButton(R.string.answer_go_here, (dialog, arg1) -> {
-            Controller.makeSingleRoute(myPosition, new LatLng(place.getLatitude(), place.getLongitude()), context, googleMap, points);
-        }).setNeutralButton("Actions",
-                (dialog, id) -> {
-                    AlertDialog alert = AlertDialogCreator.createAlertRateDialog(place,context);
-                    alert.show();
+        builder.setPositiveButton(R.string.answer_go_here, (dialog, arg1) ->
+                Controller.makeSingleRoute(myPosition, new LatLng(place.getLatitude(), place.getLongitude()), context, googleMap, points));
+        builder.setNeutralButton(R.string.actions_button_text, (dialog, id) ->
+                createAlertRateDialog(place,context).show());
+        builder.setNegativeButton(R.string.reviews_button_text, (dialog, which) ->
+                createReviewDialog(place, context).show());
 
-                }).setNegativeButton("Reviews", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                AlertDialog.Builder reviewDialog = new AlertDialog.Builder(context);
-                LayoutInflater inflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
-                final View layoutInner = inflater.inflate(R.layout.add_review, null);
-                final EditText reviewText = layoutInner.findViewById(R.id.review);
-                reviewDialog.setTitle("Add review");
-                reviewDialog.setPositiveButton("Submit review", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        String newReview = reviewText.getText().toString();
-                        if(newReview.length() > 0) {
-                            Controller.addReview(place.getIdAsString(), newReview);
-                        }
-                        dialog.dismiss();
-                    }
-                });
-
-                reviewDialog.setNegativeButton(R.string.answer_cancel, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                    }
-                });
-                reviewDialog.setNeutralButton("Watch rewiews", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-
-                        //***
-                        AlertDialog.Builder builderList = new AlertDialog.Builder(context);
-                        LayoutInflater inflaterList = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
-                        final View layoutList = inflaterList.inflate(R.layout.list, null);
-
-                        builderList.setView(layoutList);
-                        builderList.setTitle("All reviews");
-
-                        final ListView listView = layoutList.findViewById(R.id.lv);
-                        //listView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
-
-                        final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(context, android.R.layout.simple_list_item_1);
-                        //final ArrayList<Place> placeArrayList = new ArrayList<>();
-
-                        Controller.findReviews(((Integer)place.getId()).toString(), arrayAdapter);
-
-                        builderList.setNegativeButton(R.string.answer_cancel, (dialog1, which1) -> {});
-
-                        listView.setAdapter(arrayAdapter);
-                        builderList.create().show();
-                        //***
-
-                        dialog.dismiss();
-                    }
-                });
-                reviewDialog.setCancelable(true);
-                reviewDialog.setView(layoutInner);
-                reviewDialog.create().show();
-            }
-        });
-
-        builder.setCancelable(true);
-        builder.setView(layout);
-        return builder.create();
-
+        return setUpDialog(builder, layout);
     }
 
-    /**
-     * Method that creates subdialog where user can rate any place with the mark between 0 and 5
-     * @param place place to be rated
-     * @param context current context
-     * @return returns alert dialog with offer to rate place or add it to favourite
-     */
-    public static AlertDialog createAlertRateDialog(final Place place, final Context context) {
+    private static AlertDialog createReviewDialog(final Place place, final Context context) {
+        AlertDialog.Builder reviewDialog = new AlertDialog.Builder(context);
+        LayoutInflater inflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
+        final View layoutInner = inflater.inflate(R.layout.add_review, null);
+        final EditText reviewText = layoutInner.findViewById(R.id.review);
+
+        reviewDialog.setTitle(R.string.reviews_add);
+        reviewDialog.setPositiveButton(R.string.reviews_submit, (dialog14, which14) -> {
+            uploadReview(reviewText, place);
+            dialog14.dismiss();
+        });
+        reviewDialog.setNegativeButton(R.string.answer_cancel, (dialog12, which12) -> dialog12.dismiss());
+        reviewDialog.setNeutralButton(R.string.reviews_watch, (dialog13, which13) -> {
+            loadAllReviews(place, context).show();
+            dialog13.dismiss();
+        });
+
+        return setUpDialog(reviewDialog, layoutInner);
+    }
+
+    private static AlertDialog loadAllReviews(final Place place, final Context context) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        final View layoutList = inflater.inflate(R.layout.list, null);
+        final ListView listView = layoutList.findViewById(R.id.lv);
+        final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(context, android.R.layout.simple_list_item_1);
+
+        builder.setTitle(R.string.reviews_all);
+        Controller.findReviews(place.getIdAsString(), arrayAdapter);
+        builder.setNegativeButton(R.string.answer_cancel, (dialog, which) -> dialog.dismiss());
+        listView.setAdapter(arrayAdapter);
+
+        return setUpDialog(builder, layoutList);
+    }
+
+    private static void uploadReview(final EditText editText, final Place place) {
+        String review = editText.getText().toString();
+        if(review.length() > 0) {
+            Controller.addReview(place.getIdAsString(), review);
+        }
+    }
+
+    private static AlertDialog setUpDialog(AlertDialog.Builder builder, View view) {
+        builder.setCancelable(true);
+        builder.setView(view);
+        return builder.create();
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    private static AlertDialog createAlertRateDialog(final Place place, final Context context) {
         final AlertDialog.Builder builder = new AlertDialog.Builder(context);
         LayoutInflater inflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
         final View layout = inflater.inflate(R.layout.dialog_rate_place, null);
@@ -201,58 +180,61 @@ public class AlertDialogCreator {
 
         builder.setPositiveButton(R.string.answer_rate, (dialog, arg1) -> Controller.updatePlaceRating(rb, place.getIdAsString()));
         builder.setNeutralButton(R.string.answer_add, (dialog, id) -> Controller.addPlaceToFavourite(Controller.getLoggedInAsString(context), place.getIdAsString()));
-        builder.setNegativeButton("Plan to visit", new DialogInterface.OnClickListener() {
-            @RequiresApi(api = Build.VERSION_CODES.M)
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                AlertDialog.Builder dataPick = new AlertDialog.Builder(context);
-                LayoutInflater inflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
-                final View layoutInner = inflater.inflate(R.layout.data_set, null);
+        builder.setNegativeButton(R.string.plan_visit, (dialog, which) -> createDatePickDialog(place, context).show());
 
-                final DatePicker datePicker = layoutInner.findViewById(R.id.datePicker);
-
-                dataPick.setTitle("Select date");
-                dataPick.setNegativeButton(R.string.answer_cancel, (dialog14, which14) -> dialog14.dismiss());
-
-                dataPick.setPositiveButton("Select", (dialog13, which13) -> {
-                    Integer day = datePicker.getDayOfMonth();
-                    Integer month = datePicker.getMonth() + 1;
-                    Integer year = datePicker.getYear();
-                    dialog13.dismiss();
-                    //***
-                    AlertDialog.Builder timePick = new AlertDialog.Builder(context);
-                    LayoutInflater inflater1 = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
-                    final View layoutInnerTime = inflater1.inflate(R.layout.time_set, null);
-
-                    final TimePicker timePicker = layoutInnerTime.findViewById(R.id.timePicker);
-
-                    timePick.setTitle("Select time");
-                    timePick.setNegativeButton(R.string.answer_cancel, (dialog1, which1) -> dialog1.dismiss());
-
-                    timePick.setPositiveButton("Select", (dialog12, which12) -> {
-                        Integer hours = timePicker.getHour();
-                        Integer minutes = timePicker.getMinute();
-
-                        Controller.addPlan(place.getName(), Controller.getLoggedInAsString(context), day.toString() + "-" + month.toString() + "-" + year.toString() + " "
-                        + hours.toString() + ":" + minutes.toString());
-                        dialog12.dismiss();
-                    });
-                    timePick.setCancelable(true);
-                    timePick.setView(layoutInnerTime);
-                    timePick.create().show();
-                    //***
-                });
-                dataPick.setCancelable(true);
-                dataPick.setView(layoutInner);
-                dataPick.create().show();
-            }
-
-        });
-        builder.setCancelable(true);
-        builder.setView(layout);
-        return builder.create();
+        return setUpDialog(builder, layout);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    private static AlertDialog createDatePickDialog(final Place place, final Context context) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        final View layoutInner = inflater.inflate(R.layout.data_set, null);
+        final DatePicker datePicker = layoutInner.findViewById(R.id.datePicker);
+
+        builder.setTitle(R.string.date_select);
+        builder.setNegativeButton(R.string.answer_cancel, (dialog, which) -> dialog.dismiss());
+
+        builder.setPositiveButton(R.string.button_select, (dialog, which) -> {
+            Integer day = datePicker.getDayOfMonth();
+            Integer month = datePicker.getMonth() + 1;
+            Integer year = datePicker.getYear();
+
+            createTimePickDialog(place, context, day.toString() + "-" + month.toString() + "-" + year.toString()).show();
+            dialog.dismiss();
+        });
+
+        return setUpDialog(builder, layoutInner);
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    private static AlertDialog createTimePickDialog(final Place place, final Context context, final String date) {
+        AlertDialog.Builder timePick = new AlertDialog.Builder(context);
+        LayoutInflater inflater1 = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
+        final View layoutInnerTime = inflater1.inflate(R.layout.time_set, null);
+
+        final TimePicker timePicker = layoutInnerTime.findViewById(R.id.timePicker);
+
+        timePick.setTitle(R.string.time_select);
+        timePick.setNegativeButton(R.string.answer_cancel, (dialog, which) -> dialog.dismiss());
+
+        timePick.setPositiveButton(R.string.button_select, (dialog, which) -> {
+            Integer hours = timePicker.getHour();
+            Integer minutes = timePicker.getMinute();
+
+            Controller.addPlan(place.getName(), Controller.getLoggedInAsString(context), date + " "
+                    + hours.toString() + ":" + minutes.toString());
+            dialog.dismiss();
+        });
+
+        return setUpDialog(timePick, layoutInnerTime);
+    }
+
+    /**
+     * Method that creates dialog with settings of search parameters
+     * @param context current context
+     * @return created dialog with settings
+     */
     public static AlertDialog createSearchParametersDialog(final Context context) {
         final AlertDialog.Builder builder = new AlertDialog.Builder(context);
         LayoutInflater inflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
@@ -331,7 +313,7 @@ public class AlertDialogCreator {
                 } else {
                     rating = (double) progress / 20.0;
                     intNumber = rating.toString().split("\\.")[0];
-                    afterDotNumber = rating.toString().split("\\.")[1];//.charAt(0);
+                    afterDotNumber = rating.toString().split("\\.")[1];
                 }
                 mTextView.setText("> " + intNumber + "." + afterDotNumber + " stars");
             }
@@ -343,9 +325,7 @@ public class AlertDialogCreator {
             public void onStopTrackingTouch(SeekBar seekBar) {}
         });
 
-        builder.setCancelable(true);
-        builder.setView(layout);
-        return builder.create();
+        return setUpDialog(builder, layout);
     }
 
     /**
@@ -359,7 +339,6 @@ public class AlertDialogCreator {
         LayoutInflater inflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
         final View layout = inflater.inflate(R.layout.list, null);
 
-        builder.setView(layout);
         builder.setIcon(R.drawable.icon);
         builder.setTitle(R.string.query_result);
 
@@ -389,7 +368,7 @@ public class AlertDialogCreator {
             dialog.dismiss();
         });
 
-        return builder.create();
+        return setUpDialog(builder, layout);
     }
 
     private static AlertDialog createInnerDescriptionDialogUser(final int position, final Context context, final ArrayList<User> users) {

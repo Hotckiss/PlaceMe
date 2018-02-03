@@ -27,7 +27,6 @@
     <string name="title_activity_routes">RoutesActivity</string>
     <string name="title_activity_settings">Settings</string>
 
-    <!-- Strings related to Settings -->
 
     <!-- Example General settings -->
     <string name="pref_header_general">General</string>
@@ -124,7 +123,7 @@
     <string name="answer_back">Back</string>
     <string name="answer_cancel">Cancel</string>
     <string name="answer_make_route">Make route</string>
-    <string name="answer_ok">Ok</string>
+    <string name="answer_ok">OK</string>
     <string name="answer_rate">Rate it!</string>
     <string name="answer_add">Add to favourite</string>
     <string name="answer_go_here">Go here!</string>
@@ -135,8 +134,19 @@
     <string name="places_creating_question">Create new place here?</string>
     <string name="places_question_gp">Search in Google Places</string>
     <string name="places_question_gp_message">Do you want to search place in google places?</string>
+
     <!--- Dialogs -->
     <string name="query_result">Results of query</string>
+    <string name="actions_button_text">Actions</string>
+    <string name="reviews_button_text">Reviews</string>
+    <string name="reviews_add">Add review</string>
+    <string name="reviews_all">All reviews</string>
+    <string name="reviews_submit">Submit review</string>
+    <string name="reviews_watch">Watch reviews</string>
+    <string name="plan_visit">Plan to visit</string>
+    <string name="date_select">Select date</string>
+    <string name="time_select">Select time</string>
+    <string name="button_select">Select</string>
 
     <!--- Profile activity -->
     <string name="profile_changing_avatar">Changing avatar</string>

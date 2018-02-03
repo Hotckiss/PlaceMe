@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Color;
 import android.util.SparseBooleanArray;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.akexorcist.googledirection.DirectionCallback;
 import com.akexorcist.googledirection.GoogleDirection;
@@ -32,7 +33,7 @@ import placeme.ru.placemedemo.elements.Place;
  */
 public class MapManager {
     private static final String MAPS_API_KEY = "AIzaSyD_WcUAMqVEVW0H84GsXLKBr0HokiO-v_4";
-
+    private static final String ERROR_MESSAGE = "Error loading route. Try again.";
     /**
      * Method that builds multi route between many points and places it to the map.
      * Furthermore it saves it to database immediately and moves camera to the destination point
@@ -106,37 +107,41 @@ public class MapManager {
 
     private static void plotRoute(DirectionDestinationRequest gd, final LatLng destination,
                                   final GoogleMap googleMap, final ArrayList<LatLng> points, final Context context) {
-        gd.to(destination)
-                .transportMode(TransportMode.WALKING)
-                .execute(new DirectionCallback() {
-                    @Override
-                    public void onDirectionSuccess(Direction direction, String rawBody) {
-                        if (direction.isOK()) {
-                            List<Leg> trail = getTrail(direction);
-                            for (int i = 0; i < trail.size(); i++) {
-                                Leg leg = trail.get(i);
-                                List<Step> stepList = leg.getStepList();
-                                ArrayList<PolylineOptions> polylineOptionList = DirectionConverter
-                                        .createTransitPolyline(context, stepList, 5, Color.RED, 3, Color.BLUE);
-                                addMarker(googleMap, getLegStart(leg));
+        try {
+            gd.to(destination)
+                    .transportMode(TransportMode.WALKING)
+                    .execute(new DirectionCallback() {
+                        @Override
+                        public void onDirectionSuccess(Direction direction, String rawBody) {
+                            if (direction.isOK()) {
+                                List<Leg> trail = getTrail(direction);
+                                for (int i = 0; i < trail.size(); i++) {
+                                    Leg leg = trail.get(i);
+                                    List<Step> stepList = leg.getStepList();
+                                    ArrayList<PolylineOptions> polylineOptionList = DirectionConverter
+                                            .createTransitPolyline(context, stepList, 5, Color.RED, 3, Color.BLUE);
+                                    addMarker(googleMap, getLegStart(leg));
 
-                                if (i == trail.size() - 1) {
-                                    addMarker(googleMap, getLegEnd(leg));
-                                }
+                                    if (i == trail.size() - 1) {
+                                        addMarker(googleMap, getLegEnd(leg));
+                                    }
 
-                                for (PolylineOptions polylineOption : polylineOptionList) {
-                                    points.addAll(polylineOption.getPoints());
-                                    googleMap.addPolyline(polylineOption);
+                                    for (PolylineOptions polylineOption : polylineOptionList) {
+                                        points.addAll(polylineOption.getPoints());
+                                        googleMap.addPolyline(polylineOption);
+                                    }
                                 }
                             }
                         }
-                    }
 
-                    @Override
-                    public void onDirectionFailure(Throwable t) {
-                        t.printStackTrace();
-                    }
-                });
+                        @Override
+                        public void onDirectionFailure(Throwable t) {
+                            t.printStackTrace();
+                        }
+                    });
+        } catch (NullPointerException ex) {
+            Toast.makeText(context, ERROR_MESSAGE, Toast.LENGTH_LONG).show();
+        }
         googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(destination, 15.0f));
     }
 
