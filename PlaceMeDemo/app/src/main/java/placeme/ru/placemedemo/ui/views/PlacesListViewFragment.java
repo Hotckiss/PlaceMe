@@ -15,16 +15,13 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
-
 import java.util.Arrays;
 
 import placeme.ru.placemedemo.R;
 import placeme.ru.placemedemo.core.Controller;
+import placeme.ru.placemedemo.core.database.DatabaseManagerPlaces;
 import placeme.ru.placemedemo.core.database.DatabaseUtils;
 
-import static placeme.ru.placemedemo.core.database.DatabaseUtils.PLACE_PHOTO_SUFFIX;
 import static placeme.ru.placemedemo.ui.views.ShareImageUtility.MESSAGE_DELETE;
 import static placeme.ru.placemedemo.ui.views.ShareImageUtility.SHARE_TITLE;
 import static placeme.ru.placemedemo.ui.views.ShareImageUtility.STORAGE_DELIMITER;
@@ -89,8 +86,7 @@ public class PlacesListViewFragment extends Fragment {
         @Override
         public void onBindViewHolder(final MyViewHolder holder, final int position) {
             Activity activity = getActivity();
-            StorageReference child = FirebaseStorage.getInstance().getReference().child("photos").child(places[position] + PLACE_PHOTO_SUFFIX);
-            DatabaseUtils.loadFavouritePicture(child, holder.iv, activity);
+            DatabaseUtils.loadFavouritePicture(DatabaseManagerPlaces.getFavouritePlaceReference(places[position]), holder.iv, activity);
             Controller.fillDescriptionPlaces(holder.tv, places[position]);
         }
 

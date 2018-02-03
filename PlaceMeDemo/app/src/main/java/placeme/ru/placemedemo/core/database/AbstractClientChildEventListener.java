@@ -3,21 +3,14 @@ package placeme.ru.placemedemo.core.database;
 import com.firebase.client.ChildEventListener;
 import com.firebase.client.DataSnapshot;
 import com.firebase.client.FirebaseError;
+
 import util.Log;
 
 /**
+ * A class that allows not to implement some not necessary methods in database managers
  * Created by Андрей on 26.12.2017.
  */
-
-/**
- * A class that allows not to implement some not necessary methods
- */
-public abstract class AbstractClientChildEventListener implements ChildEventListener {
-    private static final String DATABASE_CLIENT_CHILD_CHANGED_TAG = "CHILD_CHANGED";
-    private static final String DATABASE_CLIENT_CHILD_REMOVED_TAG = "CHILD_REMOVED";
-    private static final String DATABASE_CLIENT_CHILD_MOVED_TAG = "CHILD_MOVED";
-    private static final String DATABASE_CLIENT_ERROR_TAG = "DATABASE_ERROR";
-
+public abstract class AbstractClientChildEventListener extends DatabaseTagsStorage implements ChildEventListener {
     /**
      * Default method that logs child change action
      * @param dataSnapshot moved data
@@ -26,7 +19,7 @@ public abstract class AbstractClientChildEventListener implements ChildEventList
     @Override
     public void onChildChanged(DataSnapshot dataSnapshot, String previousChildKey) {
         if (dataSnapshot != null) {
-            Log.d(DATABASE_CLIENT_CHILD_CHANGED_TAG, dataSnapshot.getKey());
+            Log.d(DATABASE_CHILD_CHANGED_TAG, dataSnapshot.getKey());
         }
     }
 
@@ -37,7 +30,7 @@ public abstract class AbstractClientChildEventListener implements ChildEventList
     @Override
     public void onChildRemoved(DataSnapshot dataSnapshot) {
         if (dataSnapshot != null) {
-            Log.d(DATABASE_CLIENT_CHILD_REMOVED_TAG, dataSnapshot.getKey());
+            Log.d(DATABASE_CHILD_REMOVED_TAG, dataSnapshot.getKey());
         }
     }
 
@@ -49,7 +42,7 @@ public abstract class AbstractClientChildEventListener implements ChildEventList
     @Override
     public void onChildMoved(DataSnapshot dataSnapshot, String previousChildKey) {
         if (dataSnapshot != null) {
-            Log.d(DATABASE_CLIENT_CHILD_MOVED_TAG, dataSnapshot.getKey());
+            Log.d(DATABASE_CHILD_MOVED_TAG, dataSnapshot.getKey());
         }
     }
 
@@ -59,6 +52,6 @@ public abstract class AbstractClientChildEventListener implements ChildEventList
      */
     @Override
     public void onCancelled(FirebaseError databaseError) {
-        Log.d(DATABASE_CLIENT_ERROR_TAG, databaseError.getMessage());
+        Log.d(DATABASE_ERROR_TAG, databaseError.getMessage());
     }
 }

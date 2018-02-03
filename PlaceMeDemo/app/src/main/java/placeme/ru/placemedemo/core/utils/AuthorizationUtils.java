@@ -4,13 +4,10 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 /**
- * Created by Андрей on 21.12.2017.
- */
-
-/**
  * A class that implements some utilities that helps to get id
  * of currently authorized user.
  * Furthermore, this class allows to change current user and set users logged out
+ * Created by Андрей on 21.12.2017.
  */
 public class AuthorizationUtils {
     private static final String PREFERENCES_AUTHORIZATION_KEY = "AuthorizedUser";

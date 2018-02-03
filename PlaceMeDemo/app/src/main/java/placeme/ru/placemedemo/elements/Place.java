@@ -1,11 +1,8 @@
 package placeme.ru.placemedemo.elements;
 
 /**
- * Created by Андрей on 20.11.2017.
- */
-
-/**
  * A class that describes information about single place in the app
+ * Created by Андрей on 20.11.2017.
  */
 public class Place {
     private int id;

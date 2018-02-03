@@ -3,11 +3,8 @@ package placeme.ru.placemedemo.elements;
 import android.widget.TextView;
 
 /**
- * Created by Андрей on 31.01.2018.
- */
-
-/**
  * A class that provides to send data between profile and database manager
+ * Created by Андрей on 31.01.2018.
  */
 public class UserProfileFields {
     private TextView mName;

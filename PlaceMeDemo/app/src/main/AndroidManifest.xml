@@ -86,9 +86,6 @@
             android:name=".ui.RoutesActivity"
             android:label="@string/title_activity_routes"
             android:theme="@style/AppTheme.NoActionBar" />
-        <activity
-            android:name=".ui.SettingsActivity"
-            android:label="@string/title_activity_settings" />
         <activity android:name=".ui.RegisterActivity" />
         <activity android:name=".ui.EditActivity" />
         <activity android:name=".core.chat.Chat" />

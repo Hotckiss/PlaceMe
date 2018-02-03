@@ -1,9 +1,5 @@
 package placeme.ru.placemedemo.core.database;
 
-/**
- * Created by Андрей on 21.12.2017.
- */
-
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -12,13 +8,9 @@ import util.Log;
 
 /**
  * A class that allows not to implement some not necessary methods
+ * Created by Андрей on 21.12.2017.
  */
-public abstract class AbstractChildEventListener implements ChildEventListener {
-    private static final String DATABASE_CHILD_CHANGED_TAG = "CHILD_CHANGED";
-    private static final String DATABASE_CHILD_REMOVED_TAG = "CHILD_REMOVED";
-    private static final String DATABASE_CHILD_MOVED_TAG = "CHILD_MOVED";
-    private static final String DATABASE_ERROR_TAG = "DATABASE_ERROR";
-
+public abstract class AbstractChildEventListener extends DatabaseTagsStorage implements ChildEventListener {
     /**
      * Default method that logs child change action
      * @param dataSnapshot moved data

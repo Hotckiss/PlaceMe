@@ -1,13 +1,10 @@
 package placeme.ru.placemedemo.elements;
 
-/**
- * Created by Андрей on 31.01.2018.
- */
-
 import android.widget.EditText;
 
 /**
  * A class that contains fields filled with user data for edit
+ * Created by Андрей on 31.01.2018.
  */
 public class UserDataFields {
     private EditText mLoginField;

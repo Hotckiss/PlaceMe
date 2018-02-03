@@ -3,12 +3,9 @@ package placeme.ru.placemedemo.core.utils;
 import android.content.Context;
 
 /**
- * Created by Андрей on 21.12.2017.
- */
-
-/**
  * A class that implements some utilities that helps to get id of friends
  * of currently authorized user.
+ * Created by Андрей on 21.12.2017.
  */
 public class FriendsDataUtils {
 

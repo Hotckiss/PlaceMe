@@ -1,11 +1,8 @@
 package placeme.ru.placemedemo.elements;
 
 /**
- * Created by Андрей on 17.11.2017.
- */
-
-/**
  * Class that describes all information about user of the app
+ * Created by Андрей on 17.11.2017.
  */
 public class User {
     private int id;

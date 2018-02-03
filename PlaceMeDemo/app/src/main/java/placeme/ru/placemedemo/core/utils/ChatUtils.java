@@ -3,11 +3,8 @@ package placeme.ru.placemedemo.core.utils;
 import android.content.Context;
 
 /**
- * Created by Андрей on 11.11.2017.
- */
-
-/**
  * A class that provides simple preferences to make a chat easily
+ * Created by Андрей on 11.11.2017.
  */
 public class ChatUtils {
 

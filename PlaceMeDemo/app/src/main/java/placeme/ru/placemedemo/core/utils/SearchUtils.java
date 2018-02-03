@@ -3,12 +3,9 @@ package placeme.ru.placemedemo.core.utils;
 import android.content.Context;
 
 /**
- * Created by Андрей on 27.12.2017.
- */
-
-/**
  * A class that implements some utilities that helps to get phone settings
  * of searching
+ * Created by Андрей on 27.12.2017.
  */
 public class SearchUtils {
 

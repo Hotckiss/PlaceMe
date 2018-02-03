@@ -8,7 +8,6 @@ import java.util.List;
  * Class that converts google places to application place
  * Created by Андрей on 02.02.2018.
  */
-
 public class ConverterToPlace {
     /**
      * Method that converts google place to place with application structure

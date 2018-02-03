@@ -1,9 +1,5 @@
 package placeme.ru.placemedemo.ui.views;
 
-/**
- * Created by Андрей on 20.12.2017.
- */
-
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -38,6 +34,7 @@ import placeme.ru.placemedemo.elements.cards.FriendCard;
 
 /**
  * Fragment that represents information about friends
+ * Created by Андрей on 20.12.2017.
  */
 public class HorizontalListViewFragment extends Fragment {
     private ArrayList<FriendCard> listitems = new ArrayList<>();

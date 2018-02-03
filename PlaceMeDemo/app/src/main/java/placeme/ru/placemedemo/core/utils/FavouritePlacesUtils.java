@@ -3,12 +3,9 @@ package placeme.ru.placemedemo.core.utils;
 import android.content.Context;
 
 /**
- * Created by Андрей on 25.12.2017.
- */
-
-/**
  * A class that provides simple preferences to correct work with favourite places of the user
  * Implemented methods to write some data to use it between the activities: list of ID of users favourite places
+ * Created by Андрей on 25.12.2017.
  */
 public class FavouritePlacesUtils {
 

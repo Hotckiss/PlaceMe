@@ -1,12 +1,9 @@
 package placeme.ru.placemedemo.elements.cards;
 
 /**
- * Created by Андрей on 20.12.2017.
- */
-
-/**
  * Class that describes information that should be displayed
  * in the user profile in card of friend
+ * Created by Андрей on 20.12.2017.
  */
 public class FriendCard {
     private String mCardName;

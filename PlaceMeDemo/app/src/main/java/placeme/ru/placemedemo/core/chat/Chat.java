@@ -21,7 +21,6 @@ import placeme.ru.placemedemo.R;
 import placeme.ru.placemedemo.core.Controller;
 import placeme.ru.placemedemo.core.database.AbstractClientChildEventListener;
 
-
 /**
  * A class that represents chat dialog between two users in the application
  */

@@ -34,6 +34,11 @@ public class DatabaseUtils {
     private static final String DASH_DELIMITER = "-";
     private static final double PERCENT_TO_RATING = 20.0;
 
+    /** Method that loads picture from storage reference into specific image view
+     * @param storageReference reference to the picture storage
+     * @param imageView destination place of the image
+     * @param activity activity with current image view
+     */
     public static void loadFavouritePicture(final StorageReference storageReference,
                                             final ImageView imageView, final Activity activity) {
         if (activity != null) {

@@ -1,11 +1,8 @@
 package placeme.ru.placemedemo.elements;
 
 /**
- * Created by Андрей on 18.11.2017.
- */
-
-/**
  * Class that represents authentication data of the user
+ * Created by Андрей on 18.11.2017.
  */
 public class AuthData {
 

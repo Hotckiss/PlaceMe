@@ -30,6 +30,8 @@ import placeme.ru.placemedemo.R;
 import placeme.ru.placemedemo.elements.Place;
 import placeme.ru.placemedemo.ui.dialogs.AlertDialogCreator;
 
+import static placeme.ru.placemedemo.core.database.DatabaseUtils.PLACE_PHOTO_SUFFIX;
+
 /**
  * Class that have all methods connected with places in database
  * Created by Андрей on 01.02.2018.
@@ -48,6 +50,15 @@ public class DatabaseManagerPlaces {
     private static FirebaseDatabase mBase = FirebaseDatabase.getInstance();
     private static DatabaseReference mDatabaseReference;
     private static StorageReference mStorageRef = FirebaseStorage.getInstance().getReference();
+
+    /**
+     * Method that returns reference to place photo with specific id
+     * @param placeId id of place to search
+     * @return reference to place photo
+     */
+    public static StorageReference getFavouritePlaceReference(final String placeId) {
+        return mStorageRef.child(PHOTOS_KEY).child(placeId + PLACE_PHOTO_SUFFIX);
+    }
 
     /**
      * Method that searches places in database within query string and lock any actions while loading
@@ -261,7 +272,7 @@ public class DatabaseManagerPlaces {
      * @param context current context
      */
     public static void loadDescriptionImage(final ImageView imageView, final Place place, final Context context) {
-        mStorageRef.child(PHOTOS_KEY).child(place.getIdAsString() + DatabaseUtils.PLACE_PHOTO_SUFFIX)
+        mStorageRef.child(PHOTOS_KEY).child(place.getIdAsString() + PLACE_PHOTO_SUFFIX)
                 .getDownloadUrl().addOnSuccessListener(uri -> Picasso.with(context).load(uri)
                 .placeholder(R.drawable.noimage)
                 .error(R.drawable.noimage)

@@ -3,9 +3,9 @@ package placeme.ru.placemedemo.core.utils;
 import android.content.Context;
 
 /**
+ * Class that provides to save some information about routes loaclly in the phone
  * Created by Андрей on 25.12.2017.
  */
-
 public class RoutesUtils {
     private static final String ROUTES_KEY = "routesLength";
     private static final String ROUTES_PREFERENCES = "Routes";
