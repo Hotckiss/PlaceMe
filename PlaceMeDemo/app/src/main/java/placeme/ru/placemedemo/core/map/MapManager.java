@@ -10,7 +10,6 @@ import com.akexorcist.googledirection.GoogleDirection;
 import com.akexorcist.googledirection.constant.TransportMode;
 import com.akexorcist.googledirection.model.Direction;
 import com.akexorcist.googledirection.model.Leg;
-import com.akexorcist.googledirection.model.Route;
 import com.akexorcist.googledirection.model.Step;
 import com.akexorcist.googledirection.request.DirectionDestinationRequest;
 import com.akexorcist.googledirection.util.DirectionConverter;
@@ -106,42 +105,56 @@ public class MapManager {
         DatabaseManagerPlaces.addMarkersByQuery(googleMap, toFind);
     }
 
-    private static DirectionCallback buildDirectionCallback(final GoogleMap googleMap, final ArrayList<LatLng> points, final Context context) {
-        return new DirectionCallback() {
-            @Override
-            public void onDirectionSuccess(Direction direction, String rawBody) {
-                if (direction.isOK()) {
-                    Route route = direction.getRouteList().get(0);
-                    int legCount = route.getLegList().size();
-                    for (int index = 0; index < legCount; index++) {
-                        Leg leg = route.getLegList().get(index);
-                        googleMap.addMarker(new MarkerOptions().position(leg.getStartLocation().getCoordination()));
-                        if (index == legCount - 1) {
-                            googleMap.addMarker(new MarkerOptions().position(leg.getEndLocation().getCoordination()));
-                        }
-                        List<Step> stepList = leg.getStepList();
-                        ArrayList<PolylineOptions> polylineOptionList = DirectionConverter.createTransitPolyline(context, stepList, 5, Color.RED, 3, Color.BLUE);
-
-                        for (PolylineOptions polylineOption : polylineOptionList) {
-                            points.addAll(polylineOption.getPoints());
-                            googleMap.addPolyline(polylineOption);
-                        }
-                    }
-                }
-            }
-
-            @Override
-            public void onDirectionFailure(Throwable t) {
-                t.printStackTrace();
-            }
-        };
-    }
-
-    private static void plotRoute(DirectionDestinationRequest gd, final LatLng destination, final GoogleMap googleMap, final ArrayList<LatLng> points, final Context context) {
+    private static void plotRoute(DirectionDestinationRequest gd, final LatLng destination,
+                                  final GoogleMap googleMap, final ArrayList<LatLng> points, final Context context) {
         gd.to(destination)
                 .transportMode(TransportMode.WALKING)
-                .execute(buildDirectionCallback(googleMap, points, context));
+                .execute(new DirectionCallback() {
+                    @Override
+                    public void onDirectionSuccess(Direction direction, String rawBody) {
+                        if (direction.isOK()) {
+                            List<Leg> trail = getTrail(direction);
+                            for (int i = 0; i < trail.size(); i++) {
+                                Leg leg = trail.get(i);
+                                List<Step> stepList = leg.getStepList();
+                                ArrayList<PolylineOptions> polylineOptionList = DirectionConverter
+                                        .createTransitPolyline(context, stepList, 5, Color.RED, 3, Color.BLUE);
+                                addMarker(googleMap, getLegStart(leg));
+
+                                if (i == trail.size() - 1) {
+                                    addMarker(googleMap, getLegEnd(leg));
+                                }
+
+                                for (PolylineOptions polylineOption : polylineOptionList) {
+                                    points.addAll(polylineOption.getPoints());
+                                    googleMap.addPolyline(polylineOption);
+                                }
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onDirectionFailure(Throwable t) {
+                        t.printStackTrace();
+                    }
+                });
         googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(destination, 15.0f));
+    }
+
+    private static void addMarker(final GoogleMap googleMap, final LatLng point) {
+        googleMap.addMarker(new MarkerOptions().position(point));
+    }
+
+    private static LatLng getLegStart(final Leg leg) {
+        return leg.getStartLocation().getCoordination();
+    }
+
+    private static LatLng getLegEnd(final Leg leg) {
+        return leg.getEndLocation().getCoordination();
+    }
+
+    private static List<Leg> getTrail(final Direction direction) {
+        return direction.getRouteList().get(0).getLegList();
     }
 
     private static void addAllMarkers(final GoogleMap googleMap) {
