@@ -582,13 +582,18 @@ public class Controller {
      * @return distance in kilometers
      */
     public static double getKilometers(LatLng start, LatLng finish) {
-        double radius = 6371;
-        double dLatitude = degreeToRadian(finish.latitude - start.latitude);
-        double dLongitude = degreeToRadian(finish.longitude - start.longitude);
+        try {
+            double radius = 6371;
+            double dLatitude = degreeToRadian(finish.latitude - start.latitude);
+            double dLongitude = degreeToRadian(finish.longitude - start.longitude);
 
-        double a = Math.sin(dLatitude / 2) * Math.sin(dLatitude / 2) + Math.cos(degreeToRadian(start.latitude)) * Math.cos(degreeToRadian(finish.latitude)) * Math.sin(dLongitude / 2) * Math.sin(dLongitude / 2);
-        double b = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-        return radius * b;
+            double a = Math.sin(dLatitude / 2) * Math.sin(dLatitude / 2) + Math.cos(degreeToRadian(start.latitude)) * Math.cos(degreeToRadian(finish.latitude)) * Math.sin(dLongitude / 2) * Math.sin(dLongitude / 2);
+            double b = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+            return radius * b;
+        } catch (NullPointerException ex) {
+            return 0;
+        }
     }
 
     /**

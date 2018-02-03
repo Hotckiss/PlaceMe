@@ -2,7 +2,6 @@ package placeme.ru.placemedemo.ui.dialogs;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.AlertDialog;
@@ -28,6 +27,11 @@ import placeme.ru.placemedemo.R;
 import placeme.ru.placemedemo.core.Controller;
 import placeme.ru.placemedemo.elements.Place;
 import placeme.ru.placemedemo.elements.User;
+
+import static placeme.ru.placemedemo.ui.dialogs.DialogUtils.initDistanceSwitch;
+import static placeme.ru.placemedemo.ui.dialogs.DialogUtils.initRatingSwitch;
+import static placeme.ru.placemedemo.ui.dialogs.DialogUtils.initSeekBarDistance;
+import static placeme.ru.placemedemo.ui.dialogs.DialogUtils.initSeekBarRating;
 
 /**
  * Class that contains methods to create most of the dialogs
@@ -250,80 +254,10 @@ public class AlertDialogCreator {
         final Switch distanceSwitch = layout.findViewById(R.id.switch_dist);
         final Switch ratingSwitch = layout.findViewById(R.id.switch_rating);
 
-
-        distanceSwitch.setChecked(Controller.getDistanceSearchStatus(context));
-        ratingSwitch.setChecked(Controller.getRatingSearchStatus(context));
-        seekBarDistance.setEnabled(Controller.getDistanceSearchStatus(context));
-        seekBarRating.setEnabled(Controller.getRatingSearchStatus(context));
-
-        seekBarDistance.setProgress(Controller.getDistanceSearchValue(context));
-        seekBarRating.setProgress(Controller.getRatingSearchValue(context));
-
-        distanceSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (isChecked) {
-                seekBarDistance.setEnabled(true);
-                Controller.setDistanceSearchStatus(context,true);
-            } else {
-                seekBarDistance.setEnabled(false);
-                Controller.setDistanceSearchStatus(context,false);
-            }
-        });
-
-
-        ratingSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (isChecked) {
-                seekBarRating.setEnabled(true);
-                Controller.setRatingSearchStatus(context,true);
-            } else {
-                seekBarRating.setEnabled(false);
-                Controller.setRatingSearchStatus(context,false);
-            }
-        });
-
-        seekBarDistance.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            private final TextView mTextView = (TextView)layout.findViewById(R.id.distance_param);
-
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                Integer dist =  progress;
-                Controller.setDistanceSearchValue(context, progress);
-                mTextView.setText("< " + dist.toString() + " km");
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {}
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {}
-        });
-
-        seekBarRating.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            private final TextView mTextView = (TextView) layout.findViewById(R.id.rating_param);
-
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                String intNumber;
-                String afterDotNumber;
-                Double rating;
-
-                Controller.setRatingSearchValue(context, progress);
-                if (progress == 0) {
-                    intNumber = "0";
-                    afterDotNumber = "0";
-                } else {
-                    rating = (double) progress / 20.0;
-                    intNumber = rating.toString().split("\\.")[0];
-                    afterDotNumber = rating.toString().split("\\.")[1];
-                }
-                mTextView.setText("> " + intNumber + "." + afterDotNumber + " stars");
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {}
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {}
-        });
+        initDistanceSwitch(distanceSwitch, context, seekBarDistance);
+        initRatingSwitch(ratingSwitch, context, seekBarRating);
+        initSeekBarDistance(seekBarDistance, context, layout);
+        initSeekBarRating(seekBarRating, context, layout);
 
         return setUpDialog(builder, layout);
     }
