@@ -47,7 +47,7 @@ public class MapManager {
                                  final Context context, final GoogleMap googleMap, final ArrayList<LatLng> points) {
         SparseBooleanArray sp = listView.getCheckedItemPositions();
         LatLng destination = myPosition;
-        DirectionDestinationRequest gd = GoogleDirection.withServerKey(MAPS_API_KEY).from(myPosition);
+        DirectionDestinationRequest gd = getRequest(myPosition);
         int lastPoint = -1;
 
         for (int i = 0; i < placeArrayList.size(); i++) {
@@ -57,12 +57,12 @@ public class MapManager {
         }
 
         if (lastPoint != -1) {
-            destination = new LatLng(placeArrayList.get(lastPoint).getLatitude(), placeArrayList.get(lastPoint).getLongitude());
+            destination = getPosition(placeArrayList, lastPoint);
         }
 
         for (int i = 0; i < placeArrayList.size(); i++) {
             if (sp.get(i) && i != lastPoint) {
-                gd.and(new LatLng(placeArrayList.get(i).getLatitude(), placeArrayList.get(i).getLongitude()));
+                gd.and(getPosition(placeArrayList, i));
             }
         }
 
@@ -79,8 +79,7 @@ public class MapManager {
      */
     public static void makeSingleRoute(final LatLng myPosition, final LatLng destination,
                                        final Context context, final GoogleMap googleMap, final ArrayList<LatLng> points) {
-
-        DirectionDestinationRequest gd = GoogleDirection.withServerKey(MAPS_API_KEY).from(myPosition);
+        DirectionDestinationRequest gd  = getRequest(myPosition);
 
         plotRoute(gd, destination, googleMap, points, context);
     }
@@ -139,6 +138,14 @@ public class MapManager {
                     }
                 });
         googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(destination, 15.0f));
+    }
+
+    private static DirectionDestinationRequest getRequest(final LatLng position) {
+        return GoogleDirection.withServerKey(MAPS_API_KEY).from(position);
+    }
+
+    private static LatLng getPosition(final ArrayList<Place> placeArrayList, int index) {
+        return new LatLng(placeArrayList.get(index).getLatitude(), placeArrayList.get(index).getLongitude());
     }
 
     private static void addMarker(final GoogleMap googleMap, final LatLng point) {
