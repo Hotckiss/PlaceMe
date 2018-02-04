@@ -12,4 +12,5 @@ android:
 before_install:
     - chmod +x gradlew
 script:
+    - cd PlaceMeDemo
     - ./gradlew build
