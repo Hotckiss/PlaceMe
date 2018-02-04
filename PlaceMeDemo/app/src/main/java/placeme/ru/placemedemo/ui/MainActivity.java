@@ -50,10 +50,7 @@ import com.google.android.gms.tasks.Task;
 import com.tomergoldst.tooltips.ToolTip;
 import com.tomergoldst.tooltips.ToolTipsManager;
 
-import java.util.ArrayList;
-
 import de.hdodenhof.circleimageview.CircleImageView;
-import geo.GeoObj;
 import gl.GL1Renderer;
 import gl.GLFactory;
 import placeme.ru.placemedemo.R;
@@ -65,6 +62,8 @@ import system.MySetup;
 import worldData.World;
 
 import static com.google.android.gms.location.places.ui.PlaceAutocomplete.getPlace;
+import static placeme.ru.placemedemo.ui.MainUtils.plot;
+import static placeme.ru.placemedemo.ui.dialogs.AlertDialogCreator.getPoints;
 
 /**
  * Main activity of the app
@@ -101,8 +100,6 @@ public class MainActivity extends AppCompatActivity
     private Uri mUri;
     private int mLastAction = 0;
     private ToolTipsManager mToolTipsManager;
-    //AR
-    private static ArrayList<LatLng> points = new ArrayList<>();
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
@@ -275,17 +272,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        /*if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
-            initializeCamera();
-        }
-        try {
-
-            mGoogleMap.setMyLocationEnabled(true);
-        } catch (SecurityException se) {
-            se.printStackTrace();
-        }*/
-    }
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {}
 
     @Override
     public boolean onMarkerClick(final Marker marker) {
@@ -316,7 +303,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public boolean onNavigationItemSelected(MenuItem item) {
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         int id = item.getItemId();
 
         if (id == R.id.nav_profile) {
@@ -404,28 +391,6 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    private void putLineToPoint(final World world, GLFactory objectFactory, LatLng start, LatLng finish) {
-        double maxx = Math.max(start.latitude, finish.latitude);
-        double maxy = Math.max(start.longitude, finish.longitude);
-        double minx = Math.min(start.latitude, finish.latitude);
-        double miny = Math.min(start.longitude, finish.longitude);
-        double dx = maxx - minx;
-        double dy = maxy - miny;
-        int iter = (int)(100 * Math.max(dx, dy)) + 3;
-        if (dx * dx + dy * dy < 1e-14) {
-            iter = 1;
-        }
-        for (int i = 0; i <= iter; i++) {
-            Location l = new Location("");
-            l.setLatitude(start.latitude + (finish.latitude - start.latitude) * i / iter);
-            l.setLongitude(start.longitude + (finish.longitude - start.longitude) * i / iter);
-            GeoObj next = new GeoObj(l);
-            next.setComp(objectFactory.newArrow());
-
-            world.add(next);
-        }
-    }
-
     private void initializeCamera() {
         Button b = findViewById(R.id.button4);
         ToolTip.Builder builder2 = new ToolTip.Builder(this, b, findViewById(R.id.root_t), "Try AR route!", ToolTip.POSITION_ABOVE );
@@ -436,21 +401,7 @@ public class MainActivity extends AppCompatActivity
         b.setOnClickListener(v -> ArActivity.startWithSetup(MainActivity.this, new MySetup() {
             @Override
             public void addObjectsTo(GL1Renderer renderer, final World world, GLFactory objectFactory) {
-                points = AlertDialogCreator.getPoints();
-                if (points != null && points.size() > 0) {
-                    putLineToPoint(world, objectFactory, new LatLng(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude()), points.get(0));
-
-                    for (int i = 0; i < points.size() - 1; i++) {
-                        putLineToPoint(world, objectFactory, points.get(i), points.get(i + 1));
-                    }
-                    Location ls = new Location("");
-                    LatLng end = points.get(points.size() - 1);
-                    ls.setLatitude(end.latitude);
-                    ls.setLongitude(end.longitude);
-                    GeoObj endObj = new GeoObj(ls);
-                    endObj.setComp(objectFactory.newArrow());
-                    world.add(endObj);
-                }
+                plot(getPoints(), world, objectFactory, mLastKnownLocation);
             }
         }));
     }

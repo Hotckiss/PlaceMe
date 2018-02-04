@@ -198,9 +198,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
      * Shows the progress UI and hides the login form.
      */
     private void showProgress(final boolean show) {
-        // On Honeycomb MR2 we have the ViewPropertyAnimator APIs, which allow
-        // for very easy animations. If available, use these APIs to fade-in
-        // the progress spinner.
         int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
 
         mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
@@ -295,17 +292,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             if ((mEmail != null) && (mPassword != null)) {
                 isFinished = false;
                 DatabaseReference reference = generateLoginReference(LoginActivity.this, mEmail, mPassword);
-                /*DatabaseReference reference = FirebaseDatabase.getInstance().getReference().child("authdata");
-
-                reference.addChildEventListener(new AbstractChildEventListener() {
-                    @Override
-                    public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                        AuthData authData = dataSnapshot.getValue(AuthData.class);
-                        if (authData != null && authData.getLogin().equals(mEmail) && authData.getPassword().equals(mPassword)) {
-                            Controller.setLoggedIn(LoginActivity.this, authData.getId());
-                        }
-                    }
-                });*/
 
                 reference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
                     @Override
