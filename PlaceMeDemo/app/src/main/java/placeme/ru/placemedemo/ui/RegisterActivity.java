@@ -12,6 +12,8 @@ import placeme.ru.placemedemo.core.Controller;
 import placeme.ru.placemedemo.elements.AuthData;
 import placeme.ru.placemedemo.elements.User;
 
+import static placeme.ru.placemedemo.ui.MainUtils.getFieldValue;
+
 /**
  * Activity that provides user to register in the application
  */
@@ -77,10 +79,6 @@ public class RegisterActivity extends AppCompatActivity {
         return new User(-1, getFieldValue(mName), getFieldValue(mSurname), getFieldValue(mNickname));
     }
 
-    private String getFieldValue(final EditText editText) {
-        return editText.getText().toString();
-    }
-
     private boolean checkLogin() {
         String login = mLogin.getText().toString();
         return login.contains(DOG_CHARACTER);
@@ -131,35 +129,26 @@ public class RegisterActivity extends AppCompatActivity {
 
     private void initializeTextFields() {
         TextView tvLogin = findViewById(R.id.tvLogin);
-        tvLogin.setText(R.string.register_login);
-
         TextView tvPassword = findViewById(R.id.tvPassword);
-        tvPassword.setText(R.string.register_password);
-
         TextView tvConfirmPassword = findViewById(R.id.tvConfirmPassword);
-        tvConfirmPassword.setText(R.string.register_confirm_password);
-
         TextView tvName = findViewById(R.id.tvName);
-        tvName.setText(R.string.register_name);
-
         TextView tvSurname = findViewById(R.id.tvSurname);
-        tvSurname.setText(R.string.register_surname);
-
         TextView tvNickname = findViewById(R.id.tvNickname);
+
+        tvLogin.setText(R.string.register_login);
+        tvPassword.setText(R.string.register_password);
+        tvConfirmPassword.setText(R.string.register_confirm_password);
+        tvName.setText(R.string.register_name);
+        tvSurname.setText(R.string.register_surname);
         tvNickname.setText(R.string.register_nickname);
     }
 
     private void initializeEditTextFields() {
         mLogin = findViewById(R.id.teLogin);
-
         mPassword = findViewById(R.id.tePassword);
-
         mConfirmPassword = findViewById(R.id.teConfirmPassword);
-
         mName = findViewById(R.id.teName);
-
         mSurname = findViewById(R.id.teSurname);
-
         mNickname = findViewById(R.id.teNickname);
     }
 }

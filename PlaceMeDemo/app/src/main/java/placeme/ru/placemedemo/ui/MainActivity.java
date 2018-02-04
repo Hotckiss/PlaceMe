@@ -29,13 +29,10 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.common.GooglePlayServicesRepairableException;
-import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.Place;
@@ -50,7 +47,6 @@ import com.google.android.gms.tasks.Task;
 import com.tomergoldst.tooltips.ToolTip;
 import com.tomergoldst.tooltips.ToolTipsManager;
 
-import de.hdodenhof.circleimageview.CircleImageView;
 import gl.GL1Renderer;
 import gl.GLFactory;
 import placeme.ru.placemedemo.R;
@@ -62,15 +58,22 @@ import system.MySetup;
 import worldData.World;
 
 import static com.google.android.gms.location.places.ui.PlaceAutocomplete.getPlace;
+import static placeme.ru.placemedemo.ui.MainUtils.checkLogin;
+import static placeme.ru.placemedemo.ui.MainUtils.getFieldValue;
+import static placeme.ru.placemedemo.ui.MainUtils.loadProfileAvatar;
+import static placeme.ru.placemedemo.ui.MainUtils.login;
 import static placeme.ru.placemedemo.ui.MainUtils.plot;
+import static placeme.ru.placemedemo.ui.MainUtils.saveRoute;
+import static placeme.ru.placemedemo.ui.MainUtils.searchFriends;
+import static placeme.ru.placemedemo.ui.MainUtils.showInfo;
 import static placeme.ru.placemedemo.ui.dialogs.AlertDialogCreator.getPoints;
+import static placeme.ru.placemedemo.ui.dialogs.DialogUtils.setUpDialog;
 
 /**
  * Main activity of the app
  */
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback,
-        GoogleMap.OnMapLongClickListener, GoogleMap.OnMarkerClickListener, GoogleApiClient.OnConnectionFailedListener {
+        implements NavigationView.OnNavigationItemSelectedListener {
 
     private static final int GALLERY_INTENT = 2;
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
@@ -107,12 +110,12 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         ActivityCompat.requestPermissions(MainActivity.this, PERMISSIONS_STORAGE, REQUEST_EXTERNAL_STORAGE);
         setContentView(R.layout.activity_main);
-        checkLogin();
-        showInfo();
+        checkLogin(this);
+        showInfo(MainActivity.this);
 
         initializeGeolocation();
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
+        mapFragment.getMapAsync(new MapLoader());
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -128,7 +131,7 @@ public class MainActivity extends AppCompatActivity
 
         mToolTipsManager = new ToolTipsManager();
 
-        loadProfileAvatar(hView);
+        loadProfileAvatar(MainActivity.this, hView);
         navigationView.setNavigationItemSelectedListener(this);
 
         initializeInputWindow();
@@ -145,7 +148,7 @@ public class MainActivity extends AppCompatActivity
 
         actionButton.setOnClickListener(v -> {
             Controller.getUserRoutesLength2(Controller.getLoggedInAsString(MainActivity.this), MainActivity.this);
-            saveRoute().show();
+            saveRoute(MainActivity.this, mGoogleMap).show();
         });
 
         ToolTip.Builder builder1 = new ToolTip.Builder(this, actionButton, findViewById(R.id.root_t), "Take a route snapshot!", ToolTip.POSITION_LEFT_TO);
@@ -162,7 +165,7 @@ public class MainActivity extends AppCompatActivity
         ToolTip.Builder builder = new ToolTip.Builder(this, searchFriendsButton, findViewById(R.id.root_t), "Find friends\nhere!", ToolTip.POSITION_ABOVE);
 
         searchFriendsButton.setOnClickListener(v -> {
-            searchFriends().show();
+            searchFriends(this).show();
         });
 
         searchFriendsButton.setOnLongClickListener(v -> {
@@ -170,47 +173,6 @@ public class MainActivity extends AppCompatActivity
             return true;
         });
 
-    }
-
-    private void showInfo() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-
-        builder.setTitle("Information");
-        builder.setMessage("1) Long tap on map creates marker\n2) Tap on created marker to create new place\n3) Tap on existing marker to load place info\n4) Most interface elements have tooltip by long click!");
-        builder.setPositiveButton(R.string.answer_ok, (dialog, which) -> dialog.dismiss());
-
-        builder.setCancelable(false);
-        builder.show();
-    }
-
-    private AlertDialog searchFriends() {
-        final AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-        LayoutInflater inflater = (LayoutInflater) MainActivity.this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        final View layout = inflater.inflate(R.layout.save_route, null);
-
-        final TextView textView = layout.findViewById(R.id.route_title);
-
-        textView.setText("Search friends!");
-        builder.setPositiveButton("Search!", (dialog, id) -> {
-            EditText editTextDescription = layout.findViewById(R.id.route_description);
-            String description = editTextDescription.getText().toString();
-            if (description.length() == 0) {
-                dialog.dismiss();
-            }
-            AlertDialogCreator.createAlertDialogFoundedFriends(MainActivity.this, editTextDescription.getText().toString(), this).show();
-        }).setNegativeButton(R.string.answer_back, (dialog, arg1) -> {
-        });
-
-        builder.setCancelable(true);
-        builder.setView(layout);
-        return builder.create();
-    }
-
-    private void loadProfileAvatar(View view) {
-        CircleImageView circleImageView = view.findViewById(R.id.profile_image);
-        if (circleImageView != null) {
-            Controller.loadAvatar(circleImageView, MainActivity.this, Controller.getLoggedInAsString(MainActivity.this));
-        }
     }
 
     private void initGooglePlacesButton() {
@@ -251,46 +213,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onMapLongClick(LatLng point) {
-        mGoogleMap.addMarker(new MarkerOptions().position(point).title(MY_PLACE));
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.M)
-    @Override
-    public void onMapReady(GoogleMap map) {
-        mGoogleMap = map;
-        mGoogleMap.setOnMapLongClickListener(this);
-        mGoogleMap.setOnMarkerClickListener(this);
-        mGoogleMap.getUiSettings().setMapToolbarEnabled(false);
-        mGoogleMap.getUiSettings().setCompassEnabled(false);
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            return;
-        }
-        mGoogleMap.setMyLocationEnabled(true);
-        Controller.addAllMarkers(mGoogleMap);
-    }
-
-    @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {}
-
-    @Override
-    public boolean onMarkerClick(final Marker marker) {
-        if (marker.getTitle() == null) {
-            return false;
-        }
-        if (marker.getTitle().equals(MY_PLACE)) {
-            AlertDialog alert = createAlertDialogNewPlace(marker.getPosition());
-            alert.show();
-
-            Controller.refreshMarkers(mGoogleMap);
-        }
-        else {
-            showDescriptionDialog(marker);
-        }
-
-        return false;
-    }
 
     @Override
     public void onBackPressed() {
@@ -322,7 +245,7 @@ public class MainActivity extends AppCompatActivity
             shareApplication();
         } else if (id == R.id.nav_exit) {
             Controller.setLoggedOut(MainActivity.this);
-            login();
+            login(this);
         }
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
@@ -364,6 +287,50 @@ public class MainActivity extends AppCompatActivity
         super.onDestroy();
     }
 
+    public class MarkerListener implements GoogleMap.OnMarkerClickListener {
+        @Override
+        public boolean onMarkerClick(Marker marker) {
+            if (marker.getTitle() == null) {
+                return false;
+            }
+            if (marker.getTitle().equals(MY_PLACE)) {
+                AlertDialog alert = createAlertDialogNewPlace(marker.getPosition());
+                alert.show();
+
+                Controller.refreshMarkers(mGoogleMap);
+            }
+            else {
+                Controller.runDescriptionDialog(MainActivity.this, marker, myPosition, mGoogleMap);
+            }
+
+            return false;
+        }
+    }
+
+    public class MapListener implements GoogleMap.OnMapLongClickListener {
+        @Override
+        public void onMapLongClick(LatLng point) {
+            mGoogleMap.addMarker(new MarkerOptions().position(point).title(MY_PLACE));
+        }
+    }
+
+    public class MapLoader implements OnMapReadyCallback {
+        @Override
+        public void onMapReady(GoogleMap googleMap) {
+            mGoogleMap = googleMap;
+            mGoogleMap.setOnMapLongClickListener(new MapListener());
+            mGoogleMap.setOnMarkerClickListener(new MarkerListener());
+            mGoogleMap.getUiSettings().setMapToolbarEnabled(false);
+            mGoogleMap.getUiSettings().setCompassEnabled(false);
+            if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                    ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                return;
+            }
+            mGoogleMap.setMyLocationEnabled(true);
+            Controller.addAllMarkers(mGoogleMap);
+        }
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -393,9 +360,9 @@ public class MainActivity extends AppCompatActivity
 
     private void initializeCamera() {
         Button b = findViewById(R.id.button4);
-        ToolTip.Builder builder2 = new ToolTip.Builder(this, b, findViewById(R.id.root_t), "Try AR route!", ToolTip.POSITION_ABOVE );
+        ToolTip.Builder builder = new ToolTip.Builder(this, b, findViewById(R.id.root_t), "Try AR route!", ToolTip.POSITION_ABOVE);
         b.setOnLongClickListener(v -> {
-            mToolTipsManager.show(builder2.build());
+            mToolTipsManager.show(builder.build());
             return true;
         });
         b.setOnClickListener(v -> ArActivity.startWithSetup(MainActivity.this, new MySetup() {
@@ -449,53 +416,15 @@ public class MainActivity extends AppCompatActivity
         });
     }
 
-    private void checkLogin() {
-        if (Controller.getLoggedIn(this) == -1) {
-            login();
-        }
-    }
-
-    private void login() {
-        Intent login = new Intent(this, LoginActivity.class);
-        login.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        startActivity(login);
-        finish();
-    }
-
     private AlertDialog createAlertDialogNewPlace(final LatLng latLng) {
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
 
         builder.setTitle(R.string.places_creating);
         builder.setMessage(R.string.places_creating_question);
-        builder.setPositiveButton(R.string.answer_yes, (dialog, arg1) -> {
-            AlertDialog alertNewPlace = createNewPlace(latLng);
-            alertNewPlace.show();
-        });
-
+        builder.setPositiveButton(R.string.answer_yes, (dialog, arg1) -> createNewPlace(latLng).show());
         builder.setNegativeButton(R.string.answer_no, (dialog, arg1) -> dialog.dismiss());
         builder.setCancelable(true);
 
-        return builder.create();
-    }
-
-    private AlertDialog saveRoute() {
-        final AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-        LayoutInflater inflater = (LayoutInflater) MainActivity.this.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
-        final View layout = inflater.inflate(R.layout.save_route, null);
-
-        builder.setPositiveButton(R.string.answer_finish, (dialog, id) -> {
-            EditText editTextDescription = layout.findViewById(R.id.route_description);
-            String description = editTextDescription.getText().toString();
-            if (description == null || description.length() == 0) {
-                description = "No description given.";
-            }
-            Controller.saveRouteInfo(Controller.getLoggedInAsString(MainActivity.this), Controller.getRoutesLength(MainActivity.this), description);
-            Controller.sendRoute(mGoogleMap, MainActivity.this);
-            Controller.updateRoutesLength(Controller.getLoggedInAsString(MainActivity.this), Controller.getRoutesLength(MainActivity.this));
-        }).setNegativeButton(R.string.answer_back, (dialog, arg1) -> {});
-
-        builder.setCancelable(true);
-        builder.setView(layout);
         return builder.create();
     }
 
@@ -538,11 +467,9 @@ public class MainActivity extends AppCompatActivity
             } else {
                 Controller.saveCreatedPlace2(mBitmap, placeInfo, latLng);
             }
-        }).setNegativeButton(R.string.answer_back, (dialog, arg1) -> {});
+        }).setNegativeButton(R.string.answer_back, (dialog, arg1) -> dialog.dismiss());
 
-        builder.setCancelable(true);
-        builder.setView(layout);
-        return builder.create();
+        return setUpDialog(builder, layout);
     }
 
     private placeme.ru.placemedemo.elements.Place getPlaceInfo(final View layout) {
@@ -552,15 +479,4 @@ public class MainActivity extends AppCompatActivity
 
         return new placeme.ru.placemedemo.elements.Place(-1, getFieldValue(edName), getFieldValue(edDescription), getFieldValue(edTags), 0, 0);
     }
-
-    private String getFieldValue(final EditText editText) {
-        return editText.getText().toString();
-    }
-
-    private void showDescriptionDialog(final Marker marker) {
-        Controller.runDescriptionDialog(MainActivity.this, marker, myPosition, mGoogleMap);
-    }
-
-    @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {}
 }

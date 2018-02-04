@@ -149,6 +149,8 @@
     <string name="button_select">Select</string>
     <string name="user_info">User info</string>
     <string name="add_friend">Add to friends!</string>
+    <string name="search_friends">Search friends!</string>
+    <string name="search_start">"Search!"</string>
 
     <!--- Profile activity -->
     <string name="profile_changing_avatar">Changing avatar</string>

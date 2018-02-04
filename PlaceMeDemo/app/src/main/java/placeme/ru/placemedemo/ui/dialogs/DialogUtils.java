@@ -1,6 +1,7 @@
 package placeme.ru.placemedemo.ui.dialogs;
 
 import android.content.Context;
+import android.support.v7.app.AlertDialog;
 import android.view.View;
 import android.widget.SeekBar;
 import android.widget.Switch;
@@ -14,6 +15,13 @@ import placeme.ru.placemedemo.core.Controller;
  * Created by Андрей on 03.02.2018.
  */
 public class DialogUtils {
+    public static AlertDialog setUpDialog(AlertDialog.Builder builder, View view) {
+        builder.setCancelable(true);
+        builder.setView(view);
+
+        return builder.create();
+    }
+
     static void initDistanceSwitch(final Switch distanceSwitch, final Context context, final SeekBar seekBar) {
         distanceSwitch.setChecked(Controller.getDistanceSearchStatus(context));
         distanceSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {

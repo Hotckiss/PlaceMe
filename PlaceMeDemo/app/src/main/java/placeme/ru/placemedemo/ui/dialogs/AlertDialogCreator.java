@@ -32,6 +32,7 @@ import static placeme.ru.placemedemo.ui.dialogs.DialogUtils.initDistanceSwitch;
 import static placeme.ru.placemedemo.ui.dialogs.DialogUtils.initRatingSwitch;
 import static placeme.ru.placemedemo.ui.dialogs.DialogUtils.initSeekBarDistance;
 import static placeme.ru.placemedemo.ui.dialogs.DialogUtils.initSeekBarRating;
+import static placeme.ru.placemedemo.ui.dialogs.DialogUtils.setUpDialog;
 
 /**
  * Class that contains methods to create most of the dialogs
@@ -259,13 +260,6 @@ public class AlertDialogCreator {
         if(review.length() > 0) {
             Controller.addReview(place.getIdAsString(), review);
         }
-    }
-
-    private static AlertDialog setUpDialog(AlertDialog.Builder builder, View view) {
-        builder.setCancelable(true);
-        builder.setView(view);
-
-        return builder.create();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
