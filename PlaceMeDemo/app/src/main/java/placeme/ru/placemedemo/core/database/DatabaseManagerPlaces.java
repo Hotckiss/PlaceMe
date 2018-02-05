@@ -33,6 +33,7 @@ import placeme.ru.placemedemo.elements.Place;
 import placeme.ru.placemedemo.ui.dialogs.AlertDialogCreator;
 
 import static placeme.ru.placemedemo.core.database.DatabaseUtils.PLACE_PHOTO_SUFFIX;
+import static placeme.ru.placemedemo.core.database.DatabaseUtils.SEPARATOR;
 
 /**
  * Class that have all methods connected with places in database
@@ -107,10 +108,7 @@ public class DatabaseManagerPlaces {
      */
     @SuppressWarnings("unchecked")
     public static void updatePlaceRating(final RatingBar ratingBar, final String placeId) {
-        mDatabaseReference = DatabaseUtils.getDatabaseChild(mBase, PLACES_KEY);
-        if (mDatabaseReference != null) {
-            mDatabaseReference = mDatabaseReference.child(placeId);
-        }
+        mDatabaseReference = DatabaseUtils.getDatabaseChild(mBase, PLACES_KEY + SEPARATOR + placeId);
 
         mDatabaseReference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
             @Override
@@ -238,11 +236,10 @@ public class DatabaseManagerPlaces {
      */
     public static void fillDescriptionPlaces(final TextView textView, final String id) {
         final StringBuilder stringBuilder = new StringBuilder();
-        DatabaseReference referenceName = DatabaseUtils.getDatabaseChild(mBase, PLACES_KEY);
-        DatabaseReference referenceDescription = DatabaseUtils.getDatabaseChild(mBase, PLACES_KEY);
+        DatabaseReference reference = DatabaseUtils.getDatabaseChild(mBase, PLACES_KEY + SEPARATOR + id);
 
-        if (referenceName != null) {
-            referenceName.child(id).child(PLACE_NAME_KEY).addListenerForSingleValueEvent(new AbstractValueEventListener() {
+        if (reference != null) {
+            reference.child(PLACE_NAME_KEY).addListenerForSingleValueEvent(new AbstractValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     if (dataSnapshot != null) {
@@ -251,10 +248,7 @@ public class DatabaseManagerPlaces {
                     }
                 }
             });
-        }
-
-        if (referenceDescription != null) {
-            referenceDescription.child(id).child(DESCRIPTION_KEY).addListenerForSingleValueEvent(new AbstractValueEventListener() {
+            reference.child(DESCRIPTION_KEY).addListenerForSingleValueEvent(new AbstractValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     if (dataSnapshot != null) {
