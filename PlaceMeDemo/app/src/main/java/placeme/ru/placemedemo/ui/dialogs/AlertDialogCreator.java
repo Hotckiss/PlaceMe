@@ -172,7 +172,7 @@ public class AlertDialogCreator {
         final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(context, android.R.layout.select_dialog_multichoice);
         final ArrayList<User> users = new ArrayList<>();
 
-        Controller.findUsersByStringV2(arrayAdapter, users, toFind, context, activity);
+        Controller.findUsersByStringV2(arrayAdapter, users, toFind, activity);
         listView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
         listView.setAdapter(arrayAdapter);
         listView.setOnItemLongClickListener((parent, view, position, id) -> {

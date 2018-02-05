@@ -8,6 +8,8 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.ProgressBar;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
@@ -24,6 +26,7 @@ import placeme.ru.placemedemo.elements.UserDataFields;
 import placeme.ru.placemedemo.elements.UserProfileFields;
 import placeme.ru.placemedemo.ui.views.HorizontalListViewFragment;
 
+import static placeme.ru.placemedemo.core.database.DatabaseUtils.SPACE_DELIMITER;
 import static placeme.ru.placemedemo.core.database.DatabaseUtils.getDatabaseChild;
 
 /**
@@ -44,9 +47,34 @@ public class DatabaseManagerUsers {
     private static final String DOG_CHARACTER = "@";
     private static final String DATABASE_DELIMITER = ",";
     private static final String FAVOURITE_PLACES_TAG = "favouritePlaces";
+    private static final String MESSAGE_END_LINE = "\n";
 
-    private static FirebaseDatabase mBase = FirebaseDatabase.getInstance();;
+    private static FirebaseDatabase mBase = FirebaseDatabase.getInstance();
     private static DatabaseReference mDatabaseReference;
+
+    /**
+     * Method that shows user info in toast message
+     * @param userId id of user to extract information
+     * @param activity current activity
+     */
+    public static void showUserInfo(int userId, final Activity activity){
+        DatabaseReference databaseReference = getDatabaseChild(mBase, USERS_KEY);
+        if (databaseReference != null) {
+            databaseReference.addChildEventListener(new AbstractChildEventListener() {
+                @Override
+                public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                    User user = dataSnapshot.getValue(User.class);
+                    if (user == null) {
+                        return;
+                    }
+                    if (userId == user.getId()) {
+                        Toast.makeText(activity, user.getName() + SPACE_DELIMITER + user.getSurname() + MESSAGE_END_LINE +
+                                DOG_CHARACTER + user.getNickname(), Toast.LENGTH_LONG).show();
+                    }
+                }
+            });
+        }
+    }
 
     /**
      * Method that register new user in database with unique id
@@ -83,6 +111,23 @@ public class DatabaseManagerUsers {
     }
 
     /**
+     * Method that uploads user name to specific friend card in profile
+     * @param userId user id to extract information
+     * @param destination text view to fill with extracted name
+     */
+    public static void loadFriendName(int userId, final TextView destination) {
+        DatabaseReference mDatabaseReference = getDatabaseChild(mBase, USERS_KEY)
+                .child(String.valueOf(userId)).child(USER_NAME_KEY);
+        mDatabaseReference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                String name = dataSnapshot.getValue().toString();
+                destination.setText(name);
+            }
+        });
+    }
+
+    /**
      * Method that searches users in database within query string
      * before load would be finished
      * @param arrayAdapter adapter with names of founded places
@@ -91,10 +136,10 @@ public class DatabaseManagerUsers {
      * @param activity UI activity that calls method
      */
     public static void findUsersByString(final ArrayAdapter<String> arrayAdapter, final ArrayList<User> users,
-                                         final String toFind, final Context context, final Activity activity) {
+                                         final String toFind, final Activity activity) {
         activity.getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
                 WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
-        ProgressBar progressBar = new ProgressBar(context);
+        ProgressBar progressBar = new ProgressBar(activity);
         progressBar.setVisibility(View.VISIBLE);
 
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child(USERS_KEY);

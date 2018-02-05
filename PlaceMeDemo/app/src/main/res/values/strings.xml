@@ -114,7 +114,7 @@
     <string name="register_digits">Password must contains at least 3 digits!</string>
     <string name="register_letters">Password must contains at least 5 letters!</string>
     <string name="register_big_letter">Password must contains at least one big letter!</string>
-    <string name="register_equals">Passwords are nor equal!</string>
+    <string name="register_equals">Passwords are not equal!</string>
 
     <!--- User answers -->
     <string name="answer_yes">Yes!</string>
@@ -140,6 +140,7 @@
     <string name="actions_button_text">Actions</string>
     <string name="reviews_button_text">Reviews</string>
     <string name="reviews_add">Add review</string>
+    <string name="photo_add">Adding photo</string>
     <string name="reviews_all">All reviews</string>
     <string name="reviews_submit">Submit review</string>
     <string name="reviews_watch">Watch reviews</string>
@@ -150,7 +151,11 @@
     <string name="user_info">User info</string>
     <string name="add_friend">Add to friends!</string>
     <string name="search_friends">Search friends!</string>
-    <string name="search_start">"Search!"</string>
+    <string name="search_start">Search!</string>
+    <string name="ask_photo">Do you want to open gallery or take photo?</string>
+    <string name="answer_photo">Camera</string>
+    <string name="answer_gallery">Gallery</string>
+    <string name="info_title">Information</string>
 
     <!--- Profile activity -->
     <string name="profile_changing_avatar">Changing avatar</string>

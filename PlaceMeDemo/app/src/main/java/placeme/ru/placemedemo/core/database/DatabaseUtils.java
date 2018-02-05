@@ -28,9 +28,9 @@ import placeme.ru.placemedemo.elements.Place;
  */
 public class DatabaseUtils {
     public static final String PLACE_PHOTO_SUFFIX = "place_photo";
+    public static final String SPACE_DELIMITER = " ";
     private static final String DATABASE_DELIMITER = ",";
-    private static final String PLACES_KEY = "places";
-    private static final String SPACE_DELIMITER = " ";
+    private static final String PHOTOS_KEY = "photos";
     private static final String DASH_DELIMITER = "-";
     private static final double PERCENT_TO_RATING = 20.0;
 
@@ -133,7 +133,7 @@ public class DatabaseUtils {
      * @param placeId id of place that have this picture
      */
     public static void uploadPicture(final Uri uri, final StorageReference storageReference, final Integer placeId) {
-        StorageReference child = storageReference.child(PLACES_KEY).child(placeId.toString() + PLACE_PHOTO_SUFFIX);
+        StorageReference child = storageReference.child(PHOTOS_KEY).child(placeId.toString() + PLACE_PHOTO_SUFFIX);
 
         if (uri != null) {
             child.putFile(uri);
@@ -147,7 +147,7 @@ public class DatabaseUtils {
      * @param placeId id of place that have this picture
      */
     public static void uploadBitmap(final Bitmap bitmap, final StorageReference storageReference, final Integer placeId) {
-        StorageReference child = storageReference.child(PLACES_KEY).child(placeId.toString() + PLACE_PHOTO_SUFFIX);
+        StorageReference child = storageReference.child(PHOTOS_KEY).child(placeId.toString() + PLACE_PHOTO_SUFFIX);
 
         if (bitmap != null) {
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();

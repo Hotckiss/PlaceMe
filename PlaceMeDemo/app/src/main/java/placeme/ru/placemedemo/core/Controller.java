@@ -475,8 +475,8 @@ public class Controller {
      * @param toFind string which contains user query to search
      * @param activity UI activity that calls method
      */
-    public static void findUsersByStringV2(final ArrayAdapter<String> arrayAdapter, final ArrayList<User> users, final String toFind, final Context context, final Activity activity) {
-        DatabaseManagerUsers.findUsersByString(arrayAdapter, users, toFind, context, activity);
+    public static void findUsersByStringV2(final ArrayAdapter<String> arrayAdapter, final ArrayList<User> users, final String toFind, final Activity activity) {
+        DatabaseManagerUsers.findUsersByString(arrayAdapter, users, toFind, activity);
     }
 
     /**

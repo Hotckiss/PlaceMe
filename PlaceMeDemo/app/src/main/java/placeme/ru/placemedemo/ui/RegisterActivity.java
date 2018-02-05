@@ -12,7 +12,7 @@ import placeme.ru.placemedemo.core.Controller;
 import placeme.ru.placemedemo.elements.AuthData;
 import placeme.ru.placemedemo.elements.User;
 
-import static placeme.ru.placemedemo.ui.MainUtils.getFieldValue;
+import static placeme.ru.placemedemo.ui.utils.MainUtils.getFieldValue;
 
 /**
  * Activity that provides user to register in the application
@@ -72,7 +72,7 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private AuthData generateNewAuthData() {
-        return new AuthData(-1, getFieldValue(mLogin), getFieldValue(mName));
+        return new AuthData(-1, getFieldValue(mLogin), getFieldValue(mPassword));
     }
 
     private User generateNewUserData() {
