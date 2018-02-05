@@ -26,6 +26,7 @@ import placeme.ru.placemedemo.elements.UserDataFields;
 import placeme.ru.placemedemo.elements.UserProfileFields;
 import placeme.ru.placemedemo.ui.views.HorizontalListViewFragment;
 
+import static placeme.ru.placemedemo.core.database.DatabaseUtils.SEPARATOR;
 import static placeme.ru.placemedemo.core.database.DatabaseUtils.SPACE_DELIMITER;
 import static placeme.ru.placemedemo.core.database.DatabaseUtils.getDatabaseChild;
 
@@ -359,34 +360,24 @@ public class DatabaseManagerUsers {
      * @param friendId id of friend to be added
      */
     public static void addFriend(final String userId, final String friendId) {
-        DatabaseReference reference = getDatabaseChild(mBase, USERS_KEY);
+        DatabaseReference reference = getDatabaseChild(mBase, USERS_KEY + SEPARATOR + userId);
         if (reference != null) {
-            reference = reference.child(userId).child(FRIENDS_KEY);
-            reference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
+            reference.child(FRIENDS_KEY).addListenerForSingleValueEvent(new AbstractValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     final String friends = dataSnapshot.getValue(String.class);
-                    if (friends.length() == 0) {
-                        DatabaseReference referenceFriends = getDatabaseChild(mBase, USERS_KEY);
-                        if (referenceFriends != null) {
-                            referenceFriends.child(userId).child(FRIENDS_KEY).setValue(friendId);
-                            referenceFriends.child(userId).child(FRIENDS_LENGTH_KEY).setValue(1);
-                        }
+                    if (friends.isEmpty()) {
+                        reference.child(FRIENDS_KEY).setValue(friendId);
+                        reference.child(FRIENDS_LENGTH_KEY).setValue(1);
                     } else {
-                        int length = friends.split(DATABASE_DELIMITER).length;
-                        boolean alreadyAdded = false;
-                        for (String friend : friends.split(DATABASE_DELIMITER)) {
+                        String[] allFriends = friends.split(DATABASE_DELIMITER);
+                        for (String friend : allFriends) {
                             if (friend.equals(friendId)) {
-                                alreadyAdded = true;
+                                return;
                             }
                         }
-                        if (!alreadyAdded) {
-                            DatabaseReference referenceFriends = getDatabaseChild(mBase, USERS_KEY);
-                            if (referenceFriends != null) {
-                                referenceFriends.child(userId).child(FRIENDS_KEY).setValue(friends + DATABASE_DELIMITER + friendId);
-                                referenceFriends.child(userId).child(FRIENDS_LENGTH_KEY).setValue(length + 1);
-                            }
-                        }
+                        reference.child(FRIENDS_KEY).setValue(friends + DATABASE_DELIMITER + friendId);
+                        reference.child(FRIENDS_LENGTH_KEY).setValue(allFriends.length + 1);
                     }
                 }
             });

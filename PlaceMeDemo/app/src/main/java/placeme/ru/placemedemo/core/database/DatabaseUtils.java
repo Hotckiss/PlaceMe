@@ -29,6 +29,7 @@ import placeme.ru.placemedemo.elements.Place;
 public class DatabaseUtils {
     public static final String PLACE_PHOTO_SUFFIX = "place_photo";
     public static final String SPACE_DELIMITER = " ";
+    public static final String SEPARATOR = "/";
     private static final String DATABASE_DELIMITER = ",";
     private static final String PHOTOS_KEY = "photos";
     private static final String DASH_DELIMITER = "-";
