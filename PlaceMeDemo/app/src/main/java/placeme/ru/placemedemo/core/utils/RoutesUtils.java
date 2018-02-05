@@ -16,7 +16,8 @@ public class RoutesUtils {
      * @param length number of user routes
      */
     public static void setRoutesLength(Context context, long length) {
-        context.getSharedPreferences(ROUTES_PREFERENCES, Context.MODE_PRIVATE).edit().putLong(ROUTES_KEY, length).apply();
+        context.getSharedPreferences(ROUTES_PREFERENCES, Context.MODE_PRIVATE).edit()
+                .putLong(ROUTES_KEY, length).apply();
     }
 
     /**
@@ -25,6 +26,7 @@ public class RoutesUtils {
      * @return id if the companion if no companion found, return value is "null"
      */
     public static Long getRoutesLength(Context context) {
-        return context.getSharedPreferences(ROUTES_PREFERENCES, Context.MODE_PRIVATE).getLong(ROUTES_KEY, 0);
+        return context.getSharedPreferences(ROUTES_PREFERENCES, Context.MODE_PRIVATE)
+                .getLong(ROUTES_KEY, 0);
     }
 }

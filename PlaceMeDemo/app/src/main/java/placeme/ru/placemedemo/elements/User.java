@@ -5,6 +5,8 @@ package placeme.ru.placemedemo.elements;
  * Created by Андрей on 17.11.2017.
  */
 public class User {
+    private static final String DELIMITER = ",";
+
     private int id;
     private String name;
     private String surname;
@@ -137,22 +139,22 @@ public class User {
      * Method that adds favourite place to user list
      * @param favouritePlace new favourite place of the user
      */
-    public void addFavouritePlace(String favouritePlace) { favouritePlaces = favouritePlaces + "," + favouritePlace; }
+    public void addFavouritePlace(String favouritePlace) { favouritePlaces = favouritePlaces + DELIMITER + favouritePlace; }
 
     /**
      * Method that adds friend to user friend list
      * @param newFriend friend that should be added
-     * @return true if friend was sucessfully added false otherwise (if it was already in the list, for example)
+     * @return true if friend was successfully added false otherwise (if it was already in the list, for example)
      */
     public boolean addFriend(String newFriend) {
-        String[] currentFriends = friends.split(",");
+        String[] currentFriends = friends.split(DELIMITER);
         for (String friend : currentFriends) {
             if(newFriend.equals(friend)) {
                 return false;
             }
         }
 
-        friends = friends + "," + newFriend;
+        friends = friends + DELIMITER + newFriend;
 
         return true;
     }
@@ -165,7 +167,7 @@ public class User {
         if (friends.length() == 0) {
             return 0;
         } else {
-            return friends.split(",").length;
+            return friends.split(DELIMITER).length;
         }
     }
 

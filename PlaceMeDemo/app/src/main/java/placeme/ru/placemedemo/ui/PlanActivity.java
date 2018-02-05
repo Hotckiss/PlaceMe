@@ -8,8 +8,10 @@ import android.widget.ListView;
 import placeme.ru.placemedemo.R;
 import placeme.ru.placemedemo.core.Controller;
 
+/**
+ * Activity that represents user plans to visit places
+ */
 public class PlanActivity extends AppCompatActivity {
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -21,7 +23,6 @@ public class PlanActivity extends AppCompatActivity {
         adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1);
 
         Controller.loadPlan(Controller.getLoggedInAsString(PlanActivity.this), adapter);
-
         planList.setAdapter(adapter);
     }
 }

@@ -32,6 +32,8 @@ import static placeme.ru.placemedemo.core.database.DatabaseUtils.getDatabaseChil
 
 /**
  * Class that have all methods connected with working with users in database
+ * It allows to load user profile or get some important parts of it for other tasks
+ * like getting favourite places list and friends list
  * Created by Андрей on 02.02.2018.
  */
 public class DatabaseManagerUsers {
@@ -69,8 +71,8 @@ public class DatabaseManagerUsers {
                         return;
                     }
                     if (userId == user.getId()) {
-                        Toast.makeText(activity, user.getName() + SPACE_DELIMITER + user.getSurname() + MESSAGE_END_LINE +
-                                DOG_CHARACTER + user.getNickname(), Toast.LENGTH_LONG).show();
+                        Toast.makeText(activity, user.getName() + SPACE_DELIMITER + user.getSurname() +
+                                MESSAGE_END_LINE + DOG_CHARACTER + user.getNickname(), Toast.LENGTH_LONG).show();
                     }
                 }
             });
@@ -85,30 +87,28 @@ public class DatabaseManagerUsers {
     public static void registerUser(final AuthData newAuthData, final User newUserData) {
         DatabaseReference databaseReference = getDatabaseChild(mBase, MAX_ID);
 
-        if (databaseReference == null) {
-            return;
-        }
+        if (databaseReference != null) {
+            databaseReference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    Integer id = dataSnapshot.getValue(Integer.class);
+                    if (id != null) {
+                        newAuthData.setId(id);
+                        newUserData.setId(id);
+                        DatabaseReference referenceAuth = getDatabaseChild(mBase, AUTH_DATA_KEY);
+                        DatabaseReference referenceUsers = getDatabaseChild(mBase, USERS_KEY);
 
-        databaseReference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                Integer id = dataSnapshot.getValue(Integer.class);
-                if (id != null) {
-                    newAuthData.setId(id);
-                    newUserData.setId(id);
-                    DatabaseReference referenceAuth = getDatabaseChild(mBase, AUTH_DATA_KEY);
-                    DatabaseReference referenceUsers = getDatabaseChild(mBase, USERS_KEY);
-
-                    if (referenceUsers != null) {
-                        referenceUsers.child(id.toString()).setValue(newUserData);
+                        if (referenceUsers != null) {
+                            referenceUsers.child(id.toString()).setValue(newUserData);
+                        }
+                        if (referenceAuth != null) {
+                            referenceAuth.child(id.toString()).setValue(newAuthData);
+                        }
+                        databaseReference.setValue(id + 1);
                     }
-                    if (referenceAuth != null) {
-                        referenceAuth.child(id.toString()).setValue(newAuthData);
-                    }
-                    databaseReference.setValue(id + 1);
                 }
-            }
-        });
+            });
+        }
     }
 
     /**
@@ -117,15 +117,18 @@ public class DatabaseManagerUsers {
      * @param destination text view to fill with extracted name
      */
     public static void loadFriendName(int userId, final TextView destination) {
-        DatabaseReference mDatabaseReference = getDatabaseChild(mBase, USERS_KEY)
-                .child(String.valueOf(userId)).child(USER_NAME_KEY);
-        mDatabaseReference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                String name = dataSnapshot.getValue().toString();
-                destination.setText(name);
-            }
-        });
+        DatabaseReference mDatabaseReference = getDatabaseChild(mBase, USERS_KEY + SEPARATOR +
+                String.valueOf(userId) + SEPARATOR + USER_NAME_KEY);
+
+        if (mDatabaseReference != null) {
+            mDatabaseReference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    String name = dataSnapshot.getValue().toString();
+                    destination.setText(name);
+                }
+            });
+        }
     }
 
     /**
@@ -142,26 +145,26 @@ public class DatabaseManagerUsers {
                 WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
         ProgressBar progressBar = new ProgressBar(activity);
         progressBar.setVisibility(View.VISIBLE);
-
-        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child(USERS_KEY);
-        databaseReference.addChildEventListener(new AbstractChildEventListener() {
-            @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                User user = dataSnapshot.getValue(User.class);
-                if (user != null && user.getNickname().contains(toFind)) {
-                    arrayAdapter.add(user.getName());
-                    users.add(user);
+        DatabaseReference databaseReference = getDatabaseChild(mBase, USERS_KEY);
+        if (databaseReference != null) {
+            databaseReference.addChildEventListener(new AbstractChildEventListener() {
+                @Override
+                public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                    User user = dataSnapshot.getValue(User.class);
+                    if (user != null && user.getNickname().contains(toFind)) {
+                        arrayAdapter.add(user.getName());
+                        users.add(user);
+                    }
                 }
-            }
-        });
-
-        databaseReference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                progressBar.setVisibility(View.GONE);
-                activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
-            }
-        });
+            });
+            databaseReference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    progressBar.setVisibility(View.GONE);
+                    activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+                }
+            });
+        }
     }
 
     /**
@@ -171,10 +174,8 @@ public class DatabaseManagerUsers {
      * @param placeId id of place that should be added
      */
     public static void addPlaceToFavourite(final String userId, final String placeId) {
-        mDatabaseReference = getDatabaseChild(mBase, USERS_KEY);
-        if (mDatabaseReference != null) {
-            mDatabaseReference = mDatabaseReference.child(userId).child(FAVOURITE_PLACES_TAG);
-        }
+        mDatabaseReference = getDatabaseChild(mBase, USERS_KEY + SEPARATOR + userId +
+                SEPARATOR + FAVOURITE_PLACES_TAG);
 
         mDatabaseReference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
             @Override
@@ -199,7 +200,8 @@ public class DatabaseManagerUsers {
      * @param password user password
      * @return reference to user auth data
      */
-    public static DatabaseReference generateLoginReference(final Context context, final String email, final String password) {
+    public static DatabaseReference generateLoginReference(final Context context,
+                                                           final String email, final String password) {
         DatabaseReference reference = getDatabaseChild(mBase, AUTH_DATA_KEY);
 
         if (reference != null) {
@@ -223,16 +225,8 @@ public class DatabaseManagerUsers {
      */
     @SuppressWarnings("unchecked")
     public static void loadUserDataForEdit(final UserDataFields toLoad, String userId) {
-        DatabaseReference mDatabaseReferenceUser = getDatabaseChild(mBase, USERS_KEY);
-        DatabaseReference mDatabaseReferenceAuth = getDatabaseChild(mBase, AUTH_DATA_KEY);
-
-        if (mDatabaseReferenceUser != null) {
-            mDatabaseReferenceUser = mDatabaseReferenceUser.child(userId);
-        }
-
-        if (mDatabaseReferenceAuth != null) {
-            mDatabaseReferenceAuth = mDatabaseReferenceAuth.child(userId);
-        }
+        DatabaseReference mDatabaseReferenceUser = getDatabaseChild(mBase, USERS_KEY + SEPARATOR + userId);
+        DatabaseReference mDatabaseReferenceAuth = getDatabaseChild(mBase, AUTH_DATA_KEY + SEPARATOR + userId);
 
         if (mDatabaseReferenceUser != null) {
             mDatabaseReferenceUser.addListenerForSingleValueEvent(new AbstractValueEventListener() {
@@ -269,26 +263,23 @@ public class DatabaseManagerUsers {
      * @param newUserData user data that user input during editing profile
      */
     public static void saveProfileChanges(final String userId, final AuthData newAuthData, final User newUserData) {
-        mDatabaseReference = getDatabaseChild(mBase, USERS_KEY);
-        if (mDatabaseReference != null) {
-            mDatabaseReference = mDatabaseReference.child(userId);
-        }
+        mDatabaseReference = getDatabaseChild(mBase, USERS_KEY + SEPARATOR + userId);
 
         mDatabaseReference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                DatabaseReference referenceAuth = getDatabaseChild(mBase, AUTH_DATA_KEY);
-                DatabaseReference referenceUsers = getDatabaseChild(mBase, USERS_KEY);
+                DatabaseReference referenceAuth = getDatabaseChild(mBase, AUTH_DATA_KEY + SEPARATOR + userId);
+                DatabaseReference referenceUsers = getDatabaseChild(mBase, USERS_KEY + SEPARATOR + userId);
 
                 if (referenceAuth != null) {
-                    referenceAuth.child(userId).child(USER_LOGIN_KEY).setValue(newAuthData.getLogin());
-                    referenceAuth.child(userId).child(USER_PASSWORD_KEY).setValue(newAuthData.getPassword());
+                    referenceAuth.child(USER_LOGIN_KEY).setValue(newAuthData.getLogin());
+                    referenceAuth.child(USER_PASSWORD_KEY).setValue(newAuthData.getPassword());
                 }
 
                 if (referenceUsers != null) {
-                    referenceUsers.child(userId).child(USER_NAME_KEY).setValue(newUserData.getName());
-                    referenceUsers.child(userId).child(USER_SURNAME_KEY).setValue(newUserData.getSurname());
-                    referenceUsers.child(userId).child(USER_NICKNAME_KEY).setValue(newUserData.getNickname());
+                    referenceUsers.child(USER_NAME_KEY).setValue(newUserData.getName());
+                    referenceUsers.child(USER_SURNAME_KEY).setValue(newUserData.getSurname());
+                    referenceUsers.child(USER_NICKNAME_KEY).setValue(newUserData.getNickname());
                 }
             }
         });
@@ -298,15 +289,13 @@ public class DatabaseManagerUsers {
      * Method that allows to load user favorite places from database to fragment
      * @param userId user id
      * @param context current context
-     * @param fragmentManager fragment managet for transaction
+     * @param fragmentManager fragment manager for transaction
      * @param fragment output fragment
      */
     public static void loadUserFavouritePlacesList(final String userId, final Context context,
                                                    final FragmentManager fragmentManager, final Fragment fragment) {
-        mDatabaseReference = getDatabaseChild(mBase, USERS_KEY);
-        if (mDatabaseReference != null) {
-            mDatabaseReference = mDatabaseReference.child(userId).child(FAVOURITE_PLACES_TAG);
-        }
+        mDatabaseReference = getDatabaseChild(mBase, USERS_KEY + SEPARATOR +
+                userId + SEPARATOR + FAVOURITE_PLACES_TAG);
 
         mDatabaseReference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
             @Override

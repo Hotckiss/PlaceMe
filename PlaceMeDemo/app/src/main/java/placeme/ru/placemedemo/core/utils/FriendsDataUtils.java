@@ -13,14 +13,15 @@ public class FriendsDataUtils {
     private static final String FRIENDS_PREFERENCES = "Friends";
     private static final String FRIENDS_LIST_LENGTH_KEY = "list";
     private static final String FRIENDS_LIST_PREFERENCES = "FriendsString";
-
+    private static final String DEFAULT_FRIENDS = "";
     /**
      * Method that write length of list of friends of current user
      * @param context current context
      * @param length number of friends
      */
     public static void setFriendsLength(Context context, int length) {
-        context.getSharedPreferences(FRIENDS_PREFERENCES, Context.MODE_PRIVATE).edit().putInt(FRIENDS_LENGTH_KEY, length).apply();
+        context.getSharedPreferences(FRIENDS_PREFERENCES, Context.MODE_PRIVATE).edit()
+                .putInt(FRIENDS_LENGTH_KEY, length).apply();
     }
 
     /**
@@ -28,7 +29,8 @@ public class FriendsDataUtils {
      * @param context current context
      */
     public static int getFriendsLength(Context context) {
-        return context.getSharedPreferences(FRIENDS_PREFERENCES, Context.MODE_PRIVATE).getInt(FRIENDS_LENGTH_KEY, 0);
+        return context.getSharedPreferences(FRIENDS_PREFERENCES, Context.MODE_PRIVATE)
+                .getInt(FRIENDS_LENGTH_KEY, 0);
     }
 
     /**
@@ -37,7 +39,8 @@ public class FriendsDataUtils {
      * @param friends string that contains a list of friends
      */
     public static void setFriends(Context context, String friends) {
-        context.getSharedPreferences(FRIENDS_LIST_PREFERENCES, Context.MODE_PRIVATE).edit().putString(FRIENDS_LIST_LENGTH_KEY, friends).apply();
+        context.getSharedPreferences(FRIENDS_LIST_PREFERENCES, Context.MODE_PRIVATE).edit()
+                .putString(FRIENDS_LIST_LENGTH_KEY, friends).apply();
     }
 
     /**
@@ -45,7 +48,8 @@ public class FriendsDataUtils {
      * @param context current context
      */
     public static String getFriends(Context context) {
-        return context.getSharedPreferences(FRIENDS_LIST_PREFERENCES, Context.MODE_PRIVATE).getString(FRIENDS_LIST_LENGTH_KEY, "");
+        return context.getSharedPreferences(FRIENDS_LIST_PREFERENCES, Context.MODE_PRIVATE)
+                .getString(FRIENDS_LIST_LENGTH_KEY, DEFAULT_FRIENDS);
     }
 
 }

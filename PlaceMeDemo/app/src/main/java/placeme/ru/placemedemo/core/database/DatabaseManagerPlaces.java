@@ -37,9 +37,10 @@ import static placeme.ru.placemedemo.core.database.DatabaseUtils.SEPARATOR;
 
 /**
  * Class that have all methods connected with places in database
+ * it allows to load picture of places and their descriptions
+ * in all dialogs that user can see in application
  * Created by Андрей on 01.02.2018.
  */
-
 public class DatabaseManagerPlaces {
     private static final String PLACES_KEY = "places";
     private static final String MARKS_SUM = "sumOfMarks";
@@ -85,7 +86,8 @@ public class DatabaseManagerPlaces {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 Place place = dataSnapshot.getValue(Place.class);
-                if (place != null && DatabaseUtils.checkAccess(place, myPosition, activity) && DatabaseUtils.isAppropriate(place, toFind)) {
+                if (place != null && DatabaseUtils.checkAccess(place, myPosition, activity) &&
+                        DatabaseUtils.isAppropriate(place, toFind)) {
                     DatabaseUtils.addPlaceToList(arrayAdapter, places, place);
                 }
             }
@@ -221,7 +223,8 @@ public class DatabaseManagerPlaces {
                 @Override
                 public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                     Place place = dataSnapshot.getValue(Place.class);
-                    if (place != null && (place.getLatitude() == marker.getPosition().latitude) && (place.getLongitude() == marker.getPosition().longitude)) {
+                    if (place != null && (place.getLatitude() == marker.getPosition().latitude) &&
+                            (place.getLongitude() == marker.getPosition().longitude)) {
                         AlertDialogCreator.createAlertDescriptionDialog(context, place, myPosition, googleMap).show();
                     }
                 }
@@ -267,7 +270,7 @@ public class DatabaseManagerPlaces {
      * @param context current context
      */
     public static void loadDescriptionImage(final ImageView imageView, final Place place, final Context context) {
-        mStorageRef.child(PHOTOS_KEY).child(place.getIdAsString() + PLACE_PHOTO_SUFFIX)
+        mStorageRef.child(PHOTOS_KEY + SEPARATOR + place.getIdAsString() + PLACE_PHOTO_SUFFIX)
                 .getDownloadUrl().addOnSuccessListener(uri -> Picasso.with(context).load(uri)
                 .placeholder(R.drawable.noimage)
                 .error(R.drawable.noimage)
@@ -323,6 +326,7 @@ public class DatabaseManagerPlaces {
             reference.child(placeId.toString()).setValue(newPlace);
             return true;
         }
+
         return false;
     }
 }

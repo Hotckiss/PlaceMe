@@ -30,12 +30,23 @@ public class UserDataFields {
         mNicknameField = nicknameField;
     }
 
+    /**
+     * Method that set all fields that are shown in user profile
+     * @param name user name
+     * @param surname user surname
+     * @param nickname user nickname
+     */
     public void setProfileFields(final String name, final String surname, final String nickname) {
         mNameField.setText(name);
         mSurnameField.setText(surname);
         mNicknameField.setText(nickname);
     }
 
+    /**
+     * Method that set all fields that are used to identify user
+     * @param login user login
+     * @param password user password
+     */
     public void setAuthFields(final String login, final String password) {
         mLoginField.setText(login);
         mPasswordField.setText(password);

@@ -47,7 +47,8 @@ import placeme.ru.placemedemo.elements.UserProfileFields;
  * Created by Андрей on 25.12.2017.
  */
 public class Controller {
-
+    private static final String IMAGE_TYPE = "image/png";
+    private static final String DEFAULT_IMAGE_NAME = "tmp.png";
     /**
      * Method that register new user in database with unique id
      * @param newAuthData authentication data that user input during registration
@@ -103,7 +104,8 @@ public class Controller {
      * @param fragmentManager fragment manager for transaction
      * @param fragment output fragment
      */
-    public static void loadUserFavouritePlacesListV2(final String userId, final Context context, final FragmentManager fragmentManager, final Fragment fragment) {
+    public static void loadUserFavouritePlacesListV2(final String userId, final Context context,
+                                                     final FragmentManager fragmentManager, final Fragment fragment) {
         DatabaseManagerUsers.loadUserFavouritePlacesList(userId, context, fragmentManager, fragment);
     }
 
@@ -114,7 +116,8 @@ public class Controller {
      * @param userProfileInfo fields with user profile information
      * @param fragmentManager fragment manager to load friends list
      */
-    public static void loadUserProfile(final Context context, final int userId, final UserProfileFields userProfileInfo, final FragmentManager fragmentManager) {
+    public static void loadUserProfile(final Context context, final int userId,
+                                       final UserProfileFields userProfileInfo, final FragmentManager fragmentManager) {
         DatabaseManagerUsers.loadUserProfile(context, userId, userProfileInfo, fragmentManager);
     }
 
@@ -144,7 +147,8 @@ public class Controller {
      * @param fragmentManager fragment manager for transaction
      * @param fragment output fragment
      */
-    public static void getUserRoutesLength(final String userId, final Context context, final FragmentManager fragmentManager, final Fragment fragment) {
+    public static void getUserRoutesLength(final String userId, final Context context,
+                                           final FragmentManager fragmentManager, final Fragment fragment) {
         DatabaseManagerRoutes.getUserRoutesLength(userId, context, fragmentManager, fragment);
     }
 
@@ -172,7 +176,8 @@ public class Controller {
      * @param context current context
      * @param marker place position
      */
-    public static void runDescriptionDialog(final Context context, final Marker marker, final LatLng myPosition, final GoogleMap googleMap) {
+    public static void runDescriptionDialog(final Context context, final Marker marker,
+                                            final LatLng myPosition, final GoogleMap googleMap) {
         DatabaseManagerPlaces.runDescriptionDialog(context, marker, myPosition, googleMap);
     }
 
@@ -396,7 +401,9 @@ public class Controller {
      * @param googleMap map where route will be possibly build
      * @param points storage of route points which is important for route in augmented reality
      */
-    public static void makeRoute(final ListView listView, final LatLng myPosition, final ArrayList<Place> placeArrayList, final Context context, final GoogleMap googleMap, final ArrayList<LatLng> points) {
+    public static void makeRoute(final ListView listView, final LatLng myPosition,
+                                 final ArrayList<Place> placeArrayList, final Context context,
+                                 final GoogleMap googleMap, final ArrayList<LatLng> points) {
         MapManager.makeRoute(listView, myPosition, placeArrayList, context, googleMap, points);
     }
 
@@ -408,7 +415,9 @@ public class Controller {
      * @param googleMap map where route should be build
      * @param points storage of route points which is important for route in augmented reality
      */
-    public static void makeSingleRoute(final LatLng myPosition, final LatLng destination, final Context context, final GoogleMap googleMap, final ArrayList<LatLng> points) {
+    public static void makeSingleRoute(final LatLng myPosition, final LatLng destination,
+                                       final Context context, final GoogleMap googleMap,
+                                       final ArrayList<LatLng> points) {
         MapManager.refreshMarkers(googleMap);
         MapManager.makeSingleRoute(myPosition, destination, context, googleMap, points);
     }
@@ -474,7 +483,8 @@ public class Controller {
      * @param toFind string which contains user query to search
      * @param activity UI activity that calls method
      */
-    public static void findUsersByStringV2(final ArrayAdapter<String> arrayAdapter, final ArrayList<User> users, final String toFind, final Activity activity) {
+    public static void findUsersByStringV2(final ArrayAdapter<String> arrayAdapter, final ArrayList<User> users,
+                                           final String toFind, final Activity activity) {
         DatabaseManagerUsers.findUsersByString(arrayAdapter, users, toFind, activity);
     }
 
@@ -586,7 +596,9 @@ public class Controller {
             double dLatitude = degreeToRadian(finish.latitude - start.latitude);
             double dLongitude = degreeToRadian(finish.longitude - start.longitude);
 
-            double a = Math.sin(dLatitude / 2) * Math.sin(dLatitude / 2) + Math.cos(degreeToRadian(start.latitude)) * Math.cos(degreeToRadian(finish.latitude)) * Math.sin(dLongitude / 2) * Math.sin(dLongitude / 2);
+            double a = Math.sin(dLatitude / 2) * Math.sin(dLatitude / 2) +
+                       Math.cos(degreeToRadian(start.latitude)) * Math.cos(degreeToRadian(finish.latitude)) *
+                       Math.sin(dLongitude / 2) * Math.sin(dLongitude / 2);
             double b = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
             return radius * b;
@@ -636,12 +648,12 @@ public class Controller {
                         outputDir.mkdir();
                     }
 
-                    File outputFile = new File(outputDir, "tmp.png");
+                    File outputFile = new File(outputDir, DEFAULT_IMAGE_NAME);
                     FileOutputStream fileOutputStream = new FileOutputStream(outputFile);
                     bitmap.compress(Bitmap.CompressFormat.PNG, 100, fileOutputStream);
                     MediaScannerConnection.scanFile(instance,
                             new String[] { outputFile.getPath() },
-                            new String[] { "image/png" },
+                            new String[] { IMAGE_TYPE },
                             null);
 
                     Uri attachment = Uri.fromFile(outputFile);

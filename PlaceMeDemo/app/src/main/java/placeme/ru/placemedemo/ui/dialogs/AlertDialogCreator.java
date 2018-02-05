@@ -68,7 +68,8 @@ public class AlertDialogCreator {
      * @return returns created alert dialog
      */
     public static AlertDialog createAlertDialogFounded(final Context context, final String toFind,
-                                                       final GoogleMap googleMap, final LatLng myPosition, final Activity activity) {
+                                                       final GoogleMap googleMap, final LatLng myPosition,
+                                                       final Activity activity) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         LayoutInflater inflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
         final View layout = inflater.inflate(R.layout.list, null);
@@ -102,7 +103,8 @@ public class AlertDialogCreator {
      * @return created alert dialog
      */
     @RequiresApi(api = Build.VERSION_CODES.M)
-    public static AlertDialog createAlertDescriptionDialog(final Context context, final Place place, final LatLng myPosition, final GoogleMap googleMap) {
+    public static AlertDialog createAlertDescriptionDialog(final Context context, final Place place,
+                                                           final LatLng myPosition, final GoogleMap googleMap) {
         final AlertDialog.Builder builder = new AlertDialog.Builder(context);
         LayoutInflater inflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
         final View layout = inflater.inflate(R.layout.dialog_description, null);
@@ -116,7 +118,8 @@ public class AlertDialogCreator {
         ratingBar.setRating(place.getMark());
 
         builder.setPositiveButton(R.string.answer_go_here, (dialog, arg1) ->
-                Controller.makeSingleRoute(myPosition, new LatLng(place.getLatitude(), place.getLongitude()), context, googleMap, points));
+                Controller.makeSingleRoute(myPosition, new LatLng(place.getLatitude(), place.getLongitude()),
+                        context, googleMap, points));
         builder.setNeutralButton(R.string.actions_button_text, (dialog, id) ->
                 createAlertRateDialog(place,context).show());
         builder.setNegativeButton(R.string.reviews_button_text, (dialog, which) ->
@@ -160,7 +163,8 @@ public class AlertDialogCreator {
      * @param toFind user query
      * @return returns created alert dialog
      */
-    public static AlertDialog createAlertDialogFoundedFriends(final Context context, final String toFind, final Activity activity) {
+    public static AlertDialog createAlertDialogFoundedFriends(final Context context, final String toFind,
+                                                              final Activity activity) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         final View layout = inflater.inflate(R.layout.list, null);
@@ -192,7 +196,8 @@ public class AlertDialogCreator {
         return setUpDialog(builder, layout);
     }
 
-    private static AlertDialog createInnerDescriptionDialogUser(final int position, final Context context, final ArrayList<User> users) {
+    private static AlertDialog createInnerDescriptionDialogUser(final int position, final Context context,
+                                                                final ArrayList<User> users) {
         AlertDialog.Builder builderInner = new AlertDialog.Builder(context);
         builderInner.setMessage(users.get(position).getName() + DATE_DELIMITER + users.get(position).getSurname());
         builderInner.setTitle(R.string.user_info);
@@ -201,7 +206,8 @@ public class AlertDialogCreator {
         return builderInner.create();
     }
 
-    private static AlertDialog createInnerDescriptionDialog(final int position, final Context context, final ArrayList<Place> placeArrayList) {
+    private static AlertDialog createInnerDescriptionDialog(final int position, final Context context,
+                                                            final ArrayList<Place> placeArrayList) {
         AlertDialog.Builder builderInner = new AlertDialog.Builder(context);
         builderInner.setMessage(placeArrayList.get(position).getDescription());
         builderInner.setTitle(placeArrayList.get(position).getName());
@@ -317,8 +323,8 @@ public class AlertDialogCreator {
             Integer hours = timePicker.getHour();
             Integer minutes = timePicker.getMinute();
 
-            Controller.addPlan(place.getName(), Controller.getLoggedInAsString(context), date + DATE_DELIMITER
-                    + hours.toString() + TIME_DOTS + minutes.toString());
+            Controller.addPlan(place.getName(), Controller.getLoggedInAsString(context), date + DATE_DELIMITER +
+                    hours.toString() + TIME_DOTS + minutes.toString());
             dialog.dismiss();
         });
 

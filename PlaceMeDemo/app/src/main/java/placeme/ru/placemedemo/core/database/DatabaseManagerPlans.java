@@ -18,6 +18,8 @@ import static placeme.ru.placemedemo.core.database.DatabaseUtils.getDatabaseChil
 
 /**
  * Class that have all methods connected with plans and reviews in database
+ * it allows to save user visit plans and upload them to special plans activity
+ * what's more, class allows to save user reviews on places
  * Created by Андрей on 21.12.2017.
  */
 public class DatabaseManagerPlans {

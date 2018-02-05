@@ -45,8 +45,8 @@ public class HorizontalListViewFragment extends Fragment {
         String[] friends = Controller.getFriends(getActivity().getBaseContext()).split(LIST_DELIMITER);
         for(int i = 0; i < finish; i++){
             FriendCard item = new FriendCard();
-            item.setmCardName(FRIEND_PREFIX + (i + 1));
-            item.setmImageResourceId(R.drawable.grey);
+            item.setCardName(FRIEND_PREFIX + (i + 1));
+            item.setImageResourceId(R.drawable.grey);
             item.setId(Integer.parseInt(friends[i]));
             itemsList.add(item);
         }

@@ -24,21 +24,18 @@ public class ProfileActivity extends AppCompatActivity {
     private static final int PROFILE_CHANGED_CODE = 1;
     private static final int GALLERY_INTENT = 2;
     private static final String IMAGE_INTENT = "image/*";
+    private static final String AVATAR_TIP = "Long tap\nto change avatar";
+    private static final String PROFILE_EDIT_TIP = "Tap to edit\nprofile";
 
     private CircleImageView mCircleImageView;
+    private ToolTipsManager mToolTipsManager = new ToolTipsManager();
 
-    private ToolTipsManager mToolTipsManager;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
-
-        mToolTipsManager = new ToolTipsManager();
-        //TODO: make good placeholder for profile image: instead of star
         loadProfileImage();
-
         setEditButton();
-
         loadUserProfile();
     }
 
@@ -51,20 +48,18 @@ public class ProfileActivity extends AppCompatActivity {
         if (requestCode == GALLERY_INTENT && resultCode == RESULT_OK) {
             Uri uri = data.getData();
             mCircleImageView.setImageURI(uri);
-
             Controller.setNewAvatar(Controller.getLoggedInAsString(ProfileActivity.this), uri);
         }
     }
 
     private void loadProfileImage() {
-
         mCircleImageView = findViewById(R.id.profile_image);
-        ToolTip.Builder builder = new ToolTip.Builder(this, mCircleImageView, findViewById(R.id.root_p), "Long tap\nto change avatar", ToolTip.POSITION_LEFT_TO);
+        ToolTip.Builder builder = new ToolTip.Builder(this, mCircleImageView,
+                findViewById(R.id.root_p), AVATAR_TIP, ToolTip.POSITION_LEFT_TO);
 
-        Controller.loadAvatar(mCircleImageView, ProfileActivity.this, Controller.getLoggedInAsString(ProfileActivity.this));
-
+        Controller.loadAvatar(mCircleImageView, ProfileActivity.this,
+                Controller.getLoggedInAsString(ProfileActivity.this));
         mCircleImageView.setOnClickListener(v -> mToolTipsManager.show(builder.build()));
-
         mCircleImageView.setOnLongClickListener(v -> {
             createAlertDialogChangeAvatar().show();
             return true;
@@ -88,15 +83,16 @@ public class ProfileActivity extends AppCompatActivity {
         builder.setCancelable(true);
         return builder.create();
     }
+
     private void setEditButton() {
         Button editButton  = findViewById(R.id.button_edit);
-        ToolTip.Builder builder = new ToolTip.Builder(this, editButton, findViewById(R.id.root_p), "Tap to edit\nprofile", ToolTip.POSITION_LEFT_TO);
+        ToolTip.Builder builder = new ToolTip.Builder(this, editButton,
+                findViewById(R.id.root_p), PROFILE_EDIT_TIP, ToolTip.POSITION_LEFT_TO);
 
         editButton.setOnLongClickListener(v -> {
             mToolTipsManager.show(builder.build());
             return true;
         });
-
         editButton.setOnClickListener(v -> {
             Intent edit = new Intent(ProfileActivity.this, EditActivity.class);
             startActivityForResult(edit, PROFILE_CHANGED_CODE);

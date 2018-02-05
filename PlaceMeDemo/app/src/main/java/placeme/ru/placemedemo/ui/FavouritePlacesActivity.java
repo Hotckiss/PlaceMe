@@ -23,9 +23,8 @@ public class FavouritePlacesActivity extends AppCompatActivity {
 
         if (fragment == null) {
             fragment = new PlacesListViewFragment();
-            Controller.loadUserFavouritePlacesListV2(Controller.getLoggedInAsString(FavouritePlacesActivity.this), FavouritePlacesActivity.this, fragmentManager, fragment);
+            Controller.loadUserFavouritePlacesListV2(Controller.getLoggedInAsString(FavouritePlacesActivity.this),
+                    FavouritePlacesActivity.this, fragmentManager, fragment);
         }
-
     }
-
 }

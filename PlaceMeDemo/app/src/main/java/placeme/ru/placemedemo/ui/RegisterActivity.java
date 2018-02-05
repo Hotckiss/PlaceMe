@@ -19,6 +19,7 @@ import static placeme.ru.placemedemo.ui.utils.MainUtils.getFieldValue;
  */
 public class RegisterActivity extends AppCompatActivity {
     private static final String DOG_CHARACTER = "@";
+    private static final int NO_ID = -1;
 
     private EditText mLogin;
     private EditText mPassword;
@@ -72,11 +73,11 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private AuthData generateNewAuthData() {
-        return new AuthData(-1, getFieldValue(mLogin), getFieldValue(mPassword));
+        return new AuthData(NO_ID, getFieldValue(mLogin), getFieldValue(mPassword));
     }
 
     private User generateNewUserData() {
-        return new User(-1, getFieldValue(mName), getFieldValue(mSurname), getFieldValue(mNickname));
+        return new User(NO_ID, getFieldValue(mName), getFieldValue(mSurname), getFieldValue(mNickname));
     }
 
     private boolean checkLogin() {
@@ -117,7 +118,6 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private boolean hasBigLetter(final String password) {
-
         for (int i = 0; i < password.length(); i++) {
             if (Character.isLetter(password.charAt(i))) {
                 return true;

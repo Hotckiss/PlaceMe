@@ -10,6 +10,7 @@ public class ChatUtils {
 
     private static final String CHAT_KEY = "dialog";
     private static final String CHAT_PREFERENCES = "Chat";
+    private static final String DEFAULT_VALUE = "null";
 
     /**
      * Method that allows to set chat companion of the user
@@ -17,7 +18,8 @@ public class ChatUtils {
      * @param chatPair id of companion
      */
     public static void setChatPair(Context context, String chatPair) {
-        context.getSharedPreferences(CHAT_PREFERENCES, Context.MODE_PRIVATE).edit().putString(CHAT_KEY, chatPair).apply();
+        context.getSharedPreferences(CHAT_PREFERENCES, Context.MODE_PRIVATE).edit()
+                .putString(CHAT_KEY, chatPair).apply();
     }
 
     /**
@@ -26,6 +28,7 @@ public class ChatUtils {
      * @return id if the companion if no companion found, return value is "null"
      */
     public static String getChatPair(Context context) {
-        return context.getSharedPreferences(CHAT_PREFERENCES, Context.MODE_PRIVATE).getString(CHAT_KEY, "null");
+        return context.getSharedPreferences(CHAT_PREFERENCES, Context.MODE_PRIVATE)
+                .getString(CHAT_KEY, DEFAULT_VALUE);
     }
 }

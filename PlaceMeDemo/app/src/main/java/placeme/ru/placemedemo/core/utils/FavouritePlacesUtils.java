@@ -11,6 +11,7 @@ public class FavouritePlacesUtils {
 
     private static final String FAVOURITE_PLACES_KEY = "places";
     private static final String FAVOURITE_PLACES_PREFERENCES = "FavouritePlaces";
+    private static final String DEFAULT_PLACES = "";
 
     /**
      * Method that allows to set al IDs of favourite places that user have
@@ -18,7 +19,8 @@ public class FavouritePlacesUtils {
      * @param places list of favourite places
      */
     public static void setPlaces(Context context, String places) {
-        context.getSharedPreferences(FAVOURITE_PLACES_PREFERENCES, Context.MODE_PRIVATE).edit().putString(FAVOURITE_PLACES_KEY, places).apply();
+        context.getSharedPreferences(FAVOURITE_PLACES_PREFERENCES, Context.MODE_PRIVATE).edit()
+                .putString(FAVOURITE_PLACES_KEY, places).apply();
     }
 
     /**
@@ -27,6 +29,7 @@ public class FavouritePlacesUtils {
      * @return list of favourite places
      */
     public static String getPlaces(Context context) {
-        return context.getSharedPreferences(FAVOURITE_PLACES_PREFERENCES, Context.MODE_PRIVATE).getString(FAVOURITE_PLACES_KEY, "");
+        return context.getSharedPreferences(FAVOURITE_PLACES_PREFERENCES, Context.MODE_PRIVATE)
+                .getString(FAVOURITE_PLACES_KEY, DEFAULT_PLACES);
     }
 }

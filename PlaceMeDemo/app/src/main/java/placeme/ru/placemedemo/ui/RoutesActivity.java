@@ -24,8 +24,8 @@ public class RoutesActivity extends AppCompatActivity {
 
         if (fragment == null) {
             fragment = new RoutesListViewFragment();
-            Controller.getUserRoutesLength(Controller.getLoggedInAsString(RoutesActivity.this), RoutesActivity.this, fragmentManager, fragment);
+            Controller.getUserRoutesLength(Controller.getLoggedInAsString(RoutesActivity.this),
+                    RoutesActivity.this, fragmentManager, fragment);
         }
     }
-
 }

@@ -19,6 +19,8 @@ import static placeme.ru.placemedemo.core.database.DatabaseUtils.getDatabaseChil
 
 /**
  * Class that have all methods connected with routes in database
+ * It allows to upload user's route lists and their descriptions into special view,
+ * save current route to database and update user profile after that
  * Created by Андрей on 02.02.2018.
  */
 public class DatabaseManagerRoutes {

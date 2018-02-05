@@ -9,6 +9,11 @@ import java.util.List;
  * Created by Андрей on 02.02.2018.
  */
 public class ConverterToPlace {
+    private static final String DEFAULT_NAME = "Some place";
+    private static final String DEFAULT_DESCRIPTION = "";
+    private static final String DELIMITER = ",";
+    private static final char PARAGRAPH_END = '\n';
+
     /**
      * Method that converts google place to place with application structure
      * @param place place to convert
@@ -16,9 +21,10 @@ public class ConverterToPlace {
      */
     public static placeme.ru.placemedemo.elements.Place convertGooglePlaceToPlace(Place place) {
         placeme.ru.placemedemo.elements.Place result = new placeme.ru.placemedemo.elements.Place();
-        String name = "Some place";
-        String address = "";
-        String phone = "";
+        String name = DEFAULT_NAME;
+        String address = DEFAULT_DESCRIPTION;
+        String phone = DEFAULT_DESCRIPTION;
+
         if (place.getName() != null) {
             name = place.getName().toString();
         }
@@ -34,13 +40,13 @@ public class ConverterToPlace {
         StringBuilder description = new StringBuilder();
         description.append(name);
 
-        if (!address.equals("")) {
-            description.append('\n');
+        if (!address.equals(DEFAULT_DESCRIPTION)) {
+            description.append(PARAGRAPH_END);
             description.append(address);
         }
 
-        if (!phone.equals("")) {
-            description.append('\n');
+        if (!phone.equals(DEFAULT_DESCRIPTION)) {
+            description.append(PARAGRAPH_END);
             description.append(phone);
         }
 
@@ -55,6 +61,14 @@ public class ConverterToPlace {
         return result;
     }
 
+    /**
+     * Method that adds some default tags to place using
+     * flags from google place
+     * Not necessary to make constants from string values
+     * @param destination place to create
+     * @param src place to convert
+     * @return converted place tags
+     */
     private static placeme.ru.placemedemo.elements.Place addTags(placeme.ru.placemedemo.elements.Place destination, Place src) {
         List<Integer> placeTags = src.getPlaceTypes();
         StringBuilder tags = new StringBuilder();
@@ -264,7 +278,7 @@ public class ConverterToPlace {
         }
 
         if (tags.length() > 0) {
-            tags.deleteCharAt(tags.lastIndexOf(","));
+            tags.deleteCharAt(tags.lastIndexOf(DELIMITER));
         }
 
         destination.setTags(tags.toString());

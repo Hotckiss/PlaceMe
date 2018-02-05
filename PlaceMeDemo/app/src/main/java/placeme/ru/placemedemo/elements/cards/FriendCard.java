@@ -14,7 +14,7 @@ public class FriendCard {
      * Method that returns card name
      * @return card name
      */
-    public String getmCardName() {
+    public String getCardName() {
         return mCardName;
     }
 
@@ -22,7 +22,7 @@ public class FriendCard {
      * Method that changes current card name
      * @param mCardName new card name
      */
-    public void setmCardName(String mCardName) {
+    public void setCardName(String mCardName) {
         this.mCardName = mCardName;
     }
 
@@ -42,7 +42,7 @@ public class FriendCard {
      * Method that returns current image id of card
      * @return card image id
      */
-    public int getmImageResourceId() {
+    public int getImageResourceId() {
         return mImageResourceId;
     }
 
@@ -50,7 +50,7 @@ public class FriendCard {
      * Method that changes image resource id of a card
      * @param mImageResourceId new image resource id
      */
-    public void setmImageResourceId(int mImageResourceId) {
+    public void setImageResourceId(int mImageResourceId) {
         this.mImageResourceId = mImageResourceId;
     }
 }

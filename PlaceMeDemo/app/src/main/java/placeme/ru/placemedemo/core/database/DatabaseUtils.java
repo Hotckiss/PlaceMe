@@ -43,7 +43,8 @@ public class DatabaseUtils {
     public static void loadFavouritePicture(final StorageReference storageReference,
                                             final ImageView imageView, final Activity activity) {
         if (activity != null) {
-            storageReference.getDownloadUrl().addOnSuccessListener(uri -> Picasso.with(activity.getBaseContext()).load(uri)
+            storageReference.getDownloadUrl().addOnSuccessListener(uri ->
+                    Picasso.with(activity.getBaseContext()).load(uri)
                     .placeholder(R.drawable.grey)
                     .error(R.drawable.noimage)
                     .into(imageView));
@@ -85,7 +86,8 @@ public class DatabaseUtils {
      * @param places array list with all added places
      * @param place place to add
      */
-    public static void addPlaceToList(final ArrayAdapter<String> arrayAdapter, final ArrayList<Place> places, final Place place) {
+    public static void addPlaceToList(final ArrayAdapter<String> arrayAdapter,
+                                      final ArrayList<Place> places, final Place place) {
         arrayAdapter.add(place.getName());
         places.add(place);
     }
@@ -124,6 +126,7 @@ public class DatabaseUtils {
                 return calendar.get(Calendar.DAY_OF_MONTH) <= Integer.parseInt(data[0]);
             }
         }
+
         return true;
     }
 
@@ -134,7 +137,7 @@ public class DatabaseUtils {
      * @param placeId id of place that have this picture
      */
     public static void uploadPicture(final Uri uri, final StorageReference storageReference, final Integer placeId) {
-        StorageReference child = storageReference.child(PHOTOS_KEY).child(placeId.toString() + PLACE_PHOTO_SUFFIX);
+        StorageReference child = storageReference.child(PHOTOS_KEY + SEPARATOR + placeId.toString() + PLACE_PHOTO_SUFFIX);
 
         if (uri != null) {
             child.putFile(uri);
