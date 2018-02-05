@@ -44,9 +44,7 @@ public class Chat extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
-
         initializeViews();
-
         Firebase.setAndroidContext(this);
         final String[] chatPair = Controller.getChatPair(Chat.this).split(PAIR_DELIMITER);
 
@@ -56,27 +54,12 @@ public class Chat extends AppCompatActivity {
 
         mUserMessagesReference = new Firebase(MESSAGES_LOCATION + chatPair[0] + DELIMITER + chatPair[1]);
         mFriendMessagesReference = new Firebase(MESSAGES_LOCATION + chatPair[1] + DELIMITER + chatPair[0]);
-
-        mSendButton.setOnClickListener(v -> {
-            String messageText = mMessageArea.getText().toString();
-
-            if (checkMessage(messageText)){
-                Map<String, String> map = new HashMap<>();
-                map.put(MESSAGE_KEY, messageText);
-                map.put(USER_KEY, chatPair[0]);
-
-                mUserMessagesReference.push().setValue(map);
-                mFriendMessagesReference.push().setValue(map);
-
-                mMessageArea.setText(EMPTY_MESSAGE);
-            }
-        });
+        initSendButton(chatPair[0]);
 
         mUserMessagesReference.addChildEventListener(new AbstractClientChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 Map map = dataSnapshot.getValue(Map.class);
-
                 String message = map.get(MESSAGE_KEY).toString();
                 String userName = map.get(USER_KEY).toString();
 
@@ -89,10 +72,25 @@ public class Chat extends AppCompatActivity {
         });
     }
 
+    private void initSendButton(final String userId) {
+        mSendButton.setOnClickListener(v -> {
+            String messageText = mMessageArea.getText().toString();
+
+            if (checkMessage(messageText)){
+                Map<String, String> map = new HashMap<>();
+                map.put(MESSAGE_KEY, messageText);
+                map.put(USER_KEY, userId);
+
+                mUserMessagesReference.push().setValue(map);
+                mFriendMessagesReference.push().setValue(map);
+                mMessageArea.setText(EMPTY_MESSAGE);
+            }
+        });
+    }
+
     private void addMessageBox(String message, int type){
         TextView textView = new TextView(Chat.this);
         textView.setText(message);
-
         LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         layoutParams.weight = 1f;
 
