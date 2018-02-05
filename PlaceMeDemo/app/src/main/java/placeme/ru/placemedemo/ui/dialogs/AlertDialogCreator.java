@@ -80,7 +80,7 @@ public class AlertDialogCreator {
         final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(context, android.R.layout.select_dialog_multichoice);
         final ArrayList<Place> placeArrayList = new ArrayList<>();
 
-        Controller.findPlacesByStringV2(arrayAdapter, placeArrayList, toFind, myPosition, context, activity);
+        Controller.findPlacesByStringV2(arrayAdapter, placeArrayList, toFind, myPosition, activity);
         initResultsList(listView, arrayAdapter, placeArrayList, context);
 
         builder.setNegativeButton(R.string.answer_cancel, (dialog, which) -> dialog.dismiss());

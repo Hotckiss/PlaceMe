@@ -69,15 +69,14 @@ public class DatabaseManagerPlaces {
      * @param places array with founded places
      * @param toFind string which contains user query to search
      * @param myPosition current user positions
-     * @param context current context
      * @param activity UI activity that calls method
      */
     public static void findPlacesByString(final ArrayAdapter<String> arrayAdapter, final ArrayList<Place> places,
                                           final String toFind, final LatLng myPosition,
-                                          final Context context, final Activity activity) {
+                                          final Activity activity) {
         activity.getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
                 WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
-        ProgressBar progressBar = new ProgressBar(context);
+        ProgressBar progressBar = new ProgressBar(activity);
         progressBar.setVisibility(View.VISIBLE);
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child(PLACES_KEY);
 
@@ -85,7 +84,7 @@ public class DatabaseManagerPlaces {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 Place place = dataSnapshot.getValue(Place.class);
-                if (place != null && DatabaseUtils.checkAccess(place, myPosition, context) && DatabaseUtils.isAppropriate(place, toFind)) {
+                if (place != null && DatabaseUtils.checkAccess(place, myPosition, activity) && DatabaseUtils.isAppropriate(place, toFind)) {
                     DatabaseUtils.addPlaceToList(arrayAdapter, places, place);
                 }
             }

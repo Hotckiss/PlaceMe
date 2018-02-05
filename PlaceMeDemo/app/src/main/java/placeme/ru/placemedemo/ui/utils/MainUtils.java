@@ -61,7 +61,7 @@ public class MainUtils {
             for (int i = 0; i < points.size() - 1; i++) {
                 putLineToPoint(world, objectFactory, points.get(i), points.get(i + 1));
             }
-            
+
             Location ls = new Location(EMPTY_LINE);
             LatLng end = points.get(points.size() - 1);
             ls.setLatitude(end.latitude);

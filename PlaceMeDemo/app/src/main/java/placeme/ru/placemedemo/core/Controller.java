@@ -100,7 +100,7 @@ public class Controller {
      * Method that allows to load user favorite places from database to fragment
      * @param userId user id
      * @param context current context
-     * @param fragmentManager fragment managet for transaction
+     * @param fragmentManager fragment manager for transaction
      * @param fragment output fragment
      */
     public static void loadUserFavouritePlacesListV2(final String userId, final Context context, final FragmentManager fragmentManager, final Fragment fragment) {
@@ -431,12 +431,11 @@ public class Controller {
      * @param places array with founded places
      * @param toFind string which contains user query to search
      * @param myPosition current user positions
-     * @param context current context
      * @param activity UI activity that calls method
      */
     public static void findPlacesByStringV2(final ArrayAdapter<String> arrayAdapter, final ArrayList<Place> places,
-                                            final String toFind, final LatLng myPosition, final Context context, final Activity activity) {
-        DatabaseManagerPlaces.findPlacesByString(arrayAdapter, places, toFind, myPosition, context, activity);
+                                            final String toFind, final LatLng myPosition, final Activity activity) {
+        DatabaseManagerPlaces.findPlacesByString(arrayAdapter, places, toFind, myPosition, activity);
     }
 
     /**
