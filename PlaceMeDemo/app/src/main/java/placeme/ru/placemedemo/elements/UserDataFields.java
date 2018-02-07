@@ -3,7 +3,7 @@ package placeme.ru.placemedemo.elements;
 import android.widget.EditText;
 
 /**
- * A class that contains fields filled with user data for edit
+ * A class that contains fields filled with user data for edit.
  * Created by Андрей on 31.01.2018.
  */
 public class UserDataFields {

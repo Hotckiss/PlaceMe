@@ -59,8 +59,4 @@ dependencies {
     implementation project(':droidAR')
 }
 
-
-
-
-
 apply plugin: 'com.google.gms.google-services'
