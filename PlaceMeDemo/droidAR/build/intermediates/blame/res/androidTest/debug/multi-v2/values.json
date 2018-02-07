@@ -1,6 +1,21 @@
 {
     "logs": [
         {
+            "outputFile": "F:\\AU\\k2\\project\\database\\PlaceMeDemo\\droidAR\\build\\intermediates\\res\\merged\\androidTest\\debug\\values\\values.xml",
+            "map": [
+                {
+                    "source": "F:\\AU\\k2\\project\\database\\PlaceMeDemo\\droidAR\\build\\intermediates\\bundles\\debug\\res\\values\\values.xml",
+                    "from": {
+                        "startLines": "2,3",
+                        "startColumns": "4,4",
+                        "startOffsets": "55,100",
+                        "endColumns": "44,53",
+                        "endOffsets": "95,149"
+                    }
+                }
+            ]
+        },
+        {
             "outputFile": "F:\\AU\\k2\\project\\database\\PlaceMeDemo\\droidAR\\build\\intermediates\\incremental\\mergeDebugAndroidTestResources\\merged.dir\\values\\values.xml",
             "map": [
                 {

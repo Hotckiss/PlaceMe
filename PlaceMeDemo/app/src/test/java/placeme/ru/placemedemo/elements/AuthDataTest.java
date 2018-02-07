@@ -18,6 +18,15 @@ public class AuthDataTest {
     }
 
     @Test
+    public void testDefaultConstructor() throws Exception {
+        testData = new AuthData();
+
+        assertEquals(0, testData.getId());
+        assertNull(testData.getLogin());
+        assertNull(testData.getPassword());
+    }
+
+    @Test
     public void testGetId() throws Exception {
         assertEquals(7, testData.getId());
     }
@@ -52,5 +61,4 @@ public class AuthDataTest {
 
         assertEquals("qwerty", testData.getPassword());
     }
-
 }

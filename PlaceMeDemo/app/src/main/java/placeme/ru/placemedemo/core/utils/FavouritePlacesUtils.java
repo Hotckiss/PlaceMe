@@ -24,7 +24,7 @@ public class FavouritePlacesUtils {
     }
 
     /**
-     * Method that allows to get list of users favoutite places
+     * Method that allows to get list of users favourite places
      * @param context current contest
      * @return list of favourite places
      */
