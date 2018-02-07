@@ -41,15 +41,6 @@ public class Place {
     }
 
     /**
-     * Method that allows to add tags to place
-     * @param newTags tags that should be added
-     */
-    @Deprecated
-    public void addTags(String newTags) {
-        this.description = this.description + "," + newTags;
-    }
-
-    /**
      * Method that returns current average rating of the place
      * @return place rating
      */

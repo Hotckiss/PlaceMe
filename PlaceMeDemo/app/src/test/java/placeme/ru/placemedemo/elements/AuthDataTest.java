@@ -53,4 +53,13 @@ public class AuthDataTest {
         assertEquals("qwerty", testData.getPassword());
     }
 
+    @Test
+    public void testDefaultConstructor() throws Exception {
+        testData = new AuthData();
+
+        assertEquals(0, testData.getId());
+        assertNull(testData.getLogin());
+        assertNull(testData.getPassword());
+    }
+
 }
