@@ -19,7 +19,6 @@ import com.google.firebase.storage.StorageReference;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.stubbing.Answer;
 
 import java.util.ArrayList;
 
@@ -96,10 +95,10 @@ public class DatabaseManagerPlacesTest extends ActivityInstrumentationTestCase2<
     public void testAddMarkersByQuery() throws Exception {
         //GoogleMap googleMap = mock(GoogleMap.class);
 
-        Answer modelModifier = invocation -> {
+        /*Answer modelModifier = invocation -> {
             cnt++;
             return null;
-        };
+        };*/
 
         //when(googleMap.addMarker(any())).then(modelModifier);
         //addMarkersByQuery(googleMap, "zzzzzzz");

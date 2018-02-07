@@ -28,9 +28,6 @@ android {
     lintOptions {
         abortOnError false
     }
-    dexOptions {
-        jumboMode true
-    }
 }
 
 dependencies {
@@ -59,8 +56,6 @@ dependencies {
     compile 'com.google.android.gms:play-services-places:11.6.0'
     compile 'com.tomergoldst.android:tooltips:1.0.9'
     testCompile 'junit:junit:4.12'
-    compile "org.mockito:mockito-all:2.0.2-beta"
-    testCompile "org.mockito:mockito-all:2.0.2-beta"
     androidTestCompile 'com.android.support.test.espresso:espresso-core:3.0.1'
     androidTestCompile 'com.android.support.test.espresso:espresso-contrib:3.0.1'
     androidTestCompile 'com.android.support.test:runner:1.0.1'
