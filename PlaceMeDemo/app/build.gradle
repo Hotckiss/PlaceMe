@@ -28,6 +28,9 @@ android {
     lintOptions {
         abortOnError false
     }
+    dexOptions {
+        jumboMode true
+    }
 }
 
 dependencies {
