@@ -1,29 +1,21 @@
 package placeme.ru.placemedemo;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.pm.ActivityInfo;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
-import android.widget.RatingBar;
-import android.widget.TextView;
 
-import com.google.android.gms.maps.model.LatLng;
-import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import placeme.ru.placemedemo.core.database.AbstractChildEventListener;
 import placeme.ru.placemedemo.core.database.AbstractValueEventListener;
-import placeme.ru.placemedemo.elements.Place;
-import util.Log;
 
-import static org.junit.Assert.*;
-import static placeme.ru.placemedemo.core.database.DatabaseManagerPlaces.saveCreatedPlace;
+import static org.junit.Assert.assertEquals;
 
 /**
  * Instrumentation test, which will execute on an Android device.
@@ -36,7 +28,6 @@ public class ExampleInstrumentedTest {
     public void useAppContext() throws Exception {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getTargetContext();
-
         assertEquals("placeme.ru.placemedemo", appContext.getPackageName());
     }
 

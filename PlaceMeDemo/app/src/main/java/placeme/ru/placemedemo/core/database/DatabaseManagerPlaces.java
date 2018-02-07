@@ -34,6 +34,7 @@ import placeme.ru.placemedemo.ui.dialogs.AlertDialogCreator;
 
 import static placeme.ru.placemedemo.core.database.DatabaseUtils.PLACE_PHOTO_SUFFIX;
 import static placeme.ru.placemedemo.core.database.DatabaseUtils.SEPARATOR;
+import static placeme.ru.placemedemo.core.database.DatabaseUtils.getDatabaseChild;
 
 /**
  * Class that have all methods connected with places in database
@@ -80,7 +81,7 @@ public class DatabaseManagerPlaces {
                 WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
         ProgressBar progressBar = new ProgressBar(activity);
         progressBar.setVisibility(View.VISIBLE);
-        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child(PLACES_KEY);
+        DatabaseReference databaseReference = getDatabaseChild(mBase, PLACES_KEY);
 
         databaseReference.addChildEventListener(new AbstractChildEventListener() {
             @Override

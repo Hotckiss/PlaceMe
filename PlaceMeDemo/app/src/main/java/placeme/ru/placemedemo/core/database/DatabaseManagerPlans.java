@@ -14,6 +14,7 @@ import com.squareup.picasso.Picasso;
 import de.hdodenhof.circleimageview.CircleImageView;
 import placeme.ru.placemedemo.R;
 
+import static placeme.ru.placemedemo.core.database.DatabaseUtils.SEPARATOR;
 import static placeme.ru.placemedemo.core.database.DatabaseUtils.getDatabaseChild;
 
 /**
@@ -57,10 +58,7 @@ public class DatabaseManagerPlans {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     Object plan = dataSnapshot.getValue();
-                    DatabaseReference referencePlan = getDatabaseChild(mBase, PLANS_KEY);
-                    if (referencePlan != null) {
-                        referencePlan = referencePlan.child(userId);
-                    }
+                    DatabaseReference referencePlan = getDatabaseChild(mBase, PLANS_KEY + SEPARATOR + userId);
 
                     if (referencePlan != null) {
                         if (plan != null) {
