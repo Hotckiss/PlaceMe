@@ -16,7 +16,7 @@ public class AuthorizationUtils {
     /**
      * Method that sets user with userId logged in
      * @param context current context
-     * @param userId id od uset that should be logged in
+     * @param userId id of user that should be logged in
      */
     public static void setLoggedIn(Context context, int userId) {
         getSharedPreferences(context).edit().putInt(PREFERENCES_AUTHORIZATION_KEY, userId).apply();
