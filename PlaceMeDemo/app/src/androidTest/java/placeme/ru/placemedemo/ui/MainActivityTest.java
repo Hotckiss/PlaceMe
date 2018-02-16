@@ -7,6 +7,7 @@ import android.support.test.filters.LargeTest;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
 
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,27 +35,38 @@ import static android.support.test.espresso.matcher.ViewMatchers.withText;
 @RunWith(AndroidJUnit4.class)
 @LargeTest
 public class MainActivityTest {
+    ViewInteraction onDrawer;
 
     @Rule
     public ActivityTestRule<MainActivity> mActivityRule =
             new ActivityTestRule(MainActivity.class);
 
+    @Before
+    public void init() {
+        onDrawer = onView(withId(R.id.drawer_layout));
+    }
+
     @Test
-    public void testMenu() throws Exception {
+    public void testDrawer() throws Exception {
         onView(withText("OK")).inRoot(isDialog()).check(matches(isDisplayed())).perform(click());
-
-        final ViewInteraction onDrawer = onView(withId(R.id.drawer_layout));
-
         onDrawer.check(matches(isClosed()));
         onDrawer.perform(DrawerActions.open());
         onDrawer.check(matches(isOpen()));
         onDrawer.perform(DrawerActions.close());
+    }
 
+    @Test
+    public void testButtonsDisplayed() throws Exception {
+        onView(withText("OK")).inRoot(isDialog()).check(matches(isDisplayed())).perform(click());
         onView(withId(R.id.search_friends)).check(matches(isDisplayed()));
         onView(withId(R.id.fab)).check(matches(isDisplayed()));
         onView(withId(R.id.button_search_parameters)).check(matches(isDisplayed()));
         onView(withId(R.id.button4)).check(matches(isDisplayed()));
+    }
 
+    @Test
+    public void testSearchFriends() throws Exception {
+        onView(withText("OK")).inRoot(isDialog()).check(matches(isDisplayed())).perform(click());
         onView(withId(R.id.search_friends)).perform(click());
         onView(withText("Search friends!")).inRoot(isDialog()).check(matches(isDisplayed()));
         onView(withId(R.id.route_description)).perform(replaceText("ho"));
@@ -63,31 +75,44 @@ public class MainActivityTest {
 
         onView(withText("Add to friends!")).inRoot(isDialog()).check(matches(isDisplayed()));
         onView(withText("Cancel")).inRoot(isDialog()).check(matches(isDisplayed())).perform(click());
+    }
 
+    @Test
+    public void testRouteSaving() throws Exception {
+        onView(withText("OK")).inRoot(isDialog()).check(matches(isDisplayed())).perform(click());
         onView(withId(R.id.fab)).perform(click());
         onView(withText("Save Route")).inRoot(isDialog()).check(matches(isDisplayed()));
         onView(withId(R.id.route_description)).perform(replaceText("test route savage"));
         onView(withText("Back")).inRoot(isDialog()).check(matches(isDisplayed())).perform(click());
         Thread.sleep(4000);
+    }
 
+    @Test
+    public void testSearchParameters() throws Exception {
+        onView(withText("OK")).inRoot(isDialog()).check(matches(isDisplayed())).perform(click());
         onView(withId(R.id.button_search_parameters)).perform(click());
         onView(withText("Choose parameters")).inRoot(isDialog()).check(matches(isDisplayed()));
         onView(withId(R.id.switch_dist)).perform(click());
         onView(withId(R.id.switch_dist)).perform(click());
         onView(withText("OK")).inRoot(isDialog()).check(matches(isDisplayed())).perform(click());
         Thread.sleep(4000);
+    }
 
+    @Test
+    public void testSearch() throws Exception {
+        onView(withText("OK")).inRoot(isDialog()).check(matches(isDisplayed())).perform(click());
         onView(withId(R.id.search)).check(matches(isDisplayed())).perform(replaceText("еда")).perform(pressImeActionButton());
         Thread.sleep(4000);
 
         onView(withText("Cancel")).inRoot(isDialog()).check(matches(isDisplayed())).perform(click());
+    }
 
+    @Test
+    public void testProfile() throws Exception {
+        onView(withText("OK")).inRoot(isDialog()).check(matches(isDisplayed())).perform(click());
         onDrawer.perform(DrawerActions.open());
-
         onView(withText("Profile")).check(matches(isDisplayed())).perform(click());
-
         onView(withText("Edit")).check(matches(isDisplayed())).perform(click());
-
         onView(withId(R.id.editProfile)).check(matches(isDisplayed()));
 
         onView(withId(R.id.teEditNickname)).check(matches(isDisplayed()));
@@ -95,32 +120,49 @@ public class MainActivityTest {
         onView(withId(R.id.teEditSurname)).check(matches(isDisplayed()));
         onView(withId(R.id.teEditLogin)).check(matches(isDisplayed()));
         onView(withId(R.id.teEditPassword)).check(matches(isDisplayed()));
-
         onView(withId(R.id.tvEditNickname)).check(matches(isDisplayed()));
         onView(withId(R.id.tvEditName)).check(matches(isDisplayed()));
         onView(withId(R.id.tvEditSurname)).check(matches(isDisplayed()));
         onView(withId(R.id.tvEditLogin)).check(matches(isDisplayed()));
         onView(withId(R.id.tvEditPassword)).check(matches(isDisplayed()));
-
         onView(withId(R.id.saveEdit)).check(matches(isDisplayed()));
 
         onView(isRoot()).perform(ViewActions.pressBack());
         onView(isRoot()).perform(ViewActions.pressBack());
+    }
 
+    @Test
+    public void testPlaces() throws Exception {
+        onView(withText("OK")).inRoot(isDialog()).check(matches(isDisplayed())).perform(click());
         onDrawer.perform(DrawerActions.open());
         onView(withText("My Favourite Places")).check(matches(isDisplayed())).perform(click());
         Thread.sleep(1000);
         onView(isRoot()).perform(ViewActions.pressBack());
+    }
+
+    @Test
+    public void testRoutes() throws Exception {
+        onView(withText("OK")).inRoot(isDialog()).check(matches(isDisplayed())).perform(click());
 
         onDrawer.perform(DrawerActions.open());
         onView(withText("My Routes")).check(matches(isDisplayed())).perform(click());
         Thread.sleep(1000);
         onView(isRoot()).perform(ViewActions.pressBack());
+    }
+
+    @Test
+    public void testPlans() throws Exception {
+        onView(withText("OK")).inRoot(isDialog()).check(matches(isDisplayed())).perform(click());
 
         onDrawer.perform(DrawerActions.open());
         onView(withText("Plans")).check(matches(isDisplayed())).perform(click());
         Thread.sleep(1000);
         onView(isRoot()).perform(ViewActions.pressBack());
+    }
+
+    @Test
+    public void testTips() throws Exception {
+        onView(withText("OK")).inRoot(isDialog()).check(matches(isDisplayed())).perform(click());
 
         onView(withId(R.id.search_friends)).perform(longClick());
         Thread.sleep(200);
