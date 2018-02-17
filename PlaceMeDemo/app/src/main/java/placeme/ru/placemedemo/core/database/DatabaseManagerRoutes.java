@@ -30,8 +30,8 @@ public class DatabaseManagerRoutes {
     private static final String ROUTES_DESCRIPTION_KEY = "routes_descriptions";
     private static final String DEFAULT_DESCRIPTION = "No description given.";
     private static final String NAME_DELIMITER = "_";
-    private static FirebaseDatabase mBase = FirebaseDatabase.getInstance();
 
+    private static FirebaseDatabase mBase = FirebaseDatabase.getInstance();
     private static StorageReference mStorageRef  = FirebaseStorage.getInstance().getReference();
 
     /**
@@ -83,7 +83,10 @@ public class DatabaseManagerRoutes {
         DatabaseReference reference = getDatabaseChild(mBase, USERS_KEY);
 
         if (reference != null) {
-            reference.child(userId).child(ROUTES_LENGTH_KEY).addListenerForSingleValueEvent(new AbstractValueEventListener() {
+            reference.child(userId)
+                    .child(ROUTES_LENGTH_KEY)
+                    .addListenerForSingleValueEvent(
+                            new AbstractValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     Long length = (Long) dataSnapshot.getValue();
@@ -106,7 +109,10 @@ public class DatabaseManagerRoutes {
         DatabaseReference reference = getDatabaseChild(mBase, USERS_KEY);
 
         if (reference != null) {
-            reference.child(userId).child(ROUTES_LENGTH_KEY).addListenerForSingleValueEvent(new AbstractValueEventListener() {
+            reference.child(userId)
+                    .child(ROUTES_LENGTH_KEY)
+                    .addListenerForSingleValueEvent(
+                            new AbstractValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     Long length = (Long) dataSnapshot.getValue();
@@ -141,7 +147,10 @@ public class DatabaseManagerRoutes {
     public static void fillDescription(final TextView textView, final Integer id, final String userId) {
         DatabaseReference reference = getDatabaseChild(mBase, ROUTES_DESCRIPTION_KEY);
         if (reference != null) {
-            reference.child(userId).child(id.toString()).addListenerForSingleValueEvent(new AbstractValueEventListener() {
+            reference.child(userId)
+                    .child(id.toString())
+                    .addListenerForSingleValueEvent(
+                    new AbstractValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     String description = DEFAULT_DESCRIPTION;

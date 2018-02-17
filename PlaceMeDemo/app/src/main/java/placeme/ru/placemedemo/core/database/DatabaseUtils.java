@@ -14,13 +14,19 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.StorageReference;
 import com.squareup.picasso.Picasso;
 
+import org.joda.time.DateTime;
+
 import java.io.ByteArrayOutputStream;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 
 import placeme.ru.placemedemo.R;
 import placeme.ru.placemedemo.core.Controller;
 import placeme.ru.placemedemo.elements.Place;
+import util.Log;
 
 /**
  * Class that contains common utils to database managers
@@ -32,7 +38,8 @@ public class DatabaseUtils {
     public static final String SEPARATOR = "/";
     private static final String DATABASE_DELIMITER = ",";
     private static final String PHOTOS_KEY = "photos";
-    private static final String DASH_DELIMITER = "-";
+    private static final String DATE_PATTERN = "dd-MM-yyyy hh:mm";
+    private static final String PARSE_ERROR_TAG = "PARSE_ERROR";
     private static final double PERCENT_TO_RATING = 20.0;
 
     /** Method that loads picture from storage reference into specific image view
@@ -61,10 +68,10 @@ public class DatabaseUtils {
     public static boolean checkAccess(final Place place, final LatLng myPosition, final Context context) {
         boolean distanceEnabled = Controller.getDistanceSearchStatus(context);
         boolean ratingEnabled = Controller.getRatingSearchStatus(context);
-        boolean distanceAccess = (!distanceEnabled) ||
+        boolean distanceAccess = !distanceEnabled ||
                 (Controller.getKilometers(myPosition, new LatLng(place.getLatitude(), place.getLongitude())) <=
                         Controller.getDistanceSearchValue(context));
-        boolean ratingAccess = (!ratingEnabled) ||
+        boolean ratingAccess = !ratingEnabled ||
                 (place.getMark() > (Controller.getRatingSearchValue(context) / PERCENT_TO_RATING));
 
         return distanceAccess && ratingAccess;
@@ -113,21 +120,18 @@ public class DatabaseUtils {
      * @return true if plan is valid false otherwise
      */
     public static boolean validatePlan(final String planDate) {
-        Calendar calendar = Calendar.getInstance();
-        String[] dateTime = planDate.split(SPACE_DELIMITER);
-        String[] data = dateTime[0].split(DASH_DELIMITER);
-
-        if (calendar.get(Calendar.YEAR) > Integer.parseInt(data[2])) {
-            return false;
-        } else if (calendar.get(Calendar.YEAR) == Integer.parseInt(data[2])) {
-            if ((calendar.get(Calendar.MONTH) + 1) > Integer.parseInt(data[1])) {
-                return false;
-            } else if ((calendar.get(Calendar.MONTH) + 1) == Integer.parseInt(data[1])) {
-                return calendar.get(Calendar.DAY_OF_MONTH) <= Integer.parseInt(data[0]);
-            }
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DATE_PATTERN);
+        Date parsedDate = new Date();
+        try {
+            parsedDate = simpleDateFormat.parse(planDate);
+        } catch (ParseException e) {
+            Log.d(PARSE_ERROR_TAG, "error parsing date");
         }
+        Date currentTime = Calendar.getInstance().getTime();
+        DateTime jodaParsedDate = new DateTime(parsedDate);
+        DateTime jodaCurrentDate = new DateTime(currentTime);
 
-        return true;
+        return jodaCurrentDate.isBefore(jodaParsedDate);
     }
 
     /**

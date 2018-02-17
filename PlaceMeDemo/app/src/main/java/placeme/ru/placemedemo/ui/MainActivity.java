@@ -72,7 +72,7 @@ public class MainActivity extends AppCompatActivity
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     private static final int PLACE_PICKER_REQUEST = 1;
     private static final int CAMERA_RESULT = 0;
-    private static final String MY_PLACE = "My place";
+    private static final String NEW_PLACE_TAG = "My place";
     private static final String DATA_KEY = "data";
     private static final String IMAGE_TYPE = "image/*";
     private static final String TIP_AR = "Try AR route!";
@@ -383,7 +383,7 @@ public class MainActivity extends AppCompatActivity
             if (marker.getTitle() == null) {
                 return false;
             }
-            if (marker.getTitle().equals(MY_PLACE)) {
+            if (marker.getTitle().equals(NEW_PLACE_TAG)) {
                 createAlertDialogNewPlace(marker.getPosition()).show();
                 Controller.refreshMarkers(mGoogleMap);
             } else {
@@ -400,7 +400,7 @@ public class MainActivity extends AppCompatActivity
     public class MapListener implements GoogleMap.OnMapLongClickListener {
         @Override
         public void onMapLongClick(LatLng point) {
-            mGoogleMap.addMarker(new MarkerOptions().position(point).title(MY_PLACE));
+            mGoogleMap.addMarker(new MarkerOptions().position(point).title(NEW_PLACE_TAG));
         }
     }
 

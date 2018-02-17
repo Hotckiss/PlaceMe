@@ -10,7 +10,7 @@ public class ChatUtils {
 
     private static final String CHAT_KEY = "dialog";
     private static final String CHAT_PREFERENCES = "Chat";
-    private static final String DEFAULT_VALUE = "null";
+    private static final String DEFAULT_VALUE = null;
 
     /**
      * Method that allows to set chat companion of the user

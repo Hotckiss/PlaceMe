@@ -8,6 +8,7 @@ import android.net.Uri;
 import android.os.Environment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -49,6 +50,8 @@ import placeme.ru.placemedemo.elements.UserProfileFields;
 public class Controller {
     private static final String IMAGE_TYPE = "image/png";
     private static final String DEFAULT_IMAGE_NAME = "tmp.png";
+    private static final String NPE_TAG = "NULL_POINTER_EXCEPTION";
+    private static final String SNAPSHOT_EXCEPTION_TAG = "SNAPSHOT_EXCEPTION";
     /**
      * Method that register new user in database with unique id
      * @param newAuthData authentication data that user input during registration
@@ -428,7 +431,6 @@ public class Controller {
      * @param activity current activity
      */
     public static void sendRoute(GoogleMap map, final Activity activity) {
-
         Thread myThread = new Thread(() -> map.snapshot(Controller.getRoutePictureCallback(activity)));
         myThread.start();
     }
@@ -603,6 +605,7 @@ public class Controller {
 
             return radius * b;
         } catch (NullPointerException ex) {
+            Log.d(NPE_TAG, "NPE occurred in get kilometers");
             return 0;
         }
     }
@@ -660,7 +663,7 @@ public class Controller {
                     Controller.getUserRoutesLength2(AuthorizationUtils.getLoggedInAsString(instance.getBaseContext()), instance.getBaseContext());
                     Controller.saveRoute(attachment, AuthorizationUtils.getLoggedInAsString(instance.getBaseContext()), instance.getBaseContext());
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    Log.d(SNAPSHOT_EXCEPTION_TAG, e.getMessage());
                 }
             }
         };

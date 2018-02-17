@@ -3,8 +3,11 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/PlaceMeDemo.iml" filepath="$PROJECT_DIR$/PlaceMeDemo.iml" />
+      <module fileurl="file://F:\Downloads\PlaceMe-allCode (1)\PlaceMe-allCode\PlaceMeDemo\PlaceMeDemo.iml" filepath="F:\Downloads\PlaceMe-allCode (1)\PlaceMe-allCode\PlaceMeDemo\PlaceMeDemo.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://F:\Downloads\PlaceMe-allCode (1)\PlaceMe-allCode\PlaceMeDemo\app\app.iml" filepath="F:\Downloads\PlaceMe-allCode (1)\PlaceMe-allCode\PlaceMeDemo\app\app.iml" />
       <module fileurl="file://$PROJECT_DIR$/droidAR/droidAR.iml" filepath="$PROJECT_DIR$/droidAR/droidAR.iml" />
+      <module fileurl="file://F:\Downloads\PlaceMe-allCode (1)\PlaceMe-allCode\PlaceMeDemo\droidAR\droidAR.iml" filepath="F:\Downloads\PlaceMe-allCode (1)\PlaceMe-allCode\PlaceMeDemo\droidAR\droidAR.iml" />
     </modules>
   </component>
 </project>
