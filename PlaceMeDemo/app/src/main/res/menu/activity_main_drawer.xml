@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_profile"
+            android:icon="@drawable/person"
+            android:title="Profile" />
+        <item
+            android:id="@+id/nav_places"
+            android:icon="@drawable/favourite_small"
+            android:title="My Favourite Places" />
+        <item
+            android:id="@+id/nav_routes"
+            android:icon="@drawable/routes_small"
+            android:title="My Routes" />
+        <item
+            android:id="@+id/nav_settings"
+            android:icon="@drawable/correctcirclegray"
+            android:title="Plans" />
+    </group>
+
+    <item android:title="Communicate">
+        <menu>
+            <item
+                android:id="@+id/nav_share"
+                android:icon="@drawable/ic_menu_share"
+                android:title="Share" />
+            <item
+                android:id="@+id/nav_exit"
+                android:icon="@android:drawable/ic_lock_power_off"
+                android:title="Exit" />
+        </menu>
+    </item>
+
+</menu>
