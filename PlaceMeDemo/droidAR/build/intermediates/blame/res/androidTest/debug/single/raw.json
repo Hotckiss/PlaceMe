@@ -4,7 +4,15 @@
         "source": "F:\\AU\\k2\\project\\database\\PlaceMeDemo\\droidAR\\build\\intermediates\\bundles\\debug\\res\\raw\\camaro_obj"
     },
     {
+        "merged": "F:\\Downloads\\PlaceMe-allCode (1)\\PlaceMe-allCode\\PlaceMeDemo\\droidAR\\build\\intermediates\\res\\merged\\androidTest\\debug\\raw\\camaro_obj",
+        "source": "F:\\Downloads\\PlaceMe-allCode (1)\\PlaceMe-allCode\\PlaceMeDemo\\droidAR\\build\\intermediates\\bundles\\debug\\res\\raw\\camaro_obj"
+    },
+    {
         "merged": "F:\\AU\\k2\\project\\database\\PlaceMeDemo\\droidAR\\build\\intermediates\\res\\merged\\androidTest\\debug\\raw\\camaro_mtl",
         "source": "F:\\AU\\k2\\project\\database\\PlaceMeDemo\\droidAR\\build\\intermediates\\bundles\\debug\\res\\raw\\camaro_mtl"
+    },
+    {
+        "merged": "F:\\Downloads\\PlaceMe-allCode (1)\\PlaceMe-allCode\\PlaceMeDemo\\droidAR\\build\\intermediates\\res\\merged\\androidTest\\debug\\raw\\camaro_mtl",
+        "source": "F:\\Downloads\\PlaceMe-allCode (1)\\PlaceMe-allCode\\PlaceMeDemo\\droidAR\\build\\intermediates\\bundles\\debug\\res\\raw\\camaro_mtl"
     }
 ]

@@ -25,12 +25,17 @@ public class DatabaseManagerUsersTest {
     private Context context = InstrumentationRegistry.getTargetContext();
     private String current = null;
 
+    private DatabaseReference getDatabaseReference() {
+        return FirebaseDatabase.getInstance().getReference();
+    }
+
     @Test
     public void testRegisterUser() throws Exception {
         current = null;
-        registerUser(new AuthData(-1, "a@b", "12345"), new User(-1, "test", "tst", "test"));
+        registerUser(new AuthData(-1, "a@b", "12345"),
+                new User(-1, "test", "tst", "test"));
         Thread.sleep(2000);
-        DatabaseReference reference = FirebaseDatabase.getInstance().getReference().child("maxid");
+        DatabaseReference reference = getDatabaseReference().child("maxid");
         reference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -39,7 +44,10 @@ public class DatabaseManagerUsersTest {
         });
         Thread.sleep(2000);
         if (current != null) {
-            DatabaseReference reference1 = FirebaseDatabase.getInstance().getReference().child("users/" + (Integer.parseInt(current) - 1) + "/name");
+            DatabaseReference reference1 = getDatabaseReference()
+                    .child("users")
+                    .child(String.valueOf(Integer.parseInt(current) - 1))
+                    .child("name");
 
             reference1.addListenerForSingleValueEvent(new AbstractValueEventListener() {
                 @Override
@@ -67,7 +75,8 @@ public class DatabaseManagerUsersTest {
         addPlaceToFavourite("1000", "121");
         Thread.sleep(2000);
 
-        DatabaseReference reference = FirebaseDatabase.getInstance().getReference().child("users/1000/favouritePlaces");
+        DatabaseReference reference = getDatabaseReference()
+                .child("users/1000/favouritePlaces");
 
         reference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
             @Override

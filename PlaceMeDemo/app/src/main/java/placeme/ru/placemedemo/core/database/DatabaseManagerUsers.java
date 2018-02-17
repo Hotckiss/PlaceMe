@@ -30,6 +30,8 @@ import static placeme.ru.placemedemo.core.database.DatabaseUtils.SEPARATOR;
 import static placeme.ru.placemedemo.core.database.DatabaseUtils.SPACE_DELIMITER;
 import static placeme.ru.placemedemo.core.database.DatabaseUtils.getDatabaseChild;
 
+import org.apache.commons.lang3.StringUtils;
+
 /**
  * Class that have all methods connected with working with users in database
  * It allows to load user profile or get some important parts of it for other tasks
@@ -183,7 +185,7 @@ public class DatabaseManagerUsers {
                 Object placeObject = dataSnapshot.getValue();
                 if (placeObject != null) {
                     String places = placeObject.toString();
-                    if (places == null || places.isEmpty()) {
+                    if (StringUtils.isEmpty(places)) {
                         mDatabaseReference.setValue(placeId);
                     } else if (!DatabaseUtils.isAlreadyFavourite(places, placeId)) {
                         mDatabaseReference.setValue(places + DATABASE_DELIMITER + placeId);
@@ -355,7 +357,7 @@ public class DatabaseManagerUsers {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     final String friends = dataSnapshot.getValue(String.class);
-                    if (friends.isEmpty()) {
+                    if (StringUtils.isEmpty(friends)) {
                         reference.child(FRIENDS_KEY).setValue(friendId);
                         reference.child(FRIENDS_LENGTH_KEY).setValue(1);
                     } else {

@@ -137,31 +137,9 @@ public class DatabaseManagerPlacesTest extends ActivityInstrumentationTestCase2<
             public void onDataChange(DataSnapshot dataSnapshot) {
                 String current = dataSnapshot.getValue().toString();
 
-                saveConvertedPlace(null, new Place(100, "aaa", "bbb", "ccc", 10, 100));
-
-                DatabaseReference reference = myRef.child("places");
-                reference.addChildEventListener(new AbstractChildEventListener() {
-                    @Override
-                    public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                        Place place = dataSnapshot.getValue(Place.class);
-
-                        if (place.getIdAsString().equals(current)) {
-                            assertEquals("aaa", place.getName());
-                            assertEquals("bbb", place.getDescription());
-                            assertEquals("ccc", place.getTags());
-                            assertEquals(10, place.getLatitude(), 0.01);
-                            assertEquals(100, place.getLongitude(), 0.01);
-                        }
-                    }
-                });
-
-                reference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        myRef.child("places").child(current).removeValue();
-                        myRef.child("maxidplaces").setValue(Integer.parseInt(current));
-                    }
-                });
+                saveConvertedPlace(null,
+                        new Place(100, "aaa", "bbb", "ccc", 10, 100));
+                validate(myRef, current);
             }
         });
 
@@ -177,31 +155,10 @@ public class DatabaseManagerPlacesTest extends ActivityInstrumentationTestCase2<
             public void onDataChange(DataSnapshot dataSnapshot) {
                 String current = dataSnapshot.getValue().toString();
 
-                saveCreatedPlace2(null, new Place(100, "aaa", "bbb", "ccc", 0, 0), new LatLng(10, 100));
-
-                DatabaseReference reference = myRef.child("places");
-                reference.addChildEventListener(new AbstractChildEventListener() {
-                    @Override
-                    public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                        Place place = dataSnapshot.getValue(Place.class);
-
-                        if (place.getIdAsString().equals(current)) {
-                            assertEquals("aaa", place.getName());
-                            assertEquals("bbb", place.getDescription());
-                            assertEquals("ccc", place.getTags());
-                            assertEquals(10, place.getLatitude(), 0.01);
-                            assertEquals(100, place.getLongitude(), 0.01);
-                        }
-                    }
-                });
-
-                reference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        myRef.child("places").child(current).removeValue();
-                        myRef.child("maxidplaces").setValue(Integer.parseInt(current));
-                    }
-                });
+                saveCreatedPlace2(null,
+                        new Place(100, "aaa", "bbb", "ccc", 0, 0),
+                        new LatLng(10, 100));
+                validate(myRef, current);
             }
         });
 
@@ -217,34 +174,39 @@ public class DatabaseManagerPlacesTest extends ActivityInstrumentationTestCase2<
             public void onDataChange(DataSnapshot dataSnapshot) {
                 String current = dataSnapshot.getValue().toString();
 
-                saveCreatedPlace(null, new Place(100, "aaa", "bbb", "ccc", 0, 0), new LatLng(10, 100));
-
-                DatabaseReference reference = myRef.child("places");
-                reference.addChildEventListener(new AbstractChildEventListener() {
-                    @Override
-                    public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                        Place place = dataSnapshot.getValue(Place.class);
-
-                        if (place.getIdAsString().equals(current)) {
-                            assertEquals("aaa", place.getName());
-                            assertEquals("bbb", place.getDescription());
-                            assertEquals("ccc", place.getTags());
-                            assertEquals(10, place.getLatitude(), 0.01);
-                            assertEquals(100, place.getLongitude(), 0.01);
-                        }
-                    }
-                });
-
-                reference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        myRef.child("places").child(current).removeValue();
-                        myRef.child("maxidplaces").setValue(Integer.parseInt(current));
-                    }
-                });
+                saveCreatedPlace(null,
+                        new Place(100, "aaa", "bbb", "ccc", 0, 0),
+                        new LatLng(10, 100));
+                validate(myRef, current);
             }
         });
 
         Thread.sleep(3000);
+    }
+
+    private void validate(DatabaseReference myRef, String current) {
+        DatabaseReference reference = myRef.child("places");
+        reference.addChildEventListener(new AbstractChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                Place place = dataSnapshot.getValue(Place.class);
+
+                if (place.getIdAsString().equals(current)) {
+                    assertEquals("aaa", place.getName());
+                    assertEquals("bbb", place.getDescription());
+                    assertEquals("ccc", place.getTags());
+                    assertEquals(10, place.getLatitude(), 0.01);
+                    assertEquals(100, place.getLongitude(), 0.01);
+                }
+            }
+        });
+
+        reference.addListenerForSingleValueEvent(new AbstractValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                myRef.child("places").child(current).removeValue();
+                myRef.child("maxidplaces").setValue(Integer.parseInt(current));
+            }
+        });
     }
 }

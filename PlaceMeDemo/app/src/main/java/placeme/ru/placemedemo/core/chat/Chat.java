@@ -46,7 +46,14 @@ public class Chat extends AppCompatActivity {
         setContentView(R.layout.activity_chat);
         initializeViews();
         Firebase.setAndroidContext(this);
-        final String[] chatPair = Controller.getChatPair(Chat.this).split(PAIR_DELIMITER);
+        String chatIdentifier = Controller.getChatPair(Chat.this);
+
+        if (chatIdentifier == null) {
+            finish();
+            return;
+        }
+
+        final String[] chatPair = chatIdentifier.split(PAIR_DELIMITER);
 
         if (chatPair.length < 2) {
             finish();
@@ -91,7 +98,10 @@ public class Chat extends AppCompatActivity {
     private void addMessageBox(String message, int type){
         TextView textView = new TextView(Chat.this);
         textView.setText(message);
-        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        LinearLayout.LayoutParams layoutParams =
+                new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT);
         layoutParams.weight = 1f;
 
         if (type == USER_MESSAGE) {

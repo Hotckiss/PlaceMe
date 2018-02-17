@@ -134,7 +134,6 @@ public class DatabaseManagerPlans {
                     DatabaseReference referenceNewReviews = getDatabaseChild(mBase, REVIEWS_KEY);
                     if (referenceNewReviews != null) {
                         if (reviews == null) {
-
                             referenceNewReviews = referenceNewReviews.child(placeId);
                             referenceNewReviews.setValue(review);
                         } else {
@@ -144,7 +143,6 @@ public class DatabaseManagerPlans {
                                 referenceNewReviews = referenceNewReviews.child(placeId);
                                 referenceNewReviews.setValue(review);
                             } else {
-
                                 referenceNewReviews = referenceNewReviews.child(placeId);
                                 referenceNewReviews.setValue(allReviews + TUPLE_DELIMITER + review);
                             }
